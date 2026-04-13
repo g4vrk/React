@@ -1,0 +1,15 @@
+name: SolarAI
+version: 1.0
+main: ai.solar.kirill.SolarAI
+api-version: '1.16'
+author: Kirill (@jdk_24)
+website: t.me/kunidev
+permissions:
+  solarai.alerts:
+    default: op
+  solarai.admin:
+    default: op
+commands:
+  solar:
+    aliases: [sai, solai]
+    usage: "/<command> [alerts|crash|reload|menu]"

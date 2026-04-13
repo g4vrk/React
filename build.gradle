@@ -1,0 +1,105 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'com.g4vrk'
+version = '1.0.0'
+
+repositories {
+
+//    кароче смотри,
+//    у меня либа лежит в локале, и если те надо писать будет его то пиши мне
+//    я скину ласт либу и добнеш ее в ~/libs/
+//    а тут я делаю mavenLocal()
+
+    mavenLocal()
+    mavenCentral()
+
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
+    maven {
+        name = "codemc-public"
+        url = "https://repo.codemc.io/repository/maven-public/"
+    }
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compileOnly "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
+
+    implementation "com.github.retrooper:packetevents-spigot:2.11.0"
+
+    implementation "com.squareup.moshi:moshi:1.15.0"
+    implementation "com.squareup.moshi:moshi-adapters:1.15.0"
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
+
+    implementation "org.ejml:ejml-core:0.41"
+    implementation "org.ejml:ejml-ddense:0.41"
+    implementation "org.ejml:ejml-simple:0.41"
+
+    // g4vrk libs
+    implementation "com.g4vrk:FunctionalCommand:1.0.1"
+    implementation "com.g4vrk:FunctionalActions:1.0.0"
+    implementation "com.g4vrk:FunctionalMenu-packet:1.0.0"
+
+    implementation "org.xerial:sqlite-jdbc:3.42.0.0"
+
+    // lombok
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
+}
+
+
+def targetJavaVersion = 21
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.fork = false
+    options.incremental = false
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+tasks.named('shadowJar') {
+    archiveClassifier.set('')
+
+    relocate 'com.squareup.moshi', 'com.g4vrk.react.shadow.moshi'
+    relocate 'okhttp3', 'com.g4vrk.react.shadow.okhttp'
+    relocate 'org.ejml', 'com.g4vrk.react.shadow.ejml'
+    relocate 'org.xerial', 'com.g4vrk.react.shadow.xerial'
+}
+
+tasks.named('jar') {
+    enabled = false
+}
+
+tasks.build {
+    dependsOn tasks.shadowJar
+}

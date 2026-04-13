@@ -1,0 +1,53 @@
+no-permission: "&8[&3SolarAI&8] &fУ вас нет прав для использования этой команды."
+player-only-command: "&8[&3SolarAI&8] &fЭту команду может использовать только игрок."
+unknown-subcommand: "&8[&3SolarAI&8] &fНеизвестная подкоманда. Используйте /sai для помощи."
+player-not-found: "&8[&3SolarAI&8] &fИгрок '%player%' ещё ни разу не заходил на этот сервер."
+
+alerts:
+  message: "&8[&3SolarAI&8] &f%player% prob=%probability% | VL=%vl%"
+  toggled-on: "&8[&3SolarAI&8] &fОповещения SolarAI включены."
+  toggled-off: "&8[&3SolarAI&8] &fОповещения SolarAI выключены."
+
+help:
+  header: "&b>>> SolarAI Help <<<"
+  entry: "&6%usage% &f- %description%"
+
+commands:
+  alerts:
+    help-usage: "/solar alerts"
+    help-description: "Включить/выключить оповещения для себя"
+
+  reload:
+    success: "&aКонфигурация и язык SolarAI успешно перезагружены."
+  crash:
+    usage: "&cИспользование: /solar crash <игрок> [режим]"
+    modes-description: "&eРежимы: entities (спавн сущностей), explosion (мощный взрыв), particles (перегрузка частиц), custompayload (повреждённые пакеты)"
+    player-not-found: "&cИгрок не найден: %player%"
+    cannot-crash-self: "&cНельзя крашнуть свой собственный клиент!"
+    unknown-mode: "&cНеизвестный режим. Доступные режимы: entities, explosion, particles, custompayload"
+    success: "&aИнициализация краша %player% методом %mode%"
+    failed: "&cНе удалось крашнуть: %error%"
+    help-usage: "/solar crash <игрок> [режим]"
+    help-description: "Краш клиента игрока различными методами"
+
+console:
+  ml-flag: "[SolarAI] ML flag: %player% prob=%prob% VL=%vl%"
+  check-flag: "[SolarAI] Check: %player% check=%check% VL=%vl%"
+
+gui:
+  title: "&8Курятник"
+  previous-page: "&#f6d365❮ Предыдущая"
+  next-page: "&#f6d365Следующая ❯"
+  page-info: "&#ffffffСтраница %page% из %total%"
+  head:
+    name: "&#00FFFF▶ &f%player%"
+    last-checks: "&#00BFFFПоследние проверки:"
+    average-risk: "&#00BFFFСредний риск:"
+    avg-prefix: "&#FFD700AVG "
+    last-hit: "&#00BFFFПоследний удар:"
+    time-none: "&fНет данных"
+    time-sec: "&f%time% сек."
+    time-min: "&f%time% мин."
+    spectate: "&#00FFFF▶ &fНажмите, чтобы следить"
+  teleport: "&#00FF00Телепортация к %player%"
+  offline: "&#FF0000Игрок оффлайн."

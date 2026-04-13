@@ -1,0 +1,30 @@
+# Compiled class files
+*.class
+
+# Maven/Gradle build folders
+target/
+build/
+.gradle/
+.idea/
+
+
+# IDE folders
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Minecraft specific
+plugins/*.jar

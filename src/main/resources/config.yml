@@ -1,0 +1,82 @@
+#                      Конфигурация SolarAI
+#                    Облачный античит с ИИ
+#                        Website:
+
+# Язык, используемый для всех сообщений плагина.
+#
+language: "ru"
+
+server:
+  url: "http://109.172.47.96:8065"
+  api-key: "ReactAI-<ключ>"
+  timeout: 30
+
+# Настройки базы данных
+database:
+  # Автоматическая очистка старых записей
+  auto-cleanup: true
+  # Хранить записи не старше (в днях)
+  keep-days: 7
+
+#              Настройки модуля машинного обучения (ML)
+ml-check:
+  # Включить/выключить основной модуль анализа?
+  enabled: true
+
+  # Количество кадров, отправляемых на анализ. !!! НЕ МЕНЯТЬ !!!
+  frames-to-analyze: 150
+
+  # Порог уверенности модели ИИ для фиксации нарушения (0.0 - 1.0).
+  classification-threshold: 0.80
+
+  # Количество очков нарушений (VL), добавляемое за одно срабатывание.
+  vl-increment: 0.5
+
+  # Порог VL для наказания (используется ТОЛЬКО для режимов 'INSTANT' и 'ANIMATED').
+  violation-threshold: 7
+
+  # "Окно" жизни одного флага в секундах. VL от флага плавно исчезнет за это время.
+  window: 600
+
+  # Запись движений мыши.
+  combat-timer-seconds: 10
+
+#                   Настройки оповещений (Alerts)
+alerts:
+  # Включить оповещения для администрации?
+  enabled: true
+  # Право, необходимое для получения оповещений.
+  permission: "solarai.alerts"
+
+auto-punishment:
+  # Режим автоматического наказания. Выберите один:
+  #
+  #   INSTANT - Мгновенное наказание. Выполняет команду, указанную ниже.
+  #
+  #   PROGRESSIVE - Прогрессивные наказания. Использует несколько порогов и команд из секции 'progressive-punishment'.
+  #
+  #   ALERTS_ONLY - Только оповещения. Не наказывает игроков автоматически.
+  #
+  mode: PROGRESSIVE
+
+  # Команда, которая выполняется ТОЛЬКО для режима 'INSTANT'.
+  command: "ban %player% Your account has been blocked by the SolarAI system."
+
+# Настройки для режима 'PROGRESSIVE'
+progressive-punishment:
+  # Сбрасывать ли VL до 0 после наказания?
+  reset-vl-after-punishment: true
+  # Список шагов наказания. Должны идти по возрастанию порога (threshold).
+  steps:
+    - threshold: 1
+      command: "say читер какой-то %player%"
+    - threshold: 5
+      command: "tempban %player% 1h &cCHEAT LOL"
+    - threshold: 8
+      command: "tempban %player% 1d &cCHEAT LOL"
+    - threshold: 10
+      command: "ban %player% &cCHEAT LOL"
+
+
+
+
