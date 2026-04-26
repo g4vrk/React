@@ -17,9 +17,7 @@ public class ConnectionListener extends PacketListenerAbstract {
 
     @Override
     public void onUserLogin(UserLoginEvent event) {
-
         final User user = event.getUser();
-        if (user.getUUID() == null) return;
 
         final LocalPlayer entity = new LocalPlayer(
                 user.getUUID(),
@@ -32,9 +30,7 @@ public class ConnectionListener extends PacketListenerAbstract {
 
     @Override
     public void onUserDisconnect(UserDisconnectEvent event) {
-
         final User user = event.getUser();
-        if (user.getUUID() == null) return;
 
         PlayerRegistry.removePlayer(user.getUUID());
     }
