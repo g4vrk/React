@@ -10,6 +10,7 @@ import java.time.Duration;
 @Getter
 public final class MLClientSettings extends HttpClientSettings {
 
+    private final boolean enabled;
     private final String serverUrl;
     private final String apiKey;
 
@@ -20,10 +21,12 @@ public final class MLClientSettings extends HttpClientSettings {
             @NotNull Duration callTimeout,
             boolean retryOnFailure,
             @NotNull ConnectionPool connectionPool,
+            boolean enabled,
             @NotNull String serverUrl,
             @NotNull String apiKey
     ) {
         super(connectTimeout, readTimeout, writeTimeout, callTimeout, retryOnFailure, connectionPool);
+        this.enabled = enabled;
         this.serverUrl = serverUrl;
         this.apiKey = apiKey;
     }
