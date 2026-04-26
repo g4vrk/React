@@ -1,8 +1,10 @@
-package com.g4vrk.react.player;
+package com.g4vrk.react.ml.check;
 
 import com.g4vrk.react.game.Rotation;
+import com.g4vrk.react.ml.check.processor.MLCheckProcessor;
+import com.g4vrk.react.player.LocalPlayer;
+import com.g4vrk.react.player.PlayerActivity;
 import com.g4vrk.react.runner.TaskRunner;
-import com.g4vrk.react.ml.check.MLCheckProcessor;
 import org.jetbrains.annotations.NotNull;
 
 public final class MLCheck {
@@ -21,7 +23,7 @@ public final class MLCheck {
         this.threshold = threshold;
     }
 
-    public void onFrame(
+    public void onRotation(
             final @NotNull LocalPlayer player,
             final @NotNull PlayerActivity activity,
             final @NotNull Rotation rotation

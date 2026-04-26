@@ -1,7 +1,8 @@
 package com.g4vrk.react.listeners;
 
 import com.g4vrk.react.game.Rotation;
-import com.g4vrk.react.player.MLCheck;
+import com.g4vrk.react.ml.check.MLCheck;
+import com.g4vrk.react.player.PlayerActivity;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
@@ -26,9 +27,9 @@ public final class PacketListener extends PacketListenerAbstract {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
 
-        final boolean isFlyPacket = WrapperPlayClientPlayerFlying.isFlying(event.getPacketType());
+        final boolean movePacket = WrapperPlayClientPlayerFlying.isFlying(event.getPacketType());
 
-        if (event.getConnectionState() != ConnectionState.PLAY || !isFlyPacket) return;
+        if (event.getConnectionState() != ConnectionState.PLAY || !movePacket) return;
 
         final WrapperPlayClientPlayerFlying flying;
         try {
@@ -43,7 +44,8 @@ public final class PacketListener extends PacketListenerAbstract {
         if (user.getUUID() == null) return;
 
         final LocalPlayer entity = PlayerRegistry.getPlayer(user.getUUID());
-        if (entity == null) return;
+        final PlayerActivity activity = PlayerRegistry.getActivity(user.getUUID());
+        if (entity == null || activity == null) return;
 
         final RotationState rotationState = entity.getMovement();
 
@@ -76,6 +78,6 @@ public final class PacketListener extends PacketListenerAbstract {
 
         entity.addRotation(rotation);
 
-        analyzer.onFrame(entity, rotation);
+        analyzer.onRotation(entity, activity, rotation);
     }
 }

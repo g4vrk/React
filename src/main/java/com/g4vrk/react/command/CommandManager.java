@@ -1,7 +1,6 @@
 package com.g4vrk.react.command;
 
 import com.g4vrk.react.command.impl.ReloadCommand;
-import com.g4vrk.react.command.impl.ClearDataCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

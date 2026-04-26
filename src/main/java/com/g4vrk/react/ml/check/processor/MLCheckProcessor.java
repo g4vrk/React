@@ -1,4 +1,4 @@
-package com.g4vrk.react.ml.check;
+package com.g4vrk.react.ml.check.processor;
 
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.player.LocalPlayer;
@@ -49,7 +49,7 @@ public final class MLCheckProcessor {
 
         final Map<String, Object> payload = Map.of(
                 "name", entity.getName(),
-                "rotations", rotations
+                "frames", rotations
         );
 
         final String json = requestAdapter.toJson(payload);

@@ -13,12 +13,9 @@ public enum Language {
     public static @NotNull Language resolve() {
         try {
             final String languageStr = System.getProperty("user.language").toUpperCase();
-            final Language language = Language.valueOf(languageStr);
 
-            LOGGER.info("Language successfully resolved, selected language: {}", languageStr);
-
-            return language;
-        } catch (Exception ignored) {
+            return Language.valueOf(languageStr);
+        } catch (final Throwable ignored) {
             return EN;
         }
     }

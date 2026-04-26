@@ -84,8 +84,8 @@ public final class YamlConfigManager {
             while ((len = in.read(buffer)) > 0) {
                 out.write(buffer, 0, len);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to copy config", e);
+        } catch (final IOException ex) {
+            throw new RuntimeException("Failed to copy config", ex);
         }
     }
 }

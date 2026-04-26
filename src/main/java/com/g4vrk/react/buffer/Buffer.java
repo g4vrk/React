@@ -17,9 +17,10 @@ public final class Buffer<T> implements Iterable<T> {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public Buffer(int capacity) {
-        if (capacity <= 0)
-            throw new IllegalArgumentException("capacity must be > 0");
+    public Buffer(
+            int capacity
+    ) {
+        if (capacity <= 0) throw new IllegalArgumentException("capacity must be higher than 0");
 
         this.capacity = capacity;
         this.buffer = new Object[capacity];
