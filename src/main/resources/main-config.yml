@@ -1,3 +1,5 @@
+debug: true
+
 ml-server:
   enabled: true
   server-url: "localhost:8080"
