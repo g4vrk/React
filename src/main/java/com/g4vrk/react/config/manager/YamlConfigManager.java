@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class YamlConfigManager {
 
-    private static final String YML_FILE_FORMAT = ".yml";
+    public static final String YML_FILE_FORMAT = ".yml";
 
     private final Plugin plugin;
     private final Map<String, YamlConfig> configs = new ConcurrentHashMap<>();
@@ -36,15 +36,19 @@ public final class YamlConfigManager {
     }
 
     private @NotNull YamlConfig createAndLoad(final @NotNull String name) {
-        final File file = new File(plugin.getDataFolder(), name + YML_FILE_FORMAT);
+        final String fileName = name.endsWith(YML_FILE_FORMAT)
+                ? name.substring(0, name.length() - YML_FILE_FORMAT.length())
+                : name;
+
+        final File file = new File(plugin.getDataFolder(), fileName + YML_FILE_FORMAT);
 
         //noinspection ResultOfMethodCallIgnored
         plugin.getDataFolder().mkdirs();
 
-        final String langPath = name + "/" + language.name().toLowerCase() + YML_FILE_FORMAT;
-        final String fallbackPath = name + "/ru" + YML_FILE_FORMAT;
+        final String langPath = fileName + "/" + language.name().toLowerCase() + YML_FILE_FORMAT;
+        final String fallbackPath = fileName + "/ru" + YML_FILE_FORMAT;
 
-        String usedPath;
+        final String usedPath;
 
         InputStream resource = plugin.getResource(langPath);
 
@@ -56,7 +60,7 @@ public final class YamlConfigManager {
         }
 
         if (resource == null) {
-            throw new IllegalStateException("Missing resource: " + name);
+            throw new IllegalStateException("Missing resource: " + fileName + YML_FILE_FORMAT);
         }
 
         if (!file.exists()) copy(resource, file);
@@ -76,7 +80,10 @@ public final class YamlConfigManager {
         return config;
     }
 
-    private void copy(final @NotNull InputStream in, final @NotNull File file) {
+    private void copy(
+            final @NotNull InputStream in,
+            final @NotNull File file
+    ) {
         try (in; OutputStream out = new FileOutputStream(file)) {
             byte[] buffer = new byte[8192];
 
