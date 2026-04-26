@@ -41,7 +41,6 @@ public final class PacketListener extends PacketListenerAbstract {
         if (!flying.hasRotationChanged()) return;
 
         final User user = event.getUser();
-        if (user.getUUID() == null) return;
 
         final LocalPlayer entity = PlayerRegistry.getPlayer(user.getUUID());
         final PlayerActivity activity = PlayerRegistry.getActivity(user.getUUID());
