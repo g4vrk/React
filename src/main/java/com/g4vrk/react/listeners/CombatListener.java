@@ -12,7 +12,9 @@ public class CombatListener implements Listener {
 
     private final long combatTicks;
 
-    public CombatListener(long combatTicks) {
+    public CombatListener(
+            long combatTicks
+    ) {
         this.combatTicks = combatTicks;
     }
 
@@ -21,10 +23,10 @@ public class CombatListener implements Listener {
 
         if (!(event.getDamager() instanceof Player damager) || !(event.getEntity() instanceof Player victim)) return;
 
-        PlayerActivity a1 = PlayerRegistry.getActivity(damager.getUniqueId());
-        PlayerActivity a2 = PlayerRegistry.getActivity(victim.getUniqueId());
+        final PlayerActivity damagerActivity = PlayerRegistry.getActivity(damager.getUniqueId());
+        final PlayerActivity victimActivity = PlayerRegistry.getActivity(victim.getUniqueId());
 
-        if (a1 != null) a1.extend(combatTicks);
-        if (a2 != null) a2.extend(combatTicks);
+        if (damagerActivity != null) damagerActivity.extend(combatTicks);
+        if (victimActivity != null) victimActivity.extend(combatTicks);
     }
 }
