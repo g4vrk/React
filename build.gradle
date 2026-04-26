@@ -23,9 +23,6 @@ repositories {
         name = "codemc-public"
         url = "https://repo.codemc.io/repository/maven-public/"
     }
-    flatDir {
-        dirs 'libs'
-    }
 }
 
 dependencies {
@@ -44,9 +41,9 @@ dependencies {
     implementation "io.papermc:paperlib:1.0.8"
 
     // g4vrk libs
-    implementation "com.g4vrk:FunctionalCommand:1.0.1"
-    implementation "com.g4vrk:FunctionalActions:1.0.0"
-    implementation "com.g4vrk:FunctionalMenu-packet:1.0.0"
+//    implementation "com.g4vrk:FunctionalCommand:1.0.1"
+//    implementation "com.g4vrk:FunctionalActions:1.0.0"
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     compileOnly "org.spongepowered:configurate-yaml:4.2.0"
 
