@@ -27,6 +27,7 @@ public class AngleMath {
 
         float gcd = calculateGCD(Math.abs(delta));
         float remainder = Math.abs(delta) % gcd;
+
         return remainder / gcd;
     }
 
