@@ -1,15 +1,26 @@
-name: SolarAI
-version: 1.0
-main: ai.solar.kirill.SolarAI
+
+name: ReactAC
+version: "1.0.0"
+
+main: com.g4vrk.react.ReactPlugin
 api-version: '1.16'
-author: Kirill (@jdk_24)
-website: t.me/kunidev
+
+softdepend:
+  - PacketEvents
+
+authors:
+  - g4vrk
+
+website: t.me/react_ac
+
 permissions:
-  solarai.alerts:
+  react.alerts:
     default: op
-  solarai.admin:
+  react.admin:
     default: op
-commands:
-  solar:
-    aliases: [sai, solai]
-    usage: "/<command> [alerts|crash|reload|menu]"
+
+libraries:
+  - com.squareup.moshi:moshi:1.15.0
+  - com.squareup.moshi:moshi-adapters:1.15.0
+  - org.spongepowered:configurate-yaml:4.2.0
+

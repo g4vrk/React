@@ -1,0 +1,13 @@
+ml-server:
+  enabled: true
+  server-url: "localhost:8080"
+  api-key: "NONE"
+  client:
+    connect-timeout: 10s
+    read-timeout: 10s
+    write-timeout: 10s
+    call-timeout: 10s
+    retry-on-failure: true
+    connection-pool:
+      max-idle-connections: 5
+      keep-alive-duration: 5m
