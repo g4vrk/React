@@ -6,12 +6,18 @@ import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.g4vrk.react.player.LocalPlayer;
 import com.g4vrk.react.player.PlayerRegistry;
+import org.jetbrains.annotations.NotNull;
 
 public class ConnectionListener extends PacketListenerAbstract {
 
+    private final PlayerRegistry playerRegistry;
     private final int bufferSize;
 
-    public ConnectionListener(int bufferSize) {
+    public ConnectionListener(
+            @NotNull PlayerRegistry playerRegistry,
+            int bufferSize
+    ) {
+        this.playerRegistry = playerRegistry;
         this.bufferSize = bufferSize;
     }
 
@@ -25,13 +31,13 @@ public class ConnectionListener extends PacketListenerAbstract {
                 bufferSize
         );
 
-        PlayerRegistry.addPlayer(user.getUUID(), entity);
+        playerRegistry.addPlayer(user.getUUID(), entity);
     }
 
     @Override
     public void onUserDisconnect(UserDisconnectEvent event) {
         final User user = event.getUser();
 
-        PlayerRegistry.removePlayer(user.getUUID());
+        playerRegistry.removePlayer(user.getUUID());
     }
 }
