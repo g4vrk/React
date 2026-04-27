@@ -5,6 +5,7 @@ import com.g4vrk.react.config.lang.Language;
 import com.g4vrk.react.config.manager.YamlConfigManager;
 import com.g4vrk.react.config.values.ConfigValues;
 import com.g4vrk.react.ml.server.MLServer;
+import com.g4vrk.react.player.PlayerRegistry;
 import com.g4vrk.react.runner.factory.TaskRunnerFactory;
 import com.g4vrk.react.runner.folia.factory.FoliaTaskRunnerFactory;
 import com.g4vrk.react.runner.paper.factory.PaperTaskRunnerFactory;
@@ -30,6 +31,8 @@ public class React {
 
     private Plugin plugin;
 
+    private PlayerRegistry playerRegistry;
+
     private YamlConfigManager yamlConfigManager;
 
     private YamlConfig mainConfig;
@@ -49,6 +52,8 @@ public class React {
         this.mainConfig = yamlConfigManager.getConfig(MAIN_CONFIG_NAME);
 
         this.configValues = new ConfigValues(mainConfig);
+
+        this.playerRegistry = new PlayerRegistry(150); // TODO: make this configurable
 
         this.taskRunnerFactory = ServerVersion.isFolia()
                 ? new FoliaTaskRunnerFactory(plugin)
