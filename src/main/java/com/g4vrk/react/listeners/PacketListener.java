@@ -3,6 +3,7 @@ package com.g4vrk.react.listeners;
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.ml.check.MLCheck;
 import com.g4vrk.react.player.PlayerActivity;
+import com.g4vrk.react.player.PlayerRegistry;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
@@ -10,18 +11,20 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.g4vrk.react.game.AngleMath;
 import com.g4vrk.react.player.LocalPlayer;
-import com.g4vrk.react.player.PlayerRegistry;
 import com.g4vrk.react.player.RotationState;
 import org.jetbrains.annotations.NotNull;
 
 public final class PacketListener extends PacketListenerAbstract {
-
-    private final MLCheck analyzer;
+    
+    private final PlayerRegistry playerRegistry;
+    private final MLCheck mlCheck;
 
     public PacketListener(
-            final @NotNull MLCheck analyzer
+            final @NotNull PlayerRegistry playerRegistry,
+            final @NotNull MLCheck mlCheck
     ) {
-        this.analyzer = analyzer;
+        this.playerRegistry = playerRegistry;
+        this.mlCheck = mlCheck;
     }
 
     @Override
@@ -42,8 +45,8 @@ public final class PacketListener extends PacketListenerAbstract {
 
         final User user = event.getUser();
 
-        final LocalPlayer entity = PlayerRegistry.getPlayer(user.getUUID());
-        final PlayerActivity activity = PlayerRegistry.getActivity(user.getUUID());
+        final LocalPlayer entity = playerRegistry.getPlayer(user.getUUID());
+        final PlayerActivity activity = playerRegistry.getActivity(user.getUUID());
         if (entity == null || activity == null) return;
 
         final RotationState rotationState = entity.getMovement();
@@ -77,6 +80,6 @@ public final class PacketListener extends PacketListenerAbstract {
 
         entity.addRotation(rotation);
 
-        analyzer.onRotation(entity, activity, rotation);
+        mlCheck.onRotation(entity, activity, rotation);
     }
 }
