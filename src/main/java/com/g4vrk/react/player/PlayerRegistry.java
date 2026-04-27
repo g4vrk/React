@@ -2,6 +2,8 @@ package com.g4vrk.react.player;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
@@ -9,40 +11,47 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class PlayerRegistry {
 
-    private static final Map<UUID, LocalPlayer> PLAYERS = new ConcurrentHashMap<>();
-    private static final Map<UUID, PlayerActivity> ACTIVITY = new ConcurrentHashMap<>();
+    private final int bufferSize;
 
-    public static void addPlayer(UUID uuid, LocalPlayer entity) {
-        PLAYERS.put(uuid, entity);
-        ACTIVITY.put(uuid, new PlayerActivity());
+    private final Map<UUID, LocalPlayer> players = new ConcurrentHashMap<>();
+
+    public PlayerRegistry(
+            int bufferSize
+    ) {
+        this.bufferSize = bufferSize;
     }
 
-    public static void removePlayer(UUID uuid) {
-        PLAYERS.remove(uuid);
-        ACTIVITY.remove(uuid);
+    public void addPlayer(
+            final @NotNull UUID uuid,
+            final @NotNull LocalPlayer entity
+    ) {
+        players.put(uuid, entity);
     }
 
-    public static LocalPlayer getPlayer(UUID uuid) {
-        LocalPlayer entity = PLAYERS.get(uuid);
+    public void removePlayer(
+            final @NotNull UUID uuid
+    ) {
+        players.remove(uuid);
+    }
 
-        if (entity == null) {
+    public @Nullable LocalPlayer getPlayer(
+            final @NotNull UUID uuid
+    ) {
+        return players.computeIfAbsent(uuid, uniqueId -> {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) return null;
 
-            entity = new LocalPlayer(
+            return new LocalPlayer(
                     player.getUniqueId(),
                     player.getName(),
-                    150
+                    bufferSize
             );
-
-            PLAYERS.put(uuid, entity);
-            ACTIVITY.put(uuid, new PlayerActivity());
-        }
-
-        return entity;
+        });
     }
 
-    public static PlayerActivity getActivity(UUID uuid) {
-        return ACTIVITY.get(uuid);
+    public @Nullable PlayerActivity getActivity(
+            final @NotNull UUID uuid
+    ) {
+        return players.get(uuid).getActivity();
     }
 }
