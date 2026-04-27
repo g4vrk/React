@@ -111,6 +111,6 @@ public final class MLCheckProcessor {
 //        plugin.getViolationManager()
 //                .handleViolation(entity, probability);
 
-        entity.clearRotation();
+        entity.clearRotations();
     }
 }
