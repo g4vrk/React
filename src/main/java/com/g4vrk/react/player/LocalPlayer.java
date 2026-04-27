@@ -10,19 +10,20 @@ import java.util.UUID;
 @Getter
 public final class LocalPlayer {
 
-    private final UUID uuid;
+    private final UUID uniqueId;
     private final String name;
 
+    private final PlayerActivity activity = new PlayerActivity();
     private final RotationState movement = new RotationState();
 
     private final Buffer<Rotation> rotations;
 
     public LocalPlayer(
-            @NotNull UUID uuid,
+            @NotNull UUID uniqueId,
             @NotNull String name,
             int bufferSize
     ) {
-        this.uuid = uuid;
+        this.uniqueId = uniqueId;
         this.name = name;
         this.rotations = new Buffer<>(bufferSize);
     }
@@ -41,7 +42,7 @@ public final class LocalPlayer {
         return rotations.snapshot();
     }
 
-    public void clearRotation() {
+    public void clearRotations() {
         rotations.clear();
     }
 }
