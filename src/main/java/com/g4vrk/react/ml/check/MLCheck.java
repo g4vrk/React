@@ -36,7 +36,7 @@ public final class MLCheck {
 
         taskRunner.runTaskAsynchronously(() -> {
             mlCheckProcessor.check(player);
-            player.clearRotation();
+            player.clearRotations();
             activity.clear();
         });
     }
