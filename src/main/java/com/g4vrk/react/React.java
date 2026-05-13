@@ -9,7 +9,7 @@ import com.g4vrk.react.player.PlayerRegistry;
 import com.g4vrk.react.runner.factory.TaskRunnerFactory;
 import com.g4vrk.react.runner.folia.factory.FoliaTaskRunnerFactory;
 import com.g4vrk.react.runner.paper.factory.PaperTaskRunnerFactory;
-import com.g4vrk.react.version.ServerVersion;
+import com.g4vrk.react.version.FoliaChecker;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,7 +55,7 @@ public class React {
 
         this.playerRegistry = new PlayerRegistry(150); // TODO: make this configurable
 
-        this.taskRunnerFactory = ServerVersion.isFolia()
+        this.taskRunnerFactory = FoliaChecker.isFolia()
                 ? new FoliaTaskRunnerFactory(plugin)
                 : new PaperTaskRunnerFactory(plugin);
 
