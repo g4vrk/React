@@ -39,6 +39,15 @@ public class PaperTaskRunner extends AbstractTaskRunner {
     }
 
     @Override
+    public void runTaskLaterAsynchronously(long durationTicks, @NotNull Runnable runnable) {
+        this.scheduler.runTaskLaterAsynchronously(
+                super.getPlugin(),
+                runnable,
+                durationTicks
+        );
+    }
+
+    @Override
     public void runGlobally(@NotNull Runnable runnable) {
         runTask(runnable);
     }
