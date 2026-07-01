@@ -3,7 +3,7 @@ package com.g4vrk.react.ml.check;
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.ml.check.processor.MLCheckProcessor;
 import com.g4vrk.react.player.LocalPlayer;
-import com.g4vrk.react.player.PlayerActivity;
+import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.runner.TaskRunner;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,10 +25,10 @@ public final class MLCheck {
 
     public void onRotation(
             final @NotNull LocalPlayer player,
-            final @NotNull PlayerActivity activity,
+            final @NotNull CombatActivity combatActivity,
             final @NotNull Rotation rotation
     ) {
-        if (!activity.isActive()) return;
+        if (!combatActivity.isActive()) return;
 
         player.addRotation(rotation);
 
@@ -37,7 +37,7 @@ public final class MLCheck {
         taskRunner.runTaskAsynchronously(() -> {
             mlCheckProcessor.check(player);
             player.clearRotations();
-            activity.clear();
+            combatActivity.clear();
         });
     }
 }

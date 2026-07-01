@@ -13,7 +13,7 @@ public final class LocalPlayer {
     private final UUID uniqueId;
     private final String name;
 
-    private final PlayerActivity activity = new PlayerActivity();
+    private final CombatActivity combatActivity = new CombatActivity();
     private final RotationState movement = new RotationState();
 
     private final Buffer<Rotation> rotations;

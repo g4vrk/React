@@ -2,7 +2,7 @@ package com.g4vrk.react.listeners;
 
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.ml.check.MLCheck;
-import com.g4vrk.react.player.PlayerActivity;
+import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.PlayerRegistry;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -46,8 +46,8 @@ public final class PacketListener extends PacketListenerAbstract {
         final User user = event.getUser();
 
         final LocalPlayer entity = playerRegistry.getPlayer(user.getUUID());
-        final PlayerActivity activity = playerRegistry.getActivity(user.getUUID());
-        if (entity == null || activity == null) return;
+        final CombatActivity combatActivity = playerRegistry.getActivity(user.getUUID());
+        if (entity == null || combatActivity == null) return;
 
         final RotationState rotationState = entity.getMovement();
 
@@ -80,6 +80,6 @@ public final class PacketListener extends PacketListenerAbstract {
 
         entity.addRotation(rotation);
 
-        mlCheck.onRotation(entity, activity, rotation);
+        mlCheck.onRotation(entity, combatActivity, rotation);
     }
 }

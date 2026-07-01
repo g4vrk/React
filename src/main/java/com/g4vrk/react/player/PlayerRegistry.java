@@ -49,9 +49,9 @@ public final class PlayerRegistry {
         });
     }
 
-    public @Nullable PlayerActivity getActivity(
+    public @Nullable CombatActivity getActivity(
             final @NotNull UUID uuid
     ) {
-        return players.get(uuid).getActivity();
+        return players.get(uuid).getCombatActivity();
     }
 }

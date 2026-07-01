@@ -3,7 +3,7 @@ package com.g4vrk.react.player;
 import lombok.Getter;
 
 @Getter
-public final class PlayerActivity {
+public final class CombatActivity {
 
     private volatile long activityUntil = 0L;
 
