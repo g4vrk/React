@@ -71,6 +71,7 @@ public final class Buffer<T> implements Iterable<T> {
     public void clear() {
         lock.writeLock().lock();
         try {
+            //noinspection deprecation
             ObjectArrays.fill(buffer, null);
             head = 0;
             size = 0;
