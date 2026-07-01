@@ -53,7 +53,7 @@ public class React {
 
         this.configValues = new ConfigValues(mainConfig);
 
-        this.playerRegistry = new PlayerRegistry(150); // TODO: make this configurable
+        this.playerRegistry = new PlayerRegistry(configValues.getBufferSize());
 
         this.taskRunnerFactory = FoliaChecker.isFolia()
                 ? new FoliaTaskRunnerFactory(plugin)

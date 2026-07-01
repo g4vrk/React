@@ -12,11 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
 
 @Getter
-public class ConfigValues {
-    @Getter(AccessLevel.NONE) private final YamlConfig mainConfig;
+public final class ConfigValues {
+    @Getter(AccessLevel.NONE)
+    private final YamlConfig mainConfig;
 
     private MLClientSettings mlClientSettings;
     private boolean debugEnabled;
+    private int bufferSize;
 
     public ConfigValues(
             final @NotNull YamlConfig mainConfig
@@ -28,6 +30,8 @@ public class ConfigValues {
         final ConfigurationNode root = mainConfig.getRoot();
 
         this.debugEnabled = root.node("debug").getBoolean(false);
+        final ConfigurationNode mlCheckNode = root.node("ml-check");
+        this.bufferSize = mlCheckNode.node("buffer-size").getInt(150);
 
         setupMLClientSettings(root);
     }
