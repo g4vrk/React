@@ -1,4 +1,4 @@
-package com.g4vrk.react.listeners;
+package com.g4vrk.react.listeners.packet;
 
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.ml.check.MLCheck;

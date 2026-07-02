@@ -1,4 +1,4 @@
-package com.g4vrk.react.listeners;
+package com.g4vrk.react.listeners.packet;
 
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.UserDisconnectEvent;

@@ -1,4 +1,4 @@
-package com.g4vrk.react.listeners;
+package com.g4vrk.react.listeners.bukkit;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
