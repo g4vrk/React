@@ -10,8 +10,8 @@ import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.g4vrk.react.game.AngleMath;
-import com.g4vrk.react.player.LocalPlayer;
-import com.g4vrk.react.player.RotationState;
+import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.RotationState;
 import org.jetbrains.annotations.NotNull;
 
 public final class PacketListener extends PacketListenerAbstract {

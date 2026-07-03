@@ -1,4 +1,4 @@
-package com.g4vrk.react.player;
+package com.g4vrk.react.player.model;
 
 import lombok.Getter;
 import lombok.Setter;

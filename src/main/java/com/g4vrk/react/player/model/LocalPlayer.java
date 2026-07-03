@@ -1,7 +1,8 @@
-package com.g4vrk.react.player;
+package com.g4vrk.react.player.model;
 
 import com.g4vrk.react.buffer.Buffer;
 import com.g4vrk.react.game.Rotation;
+import com.g4vrk.react.player.CombatActivity;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 

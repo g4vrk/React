@@ -1,5 +1,6 @@
 package com.g4vrk.react.player;
 
+import com.g4vrk.react.player.model.LocalPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

@@ -14,6 +14,9 @@ ml-server:
       max-idle-connections: 5
       keep-alive-duration: 5m
 
+alerts:
+  format: "&c«ReactAI» &7| &fИгрок {player} провалил {check} &8{verbose}"
+
 ml-check:
   buffer: 250
 

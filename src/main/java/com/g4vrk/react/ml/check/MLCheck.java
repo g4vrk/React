@@ -2,7 +2,7 @@ package com.g4vrk.react.ml.check;
 
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.ml.check.processor.MLCheckProcessor;
-import com.g4vrk.react.player.LocalPlayer;
+import com.g4vrk.react.player.model.LocalPlayer;
 import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.runner.TaskRunner;
 import org.jetbrains.annotations.NotNull;

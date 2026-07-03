@@ -1,12 +1,17 @@
 package com.g4vrk.react.ml.check.processor;
 
+import com.g4vrk.react.alert.printer.AlertPrinter;
+import com.g4vrk.react.color.resolver.ValueColorResolver;
+import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.game.Rotation;
-import com.g4vrk.react.player.LocalPlayer;
+import com.g4vrk.react.player.model.LocalPlayer;
 import com.g4vrk.react.ml.http.model.HttpRequest;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.moshi.MoshiHolder;
 import com.g4vrk.react.runner.TaskRunner;
 import com.squareup.moshi.JsonAdapter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -23,6 +28,9 @@ public final class MLCheckProcessor {
 
     private final Logger logger;
 
+    private final AlertPrinter alertPrinter;
+    private final ValueColorResolver colorResolver;
+
     private final MLServer mlServer;
     private final TaskRunner taskRunner;
 
@@ -31,10 +39,13 @@ public final class MLCheckProcessor {
 
     public MLCheckProcessor(
             @NotNull Logger logger,
+            @NotNull AlertPrinter alertPrinter,
             @NotNull MLServer mlServer,
             @NotNull TaskRunner taskRunner
     ) {
         this.logger = logger;
+        this.alertPrinter = alertPrinter;
+        this.colorResolver = new ProbabilityColorResolver();
         this.mlServer = mlServer;
         this.taskRunner = taskRunner;
         this.requestAdapter = MoshiHolder.REQUEST_ADAPTER;
@@ -99,17 +110,11 @@ public final class MLCheckProcessor {
             final @NotNull LocalPlayer entity,
             final double probability
     ) {
-//        final double threshold = SolarAI.getInstance()
-//                .getConfig()
-//                .getDouble("ml-check.classification-threshold");
+        final TextColor color = colorResolver.resolve(probability);
+        final Component verbose = Component.text(probability * 100.0D + "%")
+                .color(color);
 
-//        plugin.getViolationDatabase()
-//                .saveViolation(entity.getUuid(), entity.getName(), probability);
-//
-//        if (probability <= threshold) return;
-//
-//        plugin.getViolationManager()
-//                .handleViolation(entity, probability);
+        alertPrinter.print(entity, "MLCheck-Aim", verbose);
 
         entity.clearRotations();
     }

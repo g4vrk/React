@@ -4,7 +4,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.player.User;
-import com.g4vrk.react.player.LocalPlayer;
+import com.g4vrk.react.player.model.LocalPlayer;
 import com.g4vrk.react.player.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
