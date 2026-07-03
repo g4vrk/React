@@ -1,5 +1,6 @@
 package com.g4vrk.react.listeners.packet;
 
+import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
@@ -11,13 +12,16 @@ import org.jetbrains.annotations.NotNull;
 public class ConnectionListener extends PacketListenerAbstract {
 
     private final PlayerRegistry playerRegistry;
+    private final AlertPublisher alertPublisher;
     private final int bufferSize;
 
     public ConnectionListener(
             @NotNull PlayerRegistry playerRegistry,
+            @NotNull AlertPublisher alertPublisher,
             int bufferSize
     ) {
         this.playerRegistry = playerRegistry;
+        this.alertPublisher = alertPublisher;
         this.bufferSize = bufferSize;
     }
 
@@ -32,6 +36,8 @@ public class ConnectionListener extends PacketListenerAbstract {
         );
 
         playerRegistry.addPlayer(user.getUUID(), entity);
+
+        alertPublisher.flushAsync();
     }
 
     @Override
@@ -39,5 +45,7 @@ public class ConnectionListener extends PacketListenerAbstract {
         final User user = event.getUser();
 
         playerRegistry.removePlayer(user.getUUID());
+
+        alertPublisher.flushAsync();
     }
 }

@@ -6,7 +6,7 @@ main: com.g4vrk.react.ReactPlugin
 api-version: '1.16'
 
 softdepend:
-  - PacketEvents
+  - packetevents
 
 authors:
   - g4vrk

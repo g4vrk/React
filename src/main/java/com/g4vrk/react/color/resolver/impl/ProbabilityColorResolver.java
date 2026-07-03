@@ -13,7 +13,7 @@ public final class ProbabilityColorResolver implements ValueColorResolver {
 
     @Override
     public @NotNull TextColor resolve(double value, double min, double max) {
-        value = Math.clamp(value, min, max);
+        value = Math.min(max, Math.max(value, min));
 
         double normalized = (value - min) / (max - min);
 

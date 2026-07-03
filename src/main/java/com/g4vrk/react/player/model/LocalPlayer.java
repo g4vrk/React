@@ -26,7 +26,7 @@ public final class LocalPlayer {
     ) {
         this.uniqueId = uniqueId;
         this.name = name;
-        this.rotations = new Buffer<>(bufferSize);
+        this.rotations = new Buffer<>(bufferSize, Rotation[]::new);
     }
 
     public void addRotation(
