@@ -14,12 +14,12 @@ import com.g4vrk.react.player.model.LocalPlayer;
 import com.g4vrk.react.player.model.RotationState;
 import org.jetbrains.annotations.NotNull;
 
-public final class PacketListener extends PacketListenerAbstract {
+public final class RotationListener extends PacketListenerAbstract {
     
     private final PlayerRegistry playerRegistry;
     private final MLCheck mlCheck;
 
-    public PacketListener(
+    public RotationListener(
             final @NotNull PlayerRegistry playerRegistry,
             final @NotNull MLCheck mlCheck
     ) {
@@ -77,8 +77,6 @@ public final class PacketListener extends PacketListenerAbstract {
         rotationState.setDeltaPitch(deltaPitch);
         rotationState.setAccelYaw(accelYaw);
         rotationState.setAccelPitch(accelPitch);
-
-        entity.addRotation(rotation);
 
         mlCheck.onRotation(entity, combatActivity, rotation);
     }
