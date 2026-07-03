@@ -24,6 +24,8 @@ public final class ConfigValues {
             final @NotNull YamlConfig mainConfig
     ) {
         this.mainConfig = mainConfig;
+
+        this.setup();
     }
 
     private void setup() {
