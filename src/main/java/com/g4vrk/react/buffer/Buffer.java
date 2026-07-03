@@ -1,15 +1,17 @@
 package com.g4vrk.react.buffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.IntFunction;
 
 public final class Buffer<T> implements Iterable<T> {
 
     private final Object[] buffer;
+    private final IntFunction<T[]> arrayFactory;
     private final int capacity;
 
     private int head = 0;
@@ -17,13 +19,14 @@ public final class Buffer<T> implements Iterable<T> {
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public Buffer(
-            int capacity
-    ) {
-        if (capacity <= 0) throw new IllegalArgumentException("capacity must be higher than 0");
+    public Buffer(int capacity, @NotNull IntFunction<T[]> arrayFactory) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("capacity must be higher than 0");
+        }
 
         this.capacity = capacity;
         this.buffer = new Object[capacity];
+        this.arrayFactory = arrayFactory;
     }
 
     public void add(T value) {
@@ -54,7 +57,7 @@ public final class Buffer<T> implements Iterable<T> {
     public T[] snapshot() {
         lock.readLock().lock();
         try {
-            T[] out = (T[]) new Object[size];
+            T[] out = arrayFactory.apply(size);
 
             int start = (head - size + capacity) % capacity;
 
@@ -81,7 +84,7 @@ public final class Buffer<T> implements Iterable<T> {
     }
 
     @Override
-    public @NonNull Iterator<T> iterator() {
+    public @NotNull Iterator<T> iterator() {
         final Object[] snap = snapshot();
 
         return new Iterator<>() {
