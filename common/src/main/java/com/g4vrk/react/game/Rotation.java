@@ -4,15 +4,11 @@ import lombok.Value;
 
 @Value
 public class Rotation {
-    float x;
-    float y;
 
-    float deltaX;
-    float deltaY;
+    float x, y;
+    float deltaX, deltaY;
 
-    float jerkX;
-    float jerkY;
+    float jerkX, jerkY;
+    float gcdErrorX, gcdErrorY;
 
-    float gcdErrorX;
-    float gcdErrorY;
 }
