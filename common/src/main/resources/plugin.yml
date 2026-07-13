@@ -1,0 +1,40 @@
+
+name: ReactAC
+version: ${version}
+
+main: ${mainClass}
+api-version: '1.16'
+
+folia-supported: true
+
+softdepend:
+  - packetevents
+
+authors:
+  - g4vrk
+
+website: t.me/react_ac
+
+permissions:
+  react.alerts:
+    default: op
+  react.admin:
+    default: op
+
+libraries:
+  - com.squareup.moshi:moshi:1.15.0
+  - com.squareup.moshi:moshi-adapters:1.15.0
+
+  - org.spongepowered:configurate-yaml:4.2.0
+
+  - com.squareup.okhttp3:okhttp:4.12.0
+
+  - org.ejml:ejml-core:0.41
+  - org.ejml:ejml-ddense:0.41
+  - org.ejml:ejml-simple:0.41
+
+  - org.xerial:sqlite-jdbc:3.42.0.0
+
+  - io.papermc:paperlib:1.0.8
+
+

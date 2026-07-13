@@ -1,1 +1,7 @@
-rootProject.name = 'React'
+rootProject.name = "React"
+
+include(
+        "common",
+        "paper",
+        "folia"
+)
