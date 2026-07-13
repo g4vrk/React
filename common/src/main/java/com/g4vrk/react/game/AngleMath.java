@@ -1,8 +1,10 @@
 package com.g4vrk.react.game;
 
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class AngleMath {
-    
+
     private static final float GCD_EPSILON = 0.0001f;
 
     public static float calculateAcceleration(
