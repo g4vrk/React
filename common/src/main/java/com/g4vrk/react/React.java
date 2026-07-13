@@ -45,12 +45,14 @@ import java.util.concurrent.ForkJoinPool;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class React {
 
-    public static final React INSTANCE = new React();
+    private static final React INSTANCE = new React();
 
-    public static final String NAME = "React";
-    public static final Logger LOGGER = LoggerFactory.getLogger(NAME);
+    private static final String NAME = "React";
+
+    private final Logger logger = LoggerFactory.getLogger(NAME);
 
     private Plugin plugin;
+
     private ResourceHolder resourceHolder;
 
     private PlayerRegistry playerRegistry;
@@ -69,6 +71,10 @@ public class React {
     private AlertPublisher alertPublisher;
     private AlertManager alertManager;
 
+    public static @NotNull React getSingletonInstance() {
+        return INSTANCE;
+    }
+
     public void initialize(
             final @NotNull Plugin plugin,
             final @NotNull ReactAPI api
@@ -83,7 +89,7 @@ public class React {
 
         final Language language = Language.resolve();
         final String languageName = language.name();
-        LOGGER.info("Language successfully resolved: {}", languageName);
+        logger.info("Language successfully resolved: {}", languageName);
 
         final File configsDir = new File(pluginDir, languageName.toLowerCase());
 
@@ -104,7 +110,7 @@ public class React {
             throw new RuntimeException("An internal error occurred when trying to load configurations", ex);
         }
 
-        LOGGER.info("Successfully loaded {} configurations: \n{}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
+        logger.info("Successfully loaded {} configurations: \n{}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
 
@@ -142,7 +148,7 @@ public class React {
                 plugin
         );
 
-        LOGGER.info("React успешно включен.");
+        logger.info("React успешно включен.");
     }
 
     private @NonNull MLCheck createMlCheck(@NotNull TaskRunner taskRunner, @NotNull Component alertFormat) {
@@ -161,7 +167,7 @@ public class React {
         final AlertPrinter alertPrinter = new AlertPrinter(alertPublisher, alertFormat);
 
         final MLCheckProcessor mlCheckProcessor = new MLCheckProcessor(
-                LOGGER, alertPrinter, mlServer, taskRunner
+                logger, alertPrinter, mlServer, taskRunner
         );
 
         return new MLCheck(
@@ -175,5 +181,5 @@ public class React {
         this.taskRunnerFactory = null;
         this.mlServer = null;
     }
-    
+
 }
