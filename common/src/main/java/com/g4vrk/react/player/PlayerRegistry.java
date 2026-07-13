@@ -1,6 +1,6 @@
 package com.g4vrk.react.player;
 
-import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.ReactPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +14,7 @@ public final class PlayerRegistry {
 
     private final int bufferSize;
 
-    private final Map<UUID, LocalPlayer> players = new ConcurrentHashMap<>();
+    private final Map<UUID, ReactPlayer> players = new ConcurrentHashMap<>();
 
     public PlayerRegistry(
             int bufferSize
@@ -24,7 +24,7 @@ public final class PlayerRegistry {
 
     public void addPlayer(
             final @NotNull UUID uuid,
-            final @NotNull LocalPlayer entity
+            final @NotNull ReactPlayer entity
     ) {
         players.put(uuid, entity);
     }
@@ -35,14 +35,14 @@ public final class PlayerRegistry {
         players.remove(uuid);
     }
 
-    public @Nullable LocalPlayer getPlayer(
+    public @Nullable ReactPlayer getPlayer(
             final @NotNull UUID uuid
     ) {
         return players.computeIfAbsent(uuid, uniqueId -> {
             final Player player = Bukkit.getPlayer(uuid);
             if (player == null) return null;
 
-            return new LocalPlayer(
+            return new ReactPlayer(
                     player.getUniqueId(),
                     player.getName(),
                     bufferSize

@@ -1,10 +1,11 @@
 package com.g4vrk.react.ml.check.processor;
 
 import com.g4vrk.react.alert.printer.AlertPrinter;
+import com.g4vrk.react.api.task.schedule.TickSchedule;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.game.Rotation;
-import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.ml.http.model.HttpRequest;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.moshi.MoshiHolder;
@@ -53,7 +54,7 @@ public final class MLCheckProcessor {
     }
 
     public void check(
-            final @NotNull LocalPlayer entity
+            final @NotNull ReactPlayer entity
     ) {
         final Rotation[] rotations = entity.snapshotRotations();
         if (rotations.length == 0) return;
@@ -100,14 +101,14 @@ public final class MLCheckProcessor {
                     final Double probability = result.get("cheat_probability");
                     if (probability == null) return;
 
-                    taskRunner.runTask(() -> handle(entity, probability));
+                    taskRunner.runTask(() -> handle(entity, probability), TickSchedule.instant());
                 }
             }
         });
     }
 
     private void handle(
-            final @NotNull LocalPlayer entity,
+            final @NotNull ReactPlayer entity,
             final double probability
     ) {
         final TextColor color = colorResolver.resolve(probability);

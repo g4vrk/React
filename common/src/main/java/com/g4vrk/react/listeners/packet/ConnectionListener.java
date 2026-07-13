@@ -5,7 +5,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.player.User;
-import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ public class ConnectionListener extends PacketListenerAbstract {
     public void onUserLogin(UserLoginEvent event) {
         final User user = event.getUser();
 
-        final LocalPlayer entity = new LocalPlayer(
+        final ReactPlayer entity = new ReactPlayer(
                 user.getUUID(),
                 user.getName(),
                 bufferSize

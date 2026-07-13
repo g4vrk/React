@@ -10,7 +10,7 @@ import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.g4vrk.react.game.AngleMath;
-import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.model.RotationState;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,9 +45,9 @@ public final class RotationListener extends PacketListenerAbstract {
 
         final User user = event.getUser();
 
-        final LocalPlayer entity = playerRegistry.getPlayer(user.getUUID());
-        final CombatActivity combatActivity = playerRegistry.getActivity(user.getUUID());
-        if (entity == null || combatActivity == null) return;
+        final ReactPlayer entity = playerRegistry.getPlayer(user.getUUID());
+        if (entity == null) return;
+        final CombatActivity combatActivity = entity.getCombatActivity();
 
         final RotationState rotationState = entity.getMovement();
 

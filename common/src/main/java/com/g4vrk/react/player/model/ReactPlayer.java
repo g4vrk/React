@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 @Getter
-public final class LocalPlayer {
+public final class ReactPlayer {
 
     private final UUID uniqueId;
     private final String name;
@@ -19,7 +19,7 @@ public final class LocalPlayer {
 
     private final Buffer<Rotation> rotations;
 
-    public LocalPlayer(
+    public ReactPlayer(
             @NotNull UUID uniqueId,
             @NotNull String name,
             int bufferSize

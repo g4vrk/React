@@ -4,7 +4,7 @@ import com.g4vrk.react.api.task.runner.TaskRunner;
 import com.g4vrk.react.api.task.schedule.TickSchedule;
 import com.g4vrk.react.game.Rotation;
 import com.g4vrk.react.ml.check.processor.MLCheckProcessor;
-import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.CombatActivity;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ public final class MLCheck {
     }
 
     public void onRotation(
-            final @NotNull LocalPlayer player,
+            final @NotNull ReactPlayer player,
             final @NotNull CombatActivity combatActivity,
             final @NotNull Rotation rotation
     ) {

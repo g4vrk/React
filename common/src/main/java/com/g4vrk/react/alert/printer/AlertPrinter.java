@@ -1,7 +1,7 @@
 package com.g4vrk.react.alert.printer;
 
 import com.g4vrk.react.alert.publish.Publisher;
-import com.g4vrk.react.player.model.LocalPlayer;
+import com.g4vrk.react.player.model.ReactPlayer;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -15,14 +15,14 @@ public final class AlertPrinter {
     private final Component alertFormat;
 
     public void print(
-            final @NotNull LocalPlayer player,
+            final @NotNull ReactPlayer player,
             final @NotNull String checkName
     ) {
         print(player, checkName, null);
     }
 
     public void print(
-            final @NotNull LocalPlayer player,
+            final @NotNull ReactPlayer player,
             final @NotNull String checkName,
             final @Nullable Component verbose
     ) {
