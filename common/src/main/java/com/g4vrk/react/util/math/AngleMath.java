@@ -60,4 +60,15 @@ public class AngleMath {
         }
         return angle;
     }
+
+    public static float normalizeDelta(
+            float delta
+    ) {
+        delta %= 360.0f;
+
+        if (delta > 180.0f) delta -= 360.0f;
+        else if (delta < -180.0f) delta += 360.0f;
+
+        return delta;
+    }
 }
