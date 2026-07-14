@@ -1,7 +1,7 @@
 package com.g4vrk.react.ml.aim;
 
 import com.g4vrk.react.api.task.schedule.TickSchedule;
-import com.g4vrk.react.game.Rotation;
+import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.ml.http.model.HttpRequest;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.util.moshi.MoshiHolder;

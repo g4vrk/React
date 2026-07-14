@@ -9,7 +9,7 @@ import com.g4vrk.react.check.info.CheckInfo;
 import com.g4vrk.react.check.type.RotationCheck;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
-import com.g4vrk.react.game.Rotation;
+import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.model.rotation.RotationData;

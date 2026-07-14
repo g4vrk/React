@@ -1,6 +1,6 @@
 package com.g4vrk.react.check.processor.rotation;
 
-import com.g4vrk.react.game.Rotation;
+import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.util.math.AngleMath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
