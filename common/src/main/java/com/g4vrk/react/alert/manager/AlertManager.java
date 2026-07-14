@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AlertManager {
+
     private final Set<UUID> receivers = ConcurrentHashMap.newKeySet();
 
     public AlertManager() {
@@ -23,4 +24,5 @@ public class AlertManager {
     public boolean receives(final @NotNull UUID uuid) {
         return this.receivers.contains(uuid);
     }
+
 }
