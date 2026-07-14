@@ -1,6 +1,9 @@
-package com.g4vrk.react.player;
+package com.g4vrk.react.player.registry;
 
+import com.g4vrk.react.player.CombatActivity;
+import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.model.ReactPlayer;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -10,17 +13,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.bukkit.Bukkit.getServer;
+
+@RequiredArgsConstructor
 public final class PlayerRegistry {
 
-    private final int bufferSize;
+    private final PlayerFactory factory;
 
     private final Map<UUID, ReactPlayer> players = new ConcurrentHashMap<>();
-
-    public PlayerRegistry(
-            int bufferSize
-    ) {
-        this.bufferSize = bufferSize;
-    }
 
     public void addPlayer(
             final @NotNull UUID uuid,
@@ -38,21 +38,22 @@ public final class PlayerRegistry {
     public @Nullable ReactPlayer getPlayer(
             final @NotNull UUID uuid
     ) {
+
         return players.computeIfAbsent(uuid, uniqueId -> {
-            final Player player = Bukkit.getPlayer(uuid);
+
+            final Player player = this.findBukkitPlayer(uuid);
+
             if (player == null) return null;
 
-            return new ReactPlayer(
-                    player.getUniqueId(),
-                    player.getName(),
-                    bufferSize
-            );
+            return factory.create(uniqueId, player.getName());
+
         });
+
     }
 
-    public @Nullable CombatActivity getActivity(
+    private @Nullable Player findBukkitPlayer(
             final @NotNull UUID uuid
     ) {
-        return players.get(uuid).getCombatActivity();
+        return getServer().getPlayer(uuid);
     }
 }

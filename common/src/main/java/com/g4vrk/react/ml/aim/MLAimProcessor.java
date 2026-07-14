@@ -1,4 +1,4 @@
-package com.g4vrk.react.ml.check.processor;
+package com.g4vrk.react.ml.aim;
 
 import com.g4vrk.react.alert.printer.AlertPrinter;
 import com.g4vrk.react.api.task.schedule.TickSchedule;
@@ -24,13 +24,11 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.function.Consumer;
 
-public final class MLCheckProcessor {
+public final class MLAimProcessor {
 
     private final Logger logger;
-
-    private final AlertPrinter alertPrinter;
-    private final ValueColorResolver colorResolver;
 
     private final MLServer mlServer;
     private final TaskRunner taskRunner;
@@ -38,15 +36,12 @@ public final class MLCheckProcessor {
     private final JsonAdapter<Map<String, Object>> requestAdapter;
     private final JsonAdapter<Map<String, Double>> responseAdapter;
 
-    public MLCheckProcessor(
+    public MLAimProcessor(
             @NotNull Logger logger,
-            @NotNull AlertPrinter alertPrinter,
             @NotNull MLServer mlServer,
             @NotNull TaskRunner taskRunner
     ) {
         this.logger = logger;
-        this.alertPrinter = alertPrinter;
-        this.colorResolver = new ProbabilityColorResolver();
         this.mlServer = mlServer;
         this.taskRunner = taskRunner;
         this.requestAdapter = MoshiHolder.REQUEST_ADAPTER;
@@ -54,14 +49,15 @@ public final class MLCheckProcessor {
     }
 
     public void check(
-            final @NotNull ReactPlayer entity
+            final @NotNull String playerName,
+            final @NotNull Rotation @NotNull [] snapshot,
+            final @NotNull Consumer<Double> resultHandler
     ) {
-        final Rotation[] rotations = entity.snapshotRotations();
-        if (rotations.length == 0) return;
+        if (snapshot.length == 0) return;
 
         final Map<String, Object> payload = Map.of(
-                "name", entity.getName(),
-                "frames", rotations
+                "name", playerName,
+                "frames", snapshot
         );
 
         final String json = requestAdapter.toJson(payload);
@@ -82,7 +78,7 @@ public final class MLCheckProcessor {
                     @NotNull Call call,
                     @NotNull IOException ex
             ) {
-                logger.info("При отправке запроса на удаленный сервер произошла ошибка.", ex);
+                logger.info("An internal error occurred when trying to check player rotation frames", ex);
             }
 
             @Override
@@ -101,22 +97,22 @@ public final class MLCheckProcessor {
                     final Double probability = result.get("cheat_probability");
                     if (probability == null) return;
 
-                    taskRunner.runTask(() -> handle(entity, probability), TickSchedule.instant());
+                    taskRunner.runTask(() -> resultHandler.accept(probability), TickSchedule.instant());
                 }
             }
         });
     }
 
-    private void handle(
-            final @NotNull ReactPlayer entity,
-            final double probability
-    ) {
-        final TextColor color = colorResolver.resolve(probability);
-        final Component verbose = Component.text(probability * 100.0D + "%")
-                .color(color);
-
-        alertPrinter.print(entity, "MLCheck-Aim", verbose);
-
-        entity.clearRotations();
-    }
+//    private void handle(
+//            final @NotNull ReactPlayer entity,
+//            final double probability
+//    ) {
+//        final TextColor color = colorResolver.resolve(probability);
+//        final Component verbose = Component.text(probability * 100.0D + "%")
+//                .color(color);
+//
+//        alertPrinter.print(entity, "MLCheck-Aim", verbose);
+//
+//        entity.getRotationData().clear();
+//    }
 }

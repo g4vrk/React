@@ -1,12 +1,13 @@
 package com.g4vrk.react.listeners.bukkit;
 
+import com.g4vrk.react.player.model.ReactPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.g4vrk.react.player.CombatActivity;
-import com.g4vrk.react.player.PlayerRegistry;
+import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 public class CombatListener implements Listener {
@@ -28,8 +29,11 @@ public class CombatListener implements Listener {
 
         if (!(event.getDamager() instanceof Player damager) || !(event.getEntity() instanceof Player victim)) return;
 
-        final CombatActivity damagerCombatActivity = playerRegistry.getActivity(damager.getUniqueId());
-        final CombatActivity victimCombatActivity = playerRegistry.getActivity(victim.getUniqueId());
+        final ReactPlayer localDamager = playerRegistry.getPlayer(damager.getUniqueId());
+        final ReactPlayer localVictim = playerRegistry.getPlayer(victim.getUniqueId());
+
+        final CombatActivity damagerCombatActivity = localDamager != null ? localDamager.combatActivity : null;
+        final CombatActivity victimCombatActivity = localVictim != null ? localVictim.combatActivity : null;
 
         if (damagerCombatActivity != null) damagerCombatActivity.extend(combatTicks);
         if (victimCombatActivity != null) victimCombatActivity.extend(combatTicks);

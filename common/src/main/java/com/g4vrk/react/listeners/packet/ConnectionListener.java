@@ -6,7 +6,7 @@ import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.g4vrk.react.player.model.ReactPlayer;
-import com.g4vrk.react.player.PlayerRegistry;
+import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 public class ConnectionListener extends PacketListenerAbstract {
