@@ -1,5 +1,6 @@
 package com.g4vrk.react.check.impl.aim;
 
+import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.react.check.decay.DecayStrategy;
@@ -17,45 +18,58 @@ import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 @CheckInfo(
-        name = "Aim-AI"
+        name = "Aim-AI",
+        configId = "aim-ai"
 )
 public final class AimAI extends Check implements RotationCheck {
 
     private final MLAimProcessor mlAimProcessor;
     private final ValueColorResolver colorResolver;
 
-    private final int threshold;
+    private final int requiredSamples;
+    private final double alertThreshold;
+    private final double decayAmount;
+
+    private final DecayStrategy decayStrategy;
 
     public AimAI(@NotNull ReactPlayer player) {
         super(player);
         this.mlAimProcessor = React.INSTANCE.getMlAimProcessor();
-        this.threshold = 25;
         this.colorResolver = new ProbabilityColorResolver();
+
+        final Config config = React.INSTANCE.getCheckConfigRegistry()
+                .config(getClass());
+
+        this.requiredSamples = config.node("required-samples").getInt(25);
+        this.alertThreshold = config.node("alert", "threshold").getDouble(0.49D);
+        this.decayAmount = config.node("decay", "amount").getDouble(0.5D);
+
+        this.decayStrategy = new LinearDecay(decayAmount);
     }
 
     @Override
     public @NotNull DecayStrategy decayStrategy() {
-        return new LinearDecay(0.5);
+        return this.decayStrategy;
     }
 
     @Override
     public void onRotation(@NotNull RotationData currentData) {
-        if (currentData.historySize() < threshold) return;
+        if (currentData.historySize() < this.requiredSamples) return;
 
         final Rotation[] snapshot = currentData.snapshotHistory();
 
-        mlAimProcessor.check(player.getName(), snapshot, this::onServerResult);
+        this.mlAimProcessor.check(this.player.getName(), snapshot, this::onServerResult);
     }
 
     private void onServerResult(
             final double probability
     ) {
 
-        final TextColor color = colorResolver.resolve(probability);
+        final TextColor color = this.colorResolver.resolve(probability);
         final Component verbose = Component.text(probability * 100.0D + "%")
                 .color(color);
 
-        if (probability > 0.49) {
+        if (probability > this.alertThreshold) {
             super.failAndAlert(1, verbose);
         } else {
             super.reward();
@@ -64,5 +78,5 @@ public final class AimAI extends Check implements RotationCheck {
         player.rotationData.clear();
 
     }
-    
+
 }
