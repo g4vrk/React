@@ -1,49 +1,40 @@
 package com.g4vrk.react.player.model;
 
-import com.g4vrk.react.buffer.Buffer;
-import com.g4vrk.react.game.Rotation;
+import com.g4vrk.react.React;
+import com.g4vrk.react.alert.printer.AlertPrinter;
+import com.g4vrk.react.check.manager.CheckManager;
 import com.g4vrk.react.player.CombatActivity;
+import com.g4vrk.react.player.model.rotation.RotationData;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-@Getter
 public final class ReactPlayer {
 
+    @Getter
     private final UUID uniqueId;
+    @Getter
     private final String name;
 
-    private final CombatActivity combatActivity = new CombatActivity();
-    private final RotationState movement = new RotationState();
+    public final CombatActivity combatActivity;
+    public final RotationData rotationData;
 
-    private final Buffer<Rotation> rotations;
+    public final AlertPrinter alertPrinter;
+    public final CheckManager checkManager;
 
     public ReactPlayer(
             @NotNull UUID uniqueId,
             @NotNull String name,
-            int bufferSize
+            int rotationHistorySize
     ) {
         this.uniqueId = uniqueId;
         this.name = name;
-        this.rotations = new Buffer<>(bufferSize, Rotation[]::new);
+        this.alertPrinter = React.INSTANCE.getAlertPrinter();
+        this.checkManager = new CheckManager(this);
+
+        this.combatActivity = new CombatActivity();
+        this.rotationData = new RotationData(rotationHistorySize);
     }
 
-    public void addRotation(
-            final @NotNull Rotation rotation
-    ) {
-        rotations.add(rotation);
-    }
-
-    public @NotNull Buffer<Rotation> getBuffer() {
-        return rotations;
-    }
-
-    public @NotNull Rotation @NotNull [] snapshotRotations() {
-        return rotations.snapshot();
-    }
-
-    public void clearRotations() {
-        rotations.clear();
-    }
 }
