@@ -17,6 +17,14 @@ java {
     }
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDir project(":common").file("src/main/resources")
+        }
+    }
+}
+
 processResources {
     inputs.property("mainClass", "com.g4vrk.react.folia.FoliaReactPlugin")
     inputs.property("version", project.version)
@@ -24,7 +32,7 @@ processResources {
     filesMatching("plugin.yml") {
         expand(
                 version: project.version,
-                mainClass: "com.g4vrk.react.paper.ReactPlugin"
+                mainClass: "com.g4vrk.react.folia.FoliaReactPlugin"
         )
     }
 }
