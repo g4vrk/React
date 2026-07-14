@@ -22,4 +22,5 @@ public class PluginResourceHolder implements ResourceHolder {
     public void saveResource(@NotNull String fileName, boolean replace) {
         this.plugin.saveResource(fileName, replace);
     }
+
 }
