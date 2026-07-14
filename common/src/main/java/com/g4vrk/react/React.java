@@ -135,7 +135,7 @@ public class React {
 
         this.checkConfigRegistry = new SimpleCheckConfigRegistry(configMap);
 
-        logger.info("Successfully loaded {} configurations: \n{}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
+        logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
 
