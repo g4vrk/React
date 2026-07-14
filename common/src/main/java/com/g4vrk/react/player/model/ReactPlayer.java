@@ -6,6 +6,7 @@ import com.g4vrk.react.check.manager.CheckManager;
 import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import lombok.Getter;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -17,6 +18,9 @@ public final class ReactPlayer {
     @Getter
     private final String name;
 
+    @Getter
+    private final Player bukkitPlayer;
+
     public final CombatActivity combatActivity;
     public final RotationData rotationData;
 
@@ -26,10 +30,12 @@ public final class ReactPlayer {
     public ReactPlayer(
             @NotNull UUID uniqueId,
             @NotNull String name,
+            @NotNull Player bukkitPlayer,
             int rotationHistorySize
     ) {
         this.uniqueId = uniqueId;
         this.name = name;
+        this.bukkitPlayer = bukkitPlayer;
         this.alertPrinter = React.INSTANCE.getAlertPrinter();
         this.checkManager = new CheckManager(this);
 
