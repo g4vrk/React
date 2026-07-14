@@ -28,7 +28,6 @@ public final class AimAI extends Check implements RotationCheck {
 
     private final int requiredSamples;
     private final double alertThreshold;
-    private final double decayAmount;
 
     private final DecayStrategy decayStrategy;
 
@@ -42,7 +41,8 @@ public final class AimAI extends Check implements RotationCheck {
 
         this.requiredSamples = config.node("required-samples").getInt(25);
         this.alertThreshold = config.node("alert", "threshold").getDouble(0.49D);
-        this.decayAmount = config.node("decay", "amount").getDouble(0.5D);
+
+        final double decayAmount = config.node("decay", "amount").getDouble(0.5D);
 
         this.decayStrategy = new LinearDecay(decayAmount);
     }
