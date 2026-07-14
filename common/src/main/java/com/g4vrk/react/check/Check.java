@@ -1,6 +1,5 @@
 package com.g4vrk.react.check;
 
-
 import com.g4vrk.react.check.decay.DecayStrategy;
 import com.g4vrk.react.check.info.CheckInfo;
 import com.g4vrk.react.player.model.ReactPlayer;
