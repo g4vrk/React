@@ -1,83 +1,49 @@
 package com.g4vrk.react.listeners.packet;
 
-import com.g4vrk.react.game.Rotation;
-import com.g4vrk.react.ml.check.MLCheck;
-import com.g4vrk.react.player.CombatActivity;
-import com.g4vrk.react.player.PlayerRegistry;
+import com.g4vrk.react.check.processor.rotation.RotationProcessor;
+import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
-import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import com.g4vrk.react.game.AngleMath;
-import com.g4vrk.react.player.model.ReactPlayer;
-import com.g4vrk.react.player.model.RotationState;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+@RequiredArgsConstructor
 public final class RotationListener extends PacketListenerAbstract {
-    
-    private final PlayerRegistry playerRegistry;
-    private final MLCheck mlCheck;
 
-    public RotationListener(
-            final @NotNull PlayerRegistry playerRegistry,
-            final @NotNull MLCheck mlCheck
-    ) {
-        this.playerRegistry = playerRegistry;
-        this.mlCheck = mlCheck;
-    }
+    private final PlayerRegistry playerRegistry;
+    private final RotationProcessor rotationProcessor;
 
     @Override
-    public void onPacketReceive(PacketReceiveEvent event) {
+    public void onPacketReceive(@NotNull PacketReceiveEvent event) {
 
-        final boolean movePacket = WrapperPlayClientPlayerFlying.isFlying(event.getPacketType());
+        if (event.getConnectionState() != ConnectionState.PLAY || !WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) return;
 
-        if (event.getConnectionState() != ConnectionState.PLAY || !movePacket) return;
+        final WrapperPlayClientPlayerFlying movePacket;
 
-        final WrapperPlayClientPlayerFlying flying;
         try {
-            flying = new WrapperPlayClientPlayerFlying(event);
-        } catch (final Throwable th) {
+            movePacket = new WrapperPlayClientPlayerFlying(event);
+        } catch (Throwable ignored) {
             return;
         }
 
-        if (!flying.hasRotationChanged()) return;
+        if (!movePacket.hasRotationChanged()) return;
 
-        final User user = event.getUser();
+        final ReactPlayer player = this.playerRegistry.getPlayer(event.getUser().getUUID());
 
-        final ReactPlayer entity = playerRegistry.getPlayer(user.getUUID());
-        if (entity == null) return;
-        final CombatActivity combatActivity = entity.getCombatActivity();
+        if (player == null) return;
 
-        final RotationState rotationState = entity.getMovement();
+        final Location location = movePacket.getLocation();
 
-        float yaw = AngleMath.normalizeAngle(flying.getLocation().getYaw());
-        float pitch = AngleMath.normalizeAngle(flying.getLocation().getPitch());
-
-        float deltaYaw = yaw - rotationState.getYaw();
-        float deltaPitch = pitch - rotationState.getPitch();
-
-        float accelYaw = AngleMath.calculateAcceleration(deltaYaw, rotationState.getDeltaYaw());
-        float accelPitch = AngleMath.calculateAcceleration(deltaPitch, rotationState.getDeltaPitch());
-
-        final Rotation rotation = new Rotation(
-                deltaYaw,
-                deltaPitch,
-                accelYaw,
-                accelPitch,
-                AngleMath.calculateJerk(accelYaw, rotationState.getAccelYaw()),
-                AngleMath.calculateJerk(accelPitch, rotationState.getAccelPitch()),
-                AngleMath.calculateGCDError(deltaYaw),
-                AngleMath.calculateGCDError(deltaPitch)
+        this.rotationProcessor.process(
+                player,
+                location.getYaw(),
+                location.getPitch()
         );
 
-        rotationState.setYaw(yaw);
-        rotationState.setPitch(pitch);
-        rotationState.setDeltaYaw(deltaYaw);
-        rotationState.setDeltaPitch(deltaPitch);
-        rotationState.setAccelYaw(accelYaw);
-        rotationState.setAccelPitch(accelPitch);
-
-        mlCheck.onRotation(entity, combatActivity, rotation);
     }
+
 }
