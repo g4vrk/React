@@ -43,18 +43,6 @@ shadowJar {
     archiveVersion.set(project.version.toString())
     archiveClassifier.set("folia")
 
-    relocate 'okhttp3', 'com.g4vrk.react.shadow.okhttp'
-    relocate 'okio', 'com.g4vrk.react.shadow.okio'
-
-    relocate 'com.squareup.moshi', 'com.g4vrk.react.shadow.moshi'
-
-    relocate 'org.ejml', 'com.g4vrk.react.shadow.ejml'
-
-    relocate 'org.xerial', 'com.g4vrk.react.shadow.sqlite'
-
-    relocate 'io.papermc.lib', 'com.g4vrk.react.shadow.paperlib'
-
-    relocate 'org.spongepowered.configurate', 'com.g4vrk.react.shadow.configurate'
 }
 
 jar {
