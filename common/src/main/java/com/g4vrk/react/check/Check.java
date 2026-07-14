@@ -22,6 +22,7 @@ public abstract class Check extends AbstractCheck {
         final CheckInfo info = this.getClass().getAnnotation(CheckInfo.class);
 
         super.setName(info.name());
+        super.setConfigId(info.configId());
         super.setExperimental(info.experimental());
 
         this.player = player;
