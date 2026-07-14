@@ -1,5 +1,6 @@
 package com.g4vrk.react.check;
 
+import com.g4vrk.react.Permissions;
 import com.g4vrk.react.check.decay.DecayStrategy;
 import com.g4vrk.react.check.info.CheckInfo;
 import com.g4vrk.react.player.model.ReactPlayer;
@@ -26,6 +27,13 @@ public abstract class Check extends AbstractCheck {
         super.setExperimental(info.experimental());
 
         this.player = player;
+    }
+
+    public final boolean shouldCheck() {
+        return !Permissions.hasBypassForCheck(
+                player.bukkitPlayer,
+                getConfigId()
+        );
     }
 
     protected final void fail(
