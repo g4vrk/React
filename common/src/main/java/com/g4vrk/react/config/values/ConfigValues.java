@@ -1,9 +1,7 @@
 package com.g4vrk.react.config.values;
 
-import com.g4vrk.functionalConfiguration.YamlConfig;
 import com.g4vrk.react.ml.server.settings.MLClientSettings;
-import com.g4vrk.react.parse.duration.DurationParser;
-import com.g4vrk.react.parse.time.TimeUnitParser;
+import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.parse.time.TimeValue;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -41,7 +39,7 @@ public final class ConfigValues {
         final ConfigurationNode clientNode = mlServerNode.node("client");
         final ConfigurationNode connectionPoolNode = clientNode.node("connection-pool");
 
-        final TimeValue timeValue = TimeUnitParser.parse(
+        final TimeValue timeValue = TimeParser.parse(
                 connectionPoolNode.node("keep-alive-duration")
                         .getString("5m")
         );
@@ -53,10 +51,10 @@ public final class ConfigValues {
         );
 
         this.mlClientSettings = new MLClientSettings(
-                DurationParser.parse(clientNode.node("connect-timeout").getString("10s")),
-                DurationParser.parse(clientNode.node("read-timeout").getString("10s")),
-                DurationParser.parse(clientNode.node("write-timeout").getString("10s")),
-                DurationParser.parse(clientNode.node("call-timeout").getString("10s")),
+                TimeParser.parseDuration(clientNode.node("connect-timeout").getString("10s")),
+                TimeParser.parseDuration(clientNode.node("read-timeout").getString("10s")),
+                TimeParser.parseDuration(clientNode.node("write-timeout").getString("10s")),
+                TimeParser.parseDuration(clientNode.node("call-timeout").getString("10s")),
                 clientNode.node("retry-on-failure").getBoolean(true),
                 connectionPool,
                 mlServerNode.node("enabled").getBoolean(true),
