@@ -1,4 +1,4 @@
-package com.g4vrk.react.game;
+package com.g4vrk.react.util.math;
 
 import lombok.experimental.UtilityClass;
 
