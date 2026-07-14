@@ -72,7 +72,8 @@ public final class MLAimProcessor {
                     @NotNull Call call,
                     @NotNull IOException ex
             ) {
-                logger.info("An internal error occurred when trying to check player rotation frames", ex);
+                logger.warn("An internal error occurred when trying to check player rotation frames, default probability: -1.0D", ex);
+                taskRunner.runTask(() -> resultHandler.accept(-1.0D), TickSchedule.instant());
             }
 
             @Override
