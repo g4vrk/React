@@ -25,6 +25,7 @@ import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.g4vrk.react.resource.ResourceHolder;
 import com.g4vrk.react.resource.impl.PluginResourceHolder;
+import com.g4vrk.react.util.PluginUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.EventManager;
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
@@ -98,10 +99,16 @@ public class React {
     }
 
     public void load() {
+        if (!PluginUtil.containsPlugin("packetevents")) {
+            logger.error("Plugin 'packetevents' cannot found on this server!");
+            logger.error("Please, install it, otherwise React will not work.");
+            logger.error("For now, disabling our plugin.");
+        }
+
         final File pluginDir = plugin.getDataFolder();
 
         final Language language = Language.resolve();
-        final String languageName = language.name();
+        final String languageName = language.name().toLowerCase();
         logger.info("Language successfully resolved: {}", languageName);
 
         final File configsDir = new File(pluginDir, languageName.toLowerCase());
