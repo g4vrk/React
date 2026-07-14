@@ -40,7 +40,10 @@ public abstract class Check extends AbstractCheck {
         this.failAndAlert(amount, Component.empty());
     }
 
-    protected final void failAndAlert(double amount, Component verbose) {
+    protected final void failAndAlert(
+            final double amount,
+            final @NotNull Component verbose
+    ) {
         this.fail(amount);
         this.player.alertPrinter.print(player, getName(), verbose);
     }
