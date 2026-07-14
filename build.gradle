@@ -29,6 +29,9 @@ allprojects {
 
 subprojects {
 
+    group = rootProject.group
+    version = rootProject.version
+
     apply plugin: 'java'
 
     def targetJavaVersion = 17
