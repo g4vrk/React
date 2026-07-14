@@ -54,7 +54,9 @@ public final class AimAI extends Check implements RotationCheck {
 
     @Override
     public void onRotation(@NotNull RotationData currentData) {
-        if (!player.combatActivity.isActive() || currentData.historySize() < this.requiredSamples) return;
+        if (!player.combatActivity.isActive()
+                || currentData.historySize() < this.requiredSamples
+                || !super.shouldCheck()) return;
 
         final Rotation[] snapshot = currentData.snapshotHistory();
 
