@@ -13,6 +13,8 @@ public @interface CheckInfo {
 
     @NotNull String name();
 
+    @NotNull String configId();
+
     boolean experimental() default false;
 
 }

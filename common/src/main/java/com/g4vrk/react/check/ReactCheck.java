@@ -7,6 +7,8 @@ public interface ReactCheck {
 
     @NotNull String getName();
 
+    @NotNull String getConfigId();
+
     boolean experimental();
 
     @NotNull DecayStrategy decayStrategy();
