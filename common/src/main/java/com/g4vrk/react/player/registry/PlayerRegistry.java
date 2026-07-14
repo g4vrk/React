@@ -3,6 +3,7 @@ package com.g4vrk.react.player.registry;
 import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.model.ReactPlayer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -20,7 +21,7 @@ public final class PlayerRegistry {
 
     private final PlayerFactory factory;
 
-    private final Map<UUID, ReactPlayer> players = new ConcurrentHashMap<>();
+    private final Map<UUID, ReactPlayer> players = new Object2ObjectOpenHashMap<>();
 
     public void addPlayer(
             final @NotNull UUID uuid,
