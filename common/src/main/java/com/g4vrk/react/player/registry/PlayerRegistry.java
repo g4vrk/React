@@ -42,11 +42,11 @@ public final class PlayerRegistry {
 
         return players.computeIfAbsent(uuid, uniqueId -> {
 
-            final Player player = this.findBukkitPlayer(uuid);
+            final Player bukkitPlayer = this.findBukkitPlayer(uuid);
 
-            if (player == null) return null;
+            if (bukkitPlayer == null) return null;
 
-            return factory.create(uniqueId, player.getName());
+            return factory.create(uniqueId, bukkitPlayer.getName(), bukkitPlayer);
 
         });
 
