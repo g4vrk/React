@@ -2,7 +2,7 @@ debug: true
 
 ml-server:
   enabled: true
-  server-url: "localhost:8080"
+  server-url: "https://api.react-ac.space"
   api-key: "NONE"
   client:
     connect-timeout: 10s
