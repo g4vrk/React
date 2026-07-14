@@ -103,6 +103,7 @@ public class React {
             logger.error("Plugin 'packetevents' cannot found on this server!");
             logger.error("Please, install it, otherwise React will not work.");
             logger.error("For now, disabling our plugin.");
+            return;
         }
 
         final File pluginDir = plugin.getDataFolder();
