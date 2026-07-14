@@ -8,7 +8,7 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.IOException;
 
-public class YamlUnloadedConfigLoader extends AbstractConfigLoader<YamlConfig> {
+public class UnloadedYamlConfigLoader extends AbstractConfigLoader<YamlConfig> {
 
     @Override
     protected @NonNull YamlConfig from(@NotNull YamlConfigurationLoader yamlConfigurationLoader) throws IOException {
