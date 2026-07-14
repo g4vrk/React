@@ -1,4 +1,4 @@
-package com.g4vrk.react.moshi;
+package com.g4vrk.react.util.moshi;
 
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
