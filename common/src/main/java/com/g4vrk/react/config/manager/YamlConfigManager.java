@@ -96,8 +96,6 @@ public final class YamlConfigManager {
             final String name = entry.name();
             final YamlConfig config = entry.config();
 
-            resourceHolder.saveResource(name, false);
-
             config.load();
 
             mapped.put(
