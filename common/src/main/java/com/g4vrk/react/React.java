@@ -8,6 +8,8 @@ import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.api.ReactAPI;
 import com.g4vrk.react.api.task.runner.TaskRunner;
 import com.g4vrk.react.api.task.runner.factory.TaskRunnerFactory;
+import com.g4vrk.react.check.config.CheckConfigRegistry;
+import com.g4vrk.react.check.config.impl.SimpleCheckConfigRegistry;
 import com.g4vrk.react.check.processor.rotation.RotationFactory;
 import com.g4vrk.react.check.processor.rotation.RotationProcessor;
 import com.g4vrk.react.config.lang.Language;
@@ -82,6 +84,8 @@ public class React {
     private AlertManager alertManager;
     private AlertPrinter alertPrinter;
 
+    private CheckConfigRegistry checkConfigRegistry;
+
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
 
     public void initialize(
@@ -120,6 +124,8 @@ public class React {
         } catch (final Exception ex) {
             throw new RuntimeException("An internal error occurred when trying to load configurations", ex);
         }
+
+        this.checkConfigRegistry = new SimpleCheckConfigRegistry(configMap);
 
         logger.info("Successfully loaded {} configurations: \n{}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
@@ -173,7 +179,6 @@ public class React {
                 new CombatListener(playerRegistry, combatTicks),
                 plugin
         );
-
         logger.info(" ");
         logger.info("React successfully enabled!");
         logger.info(" ");
