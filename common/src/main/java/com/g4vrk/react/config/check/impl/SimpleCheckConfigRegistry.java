@@ -1,10 +1,9 @@
-package com.g4vrk.react.check.config.impl;
+package com.g4vrk.react.config.check.impl;
 
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.check.Check;
-import com.g4vrk.react.check.config.CheckConfigRegistry;
+import com.g4vrk.react.config.check.CheckConfigRegistry;
 import com.g4vrk.react.check.info.CheckInfo;
-import com.g4vrk.react.config.manager.YamlConfigManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
