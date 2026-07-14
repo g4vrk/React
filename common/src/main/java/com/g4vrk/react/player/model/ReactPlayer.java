@@ -18,8 +18,7 @@ public final class ReactPlayer {
     @Getter
     private final String name;
 
-    @Getter
-    private final Player bukkitPlayer;
+    public final Player bukkitPlayer;
 
     public final CombatActivity combatActivity;
     public final RotationData rotationData;
