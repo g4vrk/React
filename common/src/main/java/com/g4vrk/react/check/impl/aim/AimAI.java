@@ -50,12 +50,19 @@ public final class AimAI extends Check implements RotationCheck {
     private void onServerResult(
             final double probability
     ) {
+
         final TextColor color = colorResolver.resolve(probability);
         final Component verbose = Component.text(probability * 100.0D + "%")
                 .color(color);
 
-        player.alertPrinter.print(player, getName(), verbose);
+        if (probability > 0.49) {
+            super.failAndAlert(1, verbose);
+        } else {
+            super.reward();
+        }
+
         player.rotationData.clear();
+
     }
     
 }
