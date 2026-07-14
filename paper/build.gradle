@@ -24,7 +24,9 @@ processResources {
 }
 shadowJar {
 
-    archiveClassifier.set("")
+    archiveBaseName.set("react")
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set("paper")
 
     relocate 'okhttp3', 'com.g4vrk.react.shadow.okhttp'
     relocate 'okio', 'com.g4vrk.react.shadow.okio'
