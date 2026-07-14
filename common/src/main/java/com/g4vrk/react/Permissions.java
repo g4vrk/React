@@ -20,7 +20,7 @@ public class Permissions {
     
     @NotNull String BASE_BYPASS = PERMISSION_PREFIX + "bypass";
 
-    boolean hasBypassForCheck(
+    public boolean hasBypassForCheck(
             final @NotNull Permissible permissible,
             final @NotNull String checkName
     ) {
