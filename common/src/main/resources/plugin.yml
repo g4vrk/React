@@ -36,6 +36,3 @@ libraries:
 
   - org.xerial:sqlite-jdbc:3.42.0.0
 
-  - io.papermc:paperlib:1.0.8
-
-
