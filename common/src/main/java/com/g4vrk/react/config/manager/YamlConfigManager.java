@@ -47,7 +47,7 @@ public final class YamlConfigManager {
 
         for (final String expected : expectedConfigs) {
 
-            final File target = new File(dir, expected);
+            final File target = new File(dir.getParentFile(), expected);
 
             if (target.exists()) {
                 continue;
