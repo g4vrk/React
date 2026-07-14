@@ -29,6 +29,8 @@ public final class AimAI extends Check implements RotationCheck {
     private final int requiredSamples;
     private final double alertThreshold;
 
+    private volatile boolean requesting = false;
+
     private final DecayStrategy decayStrategy;
 
     public AimAI(@NotNull ReactPlayer player) {
@@ -56,10 +58,12 @@ public final class AimAI extends Check implements RotationCheck {
     public void onRotation(@NotNull RotationData currentData) {
         if (!player.combatActivity.isActive()
                 || currentData.historySize() < this.requiredSamples
+                || requesting
                 || !super.shouldCheck()) return;
 
         final Rotation[] snapshot = currentData.snapshotHistory();
 
+        this.requesting = true;
         this.mlAimProcessor.check(this.player.getName(), snapshot, this::onServerResult);
     }
 
@@ -78,6 +82,8 @@ public final class AimAI extends Check implements RotationCheck {
         }
 
         player.rotationData.clear();
+
+        this.requesting = false;
 
     }
 
