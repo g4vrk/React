@@ -174,7 +174,7 @@ public class React {
         );
 
         this.registerPacketListeners(
-                new ConnectionListener(playerRegistry, alertPublisher, configValues.getBufferSize()),
+                new ConnectionListener(playerRegistry, playerFactory, alertPublisher),
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 

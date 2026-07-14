@@ -1,43 +1,49 @@
 package com.g4vrk.react.listeners.packet;
 
 import com.g4vrk.react.alert.publish.impl.AlertPublisher;
+import com.g4vrk.react.player.factory.PlayerFactory;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.UserDisconnectEvent;
 import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 public class ConnectionListener extends PacketListenerAbstract {
 
     private final PlayerRegistry playerRegistry;
+    private final PlayerFactory playerFactory;
     private final AlertPublisher alertPublisher;
-    private final int bufferSize;
 
     public ConnectionListener(
             @NotNull PlayerRegistry playerRegistry,
-            @NotNull AlertPublisher alertPublisher,
-            int bufferSize
+            @NotNull PlayerFactory playerFactory,
+            @NotNull AlertPublisher alertPublisher
     ) {
         this.playerRegistry = playerRegistry;
+        this.playerFactory = playerFactory;
         this.alertPublisher = alertPublisher;
-        this.bufferSize = bufferSize;
     }
 
     @Override
-    public void onUserLogin(UserLoginEvent event) {
-        final User user = event.getUser();
+    public void onUserLogin(@NotNull UserLoginEvent event) {
+        try {
+            final User user = event.getUser();
+            final Player bukkitPlayer = event.getPlayer();
 
-        final ReactPlayer entity = new ReactPlayer(
-                user.getUUID(),
-                user.getName(),
-                bufferSize
-        );
+            if (bukkitPlayer == null) return;
 
-        playerRegistry.addPlayer(user.getUUID(), entity);
+            final ReactPlayer entity = playerFactory.create(user.getUUID(), user.getName(), bukkitPlayer);
 
-        alertPublisher.flushAsync();
+            playerRegistry.addPlayer(user.getUUID(), entity);
+
+            alertPublisher.flushAsync();
+        } catch (final Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
     }
 
     @Override
