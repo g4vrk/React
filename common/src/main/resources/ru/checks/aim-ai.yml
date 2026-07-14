@@ -1,0 +1,7 @@
+required-samples: 25
+
+alert:
+  threshold: 0.49
+
+decay:
+  amount: 0.5

@@ -111,6 +111,7 @@ public class React {
         this.yamlConfigManager = new YamlConfigManager(configLoader);
 
         this.yamlConfigManager.expectedConfigs(
+                "checks/aim-ai.yml",
                 "main-config.yml"
         );
 
