@@ -53,11 +53,25 @@ public abstract class Check extends AbstractCheck {
             final @NotNull Component verbose
     ) {
         this.fail(amount);
+        this.alert(verbose);
+    }
+
+    protected final void alert() {
+        this.alert(Component.empty());
+    }
+
+    protected final void alert(
+            final @NotNull Component verbose
+    ) {
         this.player.alertPrinter.print(player, getName(), verbose);
     }
 
     protected final void reward() {
-        violations = decayStrategy().decay(violations);
+        violations = Math.max(0, decayStrategy().decay(violations));
+    }
+
+    protected final void resetVL() {
+        violations = 0D;
     }
 
     public abstract @NotNull DecayStrategy decayStrategy();
