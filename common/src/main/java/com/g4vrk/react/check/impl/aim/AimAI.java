@@ -72,7 +72,7 @@ public final class AimAI extends Check implements RotationCheck {
     ) {
 
         final TextColor color = this.colorResolver.resolve(probability);
-        final Component verbose = Component.text(probability * 100.0D + "%")
+        final Component verbose = Component.text(String.format("%.1f%%", probability * 100D))
                 .color(color);
 
         if (probability > this.alertThreshold) {
