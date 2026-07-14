@@ -1,5 +1,6 @@
 
-name: ReactAC
+name: React
+description: "An AI powered Anti-Cheat product, ready for advanced use"
 version: ${version}
 
 main: ${mainClass}
@@ -13,7 +14,7 @@ softdepend:
 authors:
   - g4vrk
 
-website: t.me/react_ac
+website: https://telegram.me/react_ac
 
 permissions:
   react.alerts:
