@@ -17,7 +17,7 @@ public final class CombatActivity {
         this.activityUntil = System.currentTimeMillis() + durationTicks * 50L;
     }
 
-    public void clear() {
+    public void reset() {
         this.activityUntil = 0L;
     }
 }
