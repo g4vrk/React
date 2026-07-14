@@ -8,17 +8,19 @@ import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.api.ReactAPI;
 import com.g4vrk.react.api.task.runner.TaskRunner;
 import com.g4vrk.react.api.task.runner.factory.TaskRunnerFactory;
+import com.g4vrk.react.check.processor.rotation.RotationFactory;
+import com.g4vrk.react.check.processor.rotation.RotationProcessor;
 import com.g4vrk.react.config.lang.Language;
-import com.g4vrk.react.config.loader.YamlUnloadedConfigLoader;
+import com.g4vrk.react.config.loader.UnloadedYamlConfigLoader;
 import com.g4vrk.react.config.manager.YamlConfigManager;
 import com.g4vrk.react.config.values.ConfigValues;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
 import com.g4vrk.react.listeners.packet.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
-import com.g4vrk.react.ml.check.MLCheck;
-import com.g4vrk.react.ml.check.processor.MLCheckProcessor;
+import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
-import com.g4vrk.react.player.PlayerRegistry;
+import com.g4vrk.react.player.factory.PlayerFactory;
+import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.g4vrk.react.resource.ResourceHolder;
 import com.g4vrk.react.resource.impl.PluginResourceHolder;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -48,7 +50,7 @@ import java.util.concurrent.ForkJoinPool;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class React {
 
-    private static final React INSTANCE = new React();
+    public static final React INSTANCE = new React();
 
     private static final String NAME = "React";
 
@@ -74,15 +76,13 @@ public class React {
     private TaskRunnerFactory taskRunnerFactory;
 
     private MLServer mlServer;
+    private MLAimProcessor mlAimProcessor;
 
     private AlertPublisher alertPublisher;
     private AlertManager alertManager;
+    private AlertPrinter alertPrinter;
 
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
-
-    public static @NotNull React getSingletonInstance() {
-        return INSTANCE;
-    }
 
     public void initialize(
             final @NotNull Plugin plugin,
@@ -102,7 +102,7 @@ public class React {
 
         final File configsDir = new File(pluginDir, languageName.toLowerCase());
 
-        final YamlUnloadedConfigLoader configLoader = new YamlUnloadedConfigLoader();
+        final UnloadedYamlConfigLoader configLoader = new UnloadedYamlConfigLoader();
 
         this.yamlConfigManager = new YamlConfigManager(configLoader);
 
@@ -127,7 +127,9 @@ public class React {
 
         this.configValues = new ConfigValues(mainConfig.getRoot());
 
-        this.playerRegistry = new PlayerRegistry(configValues.getBufferSize());
+        final PlayerFactory playerFactory = new PlayerFactory(configValues.getBufferSize());
+
+        this.playerRegistry = new PlayerRegistry(playerFactory);
 
         this.mlServer = new MLServer(configValues.getMlClientSettings());
 
@@ -139,19 +141,27 @@ public class React {
 
         final Component alertFormat = textFormatter.format(alertFormatRaw);
 
-        final MLCheck mlCheck = createMlCheck(taskRunner, alertFormat);
+        this.alertManager = new AlertManager();
 
-        final EventManager eventManager = PacketEvents.getAPI().getEventManager();
-
-        final ConnectionListener connectionListener = new ConnectionListener(playerRegistry, alertPublisher, configValues.getBufferSize());
-
-
-        eventManager.registerListener(
-                connectionListener
+        this.alertPublisher = new AlertPublisher(
+                plugin.getServer(),
+                ForkJoinPool.commonPool(),
+                taskRunner,
+                audience -> audience instanceof Player player
+                        && player.hasPermission("react.alerts")
+                        && alertManager.receives(player.getUniqueId()),
+                true
         );
 
-        eventManager.registerListener(
-                new RotationListener(playerRegistry, mlCheck)
+        this.alertPrinter = new AlertPrinter(alertPublisher, alertFormat);
+
+        this.mlAimProcessor = new MLAimProcessor(
+                logger, mlServer, taskRunner
+        );
+
+        this.registerPacketListeners(
+                new ConnectionListener(playerRegistry, alertPublisher, configValues.getBufferSize()),
+                new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 
         final long combatTicks = 20L * Math.max(1,
@@ -210,29 +220,4 @@ public class React {
         eventManager.unregisterListeners(this.registeredListeners.toArray(PacketListenerCommon[]::new));
 
     }
-
-    private @NotNull MLCheck createMlCheck(@NotNull TaskRunner taskRunner, @NotNull Component alertFormat) {
-        this.alertManager = new AlertManager();
-
-        this.alertPublisher = new AlertPublisher(
-                plugin.getServer(),
-                ForkJoinPool.commonPool(),
-                taskRunner,
-                audience -> audience instanceof Player player
-                        && player.hasPermission("react.alerts")
-                        && alertManager.receives(player.getUniqueId()),
-                true
-        );
-
-        final AlertPrinter alertPrinter = new AlertPrinter(alertPublisher, alertFormat);
-
-        final MLCheckProcessor mlCheckProcessor = new MLCheckProcessor(
-                logger, alertPrinter, mlServer, taskRunner
-        );
-
-        return new MLCheck(
-                taskRunner, mlCheckProcessor, 10
-        );
-    }
-
 }
