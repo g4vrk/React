@@ -1,149 +1,37 @@
-debug: true
 
 ml-server:
   enabled: true
+
   server-url: "https://api.react-ac.space"
   api-key: "NONE"
+
   client:
+
     connect-timeout: 10s
     read-timeout: 10s
     write-timeout: 10s
     call-timeout: 10s
+
     retry-on-failure: true
+
     connection-pool:
       max-idle-connections: 5
       keep-alive-duration: 5m
 
 alerts:
-  format: "&c«ReactAI» &7| &fИгрок {player} провалил {check} &8{verbose}"
 
-ml-check:
-  buffer: 250
+  show-in-console: true
 
-prefix: "&c«ReactAI»&f"
+player:
+
+  combat:
+    time-seconds: 8s
+
+  rotations-buffer-size: 150
 
 actions:
-  alert-on:
-    - "[MESSAGE] {prefix} вы включили оповещения."
-  alert-off:
-    - "[MESSAGE] {prefix} вы выключили оповещения."
-  alert-format:
-    - "[MESSAGE] {prefix} {cheater} подозреватеся в читах. prob={prob} | VL={vl}"
-  ban-usage:
-    - "[MESSAGE] {prefix} использование:"
-    - "[MESSAGE] /react ban <name>."
-  ban-success:
-    - "[MESSAGE] {prefix} вы успешно забанили игрока {name}."
-  #  - "[BAN] {name} Система React сочла ваше поведение необычным."
-  ban-failed:
-    - "[MESSAGE] {prefix} ошибка бана игрока. {error}"
-  reload-or-reboot-usage:
-    - "[MESSAGE] {prefix} использование:"
-    - "[MESSAGE] /react reload - релод конфига."
-    - "[MESSAGE] /react reboot - ребут плагина."
-  reload-success:
-    - "[MESSAGE] {prefix} вы успешно релод плагин."
-    - "[RELOAD]"
-  reload-failed:
-    - "[MESSAGE] {prefix} ошибка релод плагина. {error}"
-  reboot-success:
-    - "[MESSAGE] {prefix} вы успешно ребут плагин."
-    - "[REBOOT]"
-  reboot-failed:
-    - "[MESSAGE] {prefix} ошибка ребут плагин. {error}"
-  crash-usage:
-    - "[MESSAGE] {prefix} использование:"
-    - "[MESSAGE] /crash <type> <name>."
-    - "[MESSAGE] <type> есть 3 вида краша. packet, particle, teleport."
-  crash-success:
-    - "[MESSAGE] {prefix} вы успешно крашнули игрока"
-   # - "[CRASH] {name}"
-
-ban:
-  command: "ban {cheater}"
-  reason: "Система React сочла ваше поведение необычным."
-  time:
-    day: 30
-    hours: 0
-    minute: 0
-crash:
-  type:
-    packet:
-      fallback-packets: 5000000000
-      settings:
-        value-packets: 5000000000
-    teleport:
-      fallback-range:
-        x: 1000000000000
-        y: 50000000000
-        z: -100000000000
-      settings:
-        teleport-coords-for:
-          x: 1000000000000
-          y: 50000000000
-          z: -100000000000
-    particles:
-      fallback-value: 50000000
-      settings:
-        type-particle: EXPLOSION_HUGE
-        value: 50000000
-gui:
-  title: "&8Курятник"
-  size: 54
-  heads-per-page: 15
-  head-slots: [10, 11, 12, 13, 14, 19, 20, 21, 22, 23, 28, 29, 30, 31, 32]
-  update-interval: 40
-  border:
-    material: BLUE_STAINED_GLASS_PANE
-    name: "&cReact"
-    slots:
-      top: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-      bottom: [45, 46, 47, 48, 49, 50, 51, 52, 53]
-      left: [9, 18, 27, 36]
-      right: [17, 26, 35, 44]
-  navigation:
-    previous-page:
-      slot: 48
-      material: ARROW
-      text: "&#f6d365❮ Предыдущая"
-    info:
-      slot: 49
-      material: PAPER
-      text: "&#ffffffСтраница %page% из %total%"
-    next-page:
-      slot: 50
-      material: ARROW
-      text: "&#f6d365Следующая ❯"
-  head:
-    name: "&#00FFFF▶ &f%player%"
-    # скока нарушений
-    recent-violations-count: 15
-    # скока видно в 1 строчке
-    violations-per-line: 5
-    lore:
-      - "&#00BFFFПоследние проверки:"
-      - "%violations%"
-      - ""
-      - "&#00BFFFСредний риск: &#FFD700AVG %avg_risk%"
-      - "&#00BFFFПоследний удар: %last_hit%"
-      - ""
-      - "&#00FFFF▶ &fНажмите, чтобы следить"
-  probability-colors:
-    low:
-      threshold: 30.0
-      color: "&#00FF00"
-    medium:
-      threshold: 60.0
-      color: "&#FFD700"
-    high:
-      threshold: 80.0
-      color: "&#FF8C00"
-    critical:
-      color: "&#FF0000"
-
-  messages:
-    teleport: "&#00FF00Телепортация к %player%"
-    offline: "&#FF0000Игрок оффлайн."
-    time-none: "&fНет данных"
-    time-sec: "&f%time% сек."
-    time-min: "&f%time% мин."
+  alerts:
+    on-enable:
+      - "[message] "
+    on-disable:
+      - "[message] "
