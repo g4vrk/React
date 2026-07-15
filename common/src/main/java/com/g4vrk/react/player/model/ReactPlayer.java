@@ -3,6 +3,7 @@ package com.g4vrk.react.player.model;
 import com.g4vrk.react.React;
 import com.g4vrk.react.alert.printer.AlertPrinter;
 import com.g4vrk.react.check.manager.CheckManager;
+import com.g4vrk.react.history.FailureHistory;
 import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import lombok.Getter;
@@ -26,6 +27,8 @@ public final class ReactPlayer {
     public final AlertPrinter alertPrinter;
     public final CheckManager checkManager;
 
+    public final FailureHistory history;
+
     public ReactPlayer(
             @NotNull UUID uniqueId,
             @NotNull String name,
@@ -37,6 +40,7 @@ public final class ReactPlayer {
         this.bukkitPlayer = bukkitPlayer;
         this.alertPrinter = React.INSTANCE.getAlertPrinter();
         this.checkManager = new CheckManager(this);
+        this.history = new FailureHistory();
 
         this.combatActivity = new CombatActivity();
         this.rotationData = new RotationData(rotationHistorySize);

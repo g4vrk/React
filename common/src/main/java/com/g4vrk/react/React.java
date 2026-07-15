@@ -72,9 +72,14 @@ public class React {
     private YamlConfigManager yamlConfigManager;
 
     private Map<String, Config> configMap;
+
     private Config mainConfig;
+    private Config punishmentsConfig;
+    private Config historyConfig;
 
     private ConfigValues configValues;
+
+    private CheckConfigRegistry checkConfigRegistry;
 
     private TaskRunnerFactory taskRunnerFactory;
 
@@ -84,8 +89,6 @@ public class React {
     private AlertPublisher alertPublisher;
     private AlertManager alertManager;
     private AlertPrinter alertPrinter;
-
-    private CheckConfigRegistry checkConfigRegistry;
 
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
 
@@ -122,7 +125,9 @@ public class React {
 
         this.yamlConfigManager.expectedConfigs(
                 "checks/aim-ai.yml",
-                "main-config.yml"
+                "main-config.yml",
+                "punishments.yml",
+                "history.yml"
         );
 
         this.configMap = new Object2ObjectOpenHashMap<>();
@@ -141,6 +146,8 @@ public class React {
         logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
+        this.mainConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
+        this.mainConfig = Objects.requireNonNull(configMap.get("history.yml"));
 
         this.configValues = new ConfigValues(mainConfig.getRoot());
 
