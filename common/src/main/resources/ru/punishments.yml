@@ -1,0 +1,16 @@
+punishments:
+  aim:
+    checks:
+      - "Aim-AI"
+    actions:
+      1:
+        - "[alert]"
+        - "[log]"
+      5:
+        - "[alert]"
+        - "[log]"
+        - "[console] kick <player> &cСистема ReactAC сочла ваше поведение необычным. Если вы считаете что это не так то обратитесь: @g4vrk"
+      10:
+        - "[alert]"
+        - "[log]"
+        - "[reset]"
