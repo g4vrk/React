@@ -146,8 +146,8 @@ public class React {
         logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
-        this.mainConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
-        this.mainConfig = Objects.requireNonNull(configMap.get("history.yml"));
+        this.punishmentsConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
+        this.historyConfig = Objects.requireNonNull(configMap.get("history.yml"));
 
         this.configValues = new ConfigValues(mainConfig.getRoot());
 
