@@ -47,6 +47,7 @@ public final class MLAimProcessor {
             final @NotNull Rotation @NotNull [] snapshot,
             final @NotNull Consumer<Double> resultHandler
     ) {
+        if (!mlServer.isEnabled()) return;
         if (snapshot.length == 0) return;
 
         final Map<String, Object> payload = Map.of(
