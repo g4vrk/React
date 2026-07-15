@@ -111,10 +111,10 @@ public class React {
         final File pluginDir = plugin.getDataFolder();
 
         final Language language = Language.resolve();
-        final String languageName = language.name().toLowerCase();
-        logger.info("Language successfully resolved: {}", languageName);
+        final String languageNameLower = language.name().toLowerCase();
+        logger.info("Language successfully resolved: {}", languageNameLower.toUpperCase());
 
-        final File configsDir = new File(pluginDir, languageName.toLowerCase());
+        final File configsDir = new File(pluginDir, languageNameLower);
 
         final UnloadedYamlConfigLoader configLoader = new UnloadedYamlConfigLoader();
 
@@ -128,7 +128,7 @@ public class React {
         this.configMap = new Object2ObjectOpenHashMap<>();
         try {
 
-            this.yamlConfigManager.prepareExpected(resourceHolder, languageName, configsDir);
+            this.yamlConfigManager.prepareExpected(resourceHolder, languageNameLower, configsDir);
 
             this.configMap.putAll(yamlConfigManager.loadAndSave(resourceHolder, configsDir));
 
@@ -165,7 +165,7 @@ public class React {
                 ForkJoinPool.commonPool(),
                 taskRunner,
                 audience -> audience instanceof Player player
-                        && player.hasPermission("react.alerts")
+                        && player.hasPermission(Permissions.ALERTS)
                         && alertManager.receives(player.getUniqueId()),
                 true
         );
