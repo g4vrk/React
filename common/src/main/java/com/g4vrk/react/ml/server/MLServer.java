@@ -15,8 +15,11 @@ public class MLServer {
 
     @Getter(AccessLevel.NONE)
     private final OkHttpClient client;
+
     private final String serverUrl;
     private final String apiKey;
+
+    private final boolean enabled;
 
     public MLServer(
             @NotNull MLClientSettings settings
@@ -24,6 +27,7 @@ public class MLServer {
         this.client = settings.buildClient();
         this.serverUrl = settings.getServerUrl();
         this.apiKey = settings.getApiKey();
+        this.enabled = settings.isEnabled();
     }
 
     public @NotNull Call newCall(
