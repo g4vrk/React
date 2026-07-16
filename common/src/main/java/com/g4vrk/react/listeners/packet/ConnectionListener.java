@@ -47,11 +47,15 @@ public class ConnectionListener extends PacketListenerAbstract {
     }
 
     @Override
-    public void onUserDisconnect(UserDisconnectEvent event) {
-        final User user = event.getUser();
+    public void onUserDisconnect(@NotNull UserDisconnectEvent event) {
+        try {
+            final User user = event.getUser();
 
-        playerRegistry.removePlayer(user.getUUID());
+            playerRegistry.removePlayer(user.getUUID());
 
-        alertPublisher.flushAsync();
+            alertPublisher.flushAsync();
+        } catch (final Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 }
