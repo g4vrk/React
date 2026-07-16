@@ -15,17 +15,13 @@ public final class HistoryEntry {
 
     private final double probability;
 
-    private final double confidence;
-
     public HistoryEntry(
             @NotNull Check check,
-            double probability,
-            double confidence
+            double probability
     ) {
         this.timestamp = currentTimeMillis();
         this.check = check;
         this.probability = probability;
-        this.confidence = confidence;
     }
 
 }
