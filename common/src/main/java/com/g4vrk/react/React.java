@@ -115,6 +115,7 @@ public class React {
 
         final Language language = Language.resolve();
         final String languageNameLower = language.name().toLowerCase();
+
         logger.info("Language successfully resolved: {}", languageNameLower.toUpperCase());
 
         final File configsDir = new File(pluginDir, languageNameLower);
@@ -135,7 +136,7 @@ public class React {
 
             this.yamlConfigManager.prepareExpected(resourceHolder, languageNameLower, configsDir);
 
-            this.configMap.putAll(yamlConfigManager.loadAndSave(resourceHolder, configsDir));
+            this.configMap.putAll(yamlConfigManager.loadAndSave(configsDir));
 
         } catch (final Exception ex) {
             throw new RuntimeException("An internal error occurred when trying to load configurations", ex);

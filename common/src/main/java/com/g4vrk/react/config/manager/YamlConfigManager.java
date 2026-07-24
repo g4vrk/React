@@ -71,20 +71,18 @@ public final class YamlConfigManager {
     }
 
     public @NotNull Map<String, Config> loadAndSave(
-            final @NotNull ResourceHolder resourceHolder,
             final @NotNull File dir
     ) throws IOException {
 
         final Collection<File> configFiles = new ObjectOpenHashSet<>();
 
-        collectConfigs(dir, configFiles);
+        collectConfigs(dir.getParentFile(), configFiles);
 
-        return loadAndSave(resourceHolder, configFiles);
+        return loadAndSave(configFiles);
 
     }
 
     public @NotNull Map<String, Config> loadAndSave(
-            final @NotNull ResourceHolder resourceHolder,
             final @NotNull Iterable<File> configFiles
     ) throws IOException {
 
