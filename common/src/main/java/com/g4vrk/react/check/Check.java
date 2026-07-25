@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class Check extends AbstractCheck {
 
+    @Getter
     protected final ReactPlayer player;
 
     @Getter
