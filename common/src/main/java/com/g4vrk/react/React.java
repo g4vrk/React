@@ -101,6 +101,8 @@ public class React {
 
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
 
+    private LegacyPaperCommandManager<CommandSender> commandManager;
+
     public void initialize(
             final @NotNull Plugin plugin,
             final @NotNull ReactAPI api
@@ -111,6 +113,12 @@ public class React {
     }
 
     public void preLoad() {
+
+        this.commandManager = LegacyPaperCommandManager.createNative(
+                plugin,
+                ExecutionCoordinator.simpleCoordinator()
+        );
+
     }
 
     public void load() {
@@ -123,10 +131,7 @@ public class React {
             return;
         }
 
-        final LegacyPaperCommandManager<CommandSender> commandManager = LegacyPaperCommandManager.createNative(
-                plugin,
-                ExecutionCoordinator.simpleCoordinator()
-        );
+
 
         final CommandBuilderFactory commandBuilderFactory =
                 new CommandBuilderFactory(
