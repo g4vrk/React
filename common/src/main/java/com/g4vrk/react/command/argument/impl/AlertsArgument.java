@@ -1,6 +1,5 @@
 package com.g4vrk.react.command.argument.impl;
 
-import com.g4vrk.fastTextFormatter.placeholder.PlaceholderMap;
 import com.g4vrk.react.alert.manager.AlertManager;
 import com.g4vrk.react.command.argument.LocalArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
