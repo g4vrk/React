@@ -120,6 +120,7 @@ public class React {
                 new CommandBuilderFactory(
                         commandManager,
                         "react",
+                        "react.command",
                         "React anticheat main command",
                         new String[]{"reactac", "reactai", "ac"}
                 );

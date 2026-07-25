@@ -16,6 +16,7 @@ public final class CommandBuilderFactory implements Factory<Command.Builder<Comm
     private final CommandManager<CommandSender> manager;
 
     private final String label;
+    private final String permission;
     private final String description;
     private final String[] aliases;
 
@@ -24,7 +25,7 @@ public final class CommandBuilderFactory implements Factory<Command.Builder<Comm
                 this.label,
                 Description.of(this.description),
                 this.aliases
-        );
+        ).permission(permission);
     }
 
 }
