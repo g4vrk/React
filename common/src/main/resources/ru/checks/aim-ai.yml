@@ -1,4 +1,4 @@
-required-samples: 25
+required-samples: 150
 
 alert:
   threshold: 0.49
