@@ -142,8 +142,6 @@ public class React {
                         new String[]{"reactac", "reactai", "ac"}
                 );
 
-        commandManager.command(new AlertsArgument(commandBuilderFactory, () -> alertManager).build());
-
         if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
             try {
 
@@ -163,6 +161,8 @@ public class React {
             commandManager.registerAsynchronousCompletions();
 
         }
+
+        commandManager.command(new AlertsArgument(commandBuilderFactory, () -> alertManager).build());
 
         logger.info("Main command successfully registered!");
 
