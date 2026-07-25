@@ -113,12 +113,6 @@ public class React {
     }
 
     public void preLoad() {
-
-        this.commandManager = LegacyPaperCommandManager.createNative(
-                plugin,
-                ExecutionCoordinator.simpleCoordinator()
-        );
-
     }
 
     public void load() {
@@ -131,7 +125,10 @@ public class React {
             return;
         }
 
-
+        this.commandManager = LegacyPaperCommandManager.createNative(
+                plugin,
+                ExecutionCoordinator.simpleCoordinator()
+        );
 
         final CommandBuilderFactory commandBuilderFactory =
                 new CommandBuilderFactory(
