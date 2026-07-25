@@ -23,9 +23,8 @@ dependencies {
 
     compileOnly "org.spongepowered:configurate-yaml:4.2.0"
 
-    implementation("org.incendo:cloud-paper:2.0.0")
+    implementation "org.incendo:cloud-paper:2.0.0"
 
-    implementation "com.g4vrk:FunctionalCommand:1.0.1"
     implementation "com.g4vrk:FunctionalActions:1.0.1"
     implementation "com.g4vrk:FunctionalConfiguration:1.0.0"
 
