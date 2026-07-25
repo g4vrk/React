@@ -111,6 +111,18 @@ public class React {
     }
 
     public void preLoad() {
+    }
+
+    public void load() {
+        if (!PluginUtil.containsPlugin("packetevents")) {
+            logger.error("Plugin 'packetevents' cannot found on this server!");
+            logger.error("Please, install it, otherwise React will not work.");
+            logger.error("For now, disabling our plugin.");
+
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            return;
+        }
+
         final LegacyPaperCommandManager<CommandSender> commandManager = LegacyPaperCommandManager.createNative(
                 plugin,
                 ExecutionCoordinator.simpleCoordinator()
@@ -146,17 +158,8 @@ public class React {
             commandManager.registerAsynchronousCompletions();
 
         }
-    }
 
-    public void load() {
-        if (!PluginUtil.containsPlugin("packetevents")) {
-            logger.error("Plugin 'packetevents' cannot found on this server!");
-            logger.error("Please, install it, otherwise React will not work.");
-            logger.error("For now, disabling our plugin.");
-
-            plugin.getServer().getPluginManager().disablePlugin(plugin);
-            return;
-        }
+        logger.info("Main command successfully registered!");
 
         final File pluginDir = plugin.getDataFolder();
 
