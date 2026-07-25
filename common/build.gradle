@@ -25,7 +25,8 @@ dependencies {
 
     implementation "org.incendo:cloud-paper:2.0.0"
 
-    implementation "com.g4vrk:FunctionalActions:1.0.1"
+    implementation "com.g4vrk:FunctionalActions:2.0.0"
+    implementation "com.g4vrk:FastTextFormatter:1.0.1"
     implementation "com.g4vrk:FunctionalConfiguration:1.0.0"
 
 }
