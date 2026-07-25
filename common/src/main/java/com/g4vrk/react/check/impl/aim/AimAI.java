@@ -3,6 +3,7 @@ package com.g4vrk.react.check.impl.aim;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.check.Check;
+import com.g4vrk.react.check.debug.DebugHandler;
 import com.g4vrk.react.check.decay.DecayStrategy;
 import com.g4vrk.react.check.decay.impl.LinearDecay;
 import com.g4vrk.react.check.info.CheckInfo;
@@ -10,9 +11,9 @@ import com.g4vrk.react.check.type.RotationCheck;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.HistoryEntry;
-import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -27,26 +28,33 @@ public final class AimAI extends Check implements RotationCheck {
     private final MLAimProcessor mlAimProcessor;
     private final ValueColorResolver colorResolver;
 
+    private final DebugHandler debugHandler;
+
+    private final boolean debug;
+
     private final int requiredSamples;
     private final double alertThreshold;
 
-    private volatile boolean requesting = false;
+    private volatile boolean requesting;
 
     private final DecayStrategy decayStrategy;
 
     public AimAI(@NotNull ReactPlayer player) {
         super(player);
+
         this.mlAimProcessor = React.INSTANCE.getMlAimProcessor();
         this.colorResolver = new ProbabilityColorResolver();
 
         final Config config = React.INSTANCE.getCheckConfigRegistry()
                 .config(getClass());
 
+        this.debug = config.node("debug").getBoolean();
         this.requiredSamples = config.node("required-samples").getInt(25);
         this.alertThreshold = config.node("alert", "threshold").getDouble(0.49D);
 
         final double decayAmount = config.node("decay", "amount").getDouble(0.5D);
 
+        this.debugHandler = new DebugHandler(this);
         this.decayStrategy = new LinearDecay(decayAmount);
     }
 
@@ -57,37 +65,96 @@ public final class AimAI extends Check implements RotationCheck {
 
     @Override
     public void onRotation(@NotNull RotationData currentData) {
-        if (!player.combatActivity.isActive()
-                || currentData.historySize() < this.requiredSamples
-                || requesting
-                || !super.shouldCheck()) return;
+
+        if (!player.combatActivity.isActive()) {
+            if (debug) {
+                debugHandler.debug("Skip: combat inactive");
+            }
+            return;
+        }
+
+        if (currentData.historySize() < requiredSamples) {
+            if (debug) {
+                debugHandler.debug(
+                        "Skip: history=" + currentData.historySize() + "/" + requiredSamples
+                );
+            }
+            return;
+        }
+
+        if (requesting) {
+            if (debug) {
+                debugHandler.debug("Skip: request already in progress");
+            }
+            return;
+        }
+
+        if (!shouldCheck()) {
+            if (debug) {
+                debugHandler.debug("Skip: shouldCheck=false");
+            }
+            return;
+        }
 
         final Rotation[] snapshot = currentData.snapshotHistory();
 
-        this.requesting = true;
-        this.mlAimProcessor.check(this.player.getName(), snapshot, this::onServerResult);
+        requesting = true;
+
+        if (debug) {
+            debugHandler.debug("Sending ML request (" + snapshot.length + " rotations)");
+        }
+
+        mlAimProcessor.check(
+                player.getName(),
+                snapshot,
+                this::onServerResult
+        );
     }
 
     private void onServerResult(
-            final double probability
+            double probability
     ) {
 
-        final TextColor color = this.colorResolver.resolve(probability);
-        final Component verbose = Component.text(String.format("%.1f%%", probability * 100D))
-                .color(color);
+        if (debug) {
+            debugHandler.debug("Received ML response: " + probability);
+        }
 
-        if (probability > this.alertThreshold) {
-            super.failAndAlert(1, verbose);
+        final TextColor color = colorResolver.resolve(probability);
+
+        final Component verbose = Component.text(
+                String.format("%.1f%%", probability * 100D)
+        ).color(color);
+
+        if (probability > alertThreshold) {
+
+            if (debug) {
+                debugHandler.debug(
+                        "Flagged: " + probability + " > " + alertThreshold
+                );
+            }
+
+            failAndAlert(1, verbose);
+
         } else {
-            super.reward();
+
+            if (debug) {
+                debugHandler.debug(
+                        "Reward: " + probability + " <= " + alertThreshold
+                );
+            }
+
+            reward();
         }
 
         player.history.add(new HistoryEntry(this, probability));
 
         player.rotationData.clear();
 
-        this.requesting = false;
+        requesting = false;
 
+        if (debug) {
+            debugHandler.debug("Request finished");
+        }
     }
 
 }
