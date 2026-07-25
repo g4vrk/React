@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public final class AlertsArgument extends LocalArgument {
 
-    private static final UUID CONSOLE_UUID = UUID.fromString("0000-0000-0000-0000");
+    private static final UUID CONSOLE_UUID = new UUID(0, 0);
 
     private final CommandBuilderFactory builderFactory;
 
