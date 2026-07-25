@@ -23,6 +23,7 @@ import com.g4vrk.react.listeners.packet.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
+import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.g4vrk.react.resource.ResourceHolder;
@@ -241,8 +242,7 @@ public class React {
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 
-        final long combatTicks = 20L * Math.max(1,
-                mainConfig.getRoot().node("ml-check", "combat-seconds").getInt(8));
+        final long combatTicks = TimeParser.parse(mainConfig.getRoot().node("combat", "time").getString("5s")).toMillis() / 50L;
 
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
 
