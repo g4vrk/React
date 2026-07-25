@@ -66,33 +66,10 @@ public final class AimAI extends Check implements RotationCheck {
     @Override
     public void onRotation(@NotNull RotationData currentData) {
 
-        if (!player.combatActivity.isActive()) {
-            if (debug) {
-                debugHandler.debug("Skip: combat inactive");
-            }
-            return;
-        }
-
-        if (currentData.historySize() < requiredSamples) {
-            if (debug) {
-                debugHandler.debug(
-                        "Skip: history=" + currentData.historySize() + "/" + requiredSamples
-                );
-            }
-            return;
-        }
-
-        if (requesting) {
-            if (debug) {
-                debugHandler.debug("Skip: request already in progress");
-            }
-            return;
-        }
-
-        if (!shouldCheck()) {
-            if (debug) {
-                debugHandler.debug("Skip: shouldCheck=false");
-            }
+        if (!player.combatActivity.isActive()
+                || currentData.historySize() < requiredSamples
+                || requesting
+                || !shouldCheck()) {
             return;
         }
 
