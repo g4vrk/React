@@ -15,6 +15,7 @@ public class FoliaReactPlugin extends JavaPlugin {
         this.api = new FoliaReactAPI(this);
 
         this.react.initialize(this, api);
+        this.react.preLoad();
     }
 
     @Override

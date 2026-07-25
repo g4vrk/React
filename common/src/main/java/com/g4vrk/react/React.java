@@ -110,6 +110,43 @@ public class React {
         this.taskRunnerFactory = api.getTaskRunnerFactory();
     }
 
+    public void preLoad() {
+        final LegacyPaperCommandManager<CommandSender> commandManager = LegacyPaperCommandManager.createNative(
+                plugin,
+                ExecutionCoordinator.simpleCoordinator()
+        );
+
+        final CommandBuilderFactory commandBuilderFactory =
+                new CommandBuilderFactory(
+                        commandManager,
+                        "react",
+                        "React anticheat main command",
+                        new String[]{"reactac", "reactai", "ac"}
+                );
+
+        commandManager.command(new AlertsArgument(commandBuilderFactory, () -> alertManager).build());
+
+        if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+            try {
+
+                commandManager.registerBrigadier();
+
+                final CloudBrigadierManager<CommandSender, ?> cbm = commandManager.brigadierManager();
+
+                cbm.settings().set(BrigadierSetting.FORCE_EXECUTABLE, true);
+
+            } catch (final Throwable th) {
+
+                logger.error("Failed to register Brigadier native completions. Falling back to standard completions.", th);
+
+            }
+        } else if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+
+            commandManager.registerAsynchronousCompletions();
+
+        }
+    }
+
     public void load() {
         if (!PluginUtil.containsPlugin("packetevents")) {
             logger.error("Plugin 'packetevents' cannot found on this server!");
@@ -207,40 +244,6 @@ public class React {
                 new CombatListener(playerRegistry, combatTicks),
                 plugin
         );
-
-        final LegacyPaperCommandManager<CommandSender> commandManager = LegacyPaperCommandManager.createNative(
-                plugin,
-                ExecutionCoordinator.simpleCoordinator()
-        );
-
-        final CommandBuilderFactory commandBuilderFactory =
-                new CommandBuilderFactory(
-                        commandManager,
-                        "react",
-                        "React anticheat main command", new String[]{"reactac", "reactai", "ac"}
-                );
-
-        commandManager.command(new AlertsArgument(commandBuilderFactory, alertManager).build());
-
-        if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
-            try {
-
-                commandManager.registerBrigadier();
-
-                final CloudBrigadierManager<CommandSender, ?> cbm = commandManager.brigadierManager();
-
-                cbm.settings().set(BrigadierSetting.FORCE_EXECUTABLE, true);
-
-            } catch (final Throwable th) {
-
-                logger.error("Failed to register Brigadier native completions. Falling back to standard completions.", th);
-
-            }
-        } else if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
-
-            commandManager.registerAsynchronousCompletions();
-
-        }
 
         logger.info(" ");
         logger.info("React successfully enabled!");

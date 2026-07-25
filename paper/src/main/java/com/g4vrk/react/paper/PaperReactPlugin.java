@@ -15,6 +15,7 @@ public class PaperReactPlugin extends JavaPlugin {
         this.api = new PaperReactAPI(this);
 
         this.react.initialize(this, api);
+        this.react.preLoad();
     }
 
     @Override
