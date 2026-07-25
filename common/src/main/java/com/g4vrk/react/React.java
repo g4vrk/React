@@ -213,6 +213,15 @@ public class React {
                 ExecutionCoordinator.simpleCoordinator()
         );
 
+        final CommandBuilderFactory commandBuilderFactory =
+                new CommandBuilderFactory(
+                        commandManager,
+                        "react",
+                        "React anticheat main command", new String[]{"reactac", "reactai", "ac"}
+                );
+
+        commandManager.command(new AlertsArgument(commandBuilderFactory, alertManager).build());
+
         if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
             try {
 
@@ -232,15 +241,6 @@ public class React {
             commandManager.registerAsynchronousCompletions();
 
         }
-
-        final CommandBuilderFactory commandBuilderFactory =
-                new CommandBuilderFactory(
-                        commandManager,
-                        "react",
-                        "React anticheat main command", new String[]{"reactac", "reactai", "ac"}
-                );
-
-        commandManager.command(new AlertsArgument(commandBuilderFactory, alertManager).build());
 
         logger.info(" ");
         logger.info("React successfully enabled!");
