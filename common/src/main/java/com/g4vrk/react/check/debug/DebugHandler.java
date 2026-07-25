@@ -2,6 +2,7 @@ package com.g4vrk.react.check.debug;
 
 import com.g4vrk.react.React;
 import com.g4vrk.react.check.Check;
+import com.g4vrk.react.player.model.ReactPlayer;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -19,7 +20,7 @@ public class DebugHandler {
     public final void debug(
             final @NotNull String message
     ) {
-        logger.info(format(message));
+        logger.info(format(message, check.getPlayer()));
         debugToSender(check.getPlayer().bukkitPlayer, message);
     }
 
@@ -27,13 +28,14 @@ public class DebugHandler {
             final @NotNull Audience sender,
             final @NotNull String message
     ) {
-        sender.sendMessage(Component.text(format(message)).color(NamedTextColor.GRAY));
+        sender.sendMessage(Component.text(format(message, check.getPlayer())).color(NamedTextColor.GRAY));
     }
 
     private @NotNull String format(
-            final @NotNull String message
+            final @NotNull String message,
+            final @NotNull ReactPlayer player
     ) {
-        return "debug -> " + check.getName() + ": " + message;
+        return "debug(" + player.getName() + ") -> " + check.getName() + ": " + message;
     }
 
 }
