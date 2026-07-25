@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public final class AlertsArgument extends LocalArgument {
@@ -21,7 +22,7 @@ public final class AlertsArgument extends LocalArgument {
 
     private final CommandBuilderFactory builderFactory;
 
-    private final AlertManager alertManager;
+    private final Supplier<AlertManager> alertManagerSupplier;
 
     @Override
     public @NotNull Command.Builder<CommandSender> build() {
@@ -30,10 +31,11 @@ public final class AlertsArgument extends LocalArgument {
                 .required("alerts", LiteralParser.literal("alerts", "notifications"))
                 .handler(context -> {
 
+                    final AlertManager alertManager = this.alertManagerSupplier.get();
                     final UUID uuid = this.uniqueId(context.sender());
 
-                    if (!this.alertManager.remove(uuid)) {
-                        this.alertManager.add(uuid);
+                    if (!alertManager.remove(uuid)) {
+                        alertManager.add(uuid);
                     }
                 });
     }
