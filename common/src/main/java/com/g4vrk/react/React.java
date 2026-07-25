@@ -8,6 +8,8 @@ import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.api.ReactAPI;
 import com.g4vrk.react.api.task.runner.TaskRunner;
 import com.g4vrk.react.api.task.runner.factory.TaskRunnerFactory;
+import com.g4vrk.react.command.argument.impl.AlertsArgument;
+import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
 import com.g4vrk.react.config.check.impl.SimpleCheckConfigRegistry;
 import com.g4vrk.react.check.processor.rotation.RotationFactory;
@@ -36,9 +38,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.kyori.adventure.text.Component;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.incendo.cloud.CommandManager;
+import org.incendo.cloud.brigadier.BrigadierSetting;
+import org.incendo.cloud.brigadier.CloudBrigadierManager;
+import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,6 +207,41 @@ public class React {
                 new CombatListener(playerRegistry, combatTicks),
                 plugin
         );
+
+        final LegacyPaperCommandManager<CommandSender> commandManager = LegacyPaperCommandManager.createNative(
+                plugin,
+                ExecutionCoordinator.simpleCoordinator()
+        );
+
+        if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+            try {
+
+                commandManager.registerBrigadier();
+
+                final CloudBrigadierManager<CommandSender, ?> cbm = commandManager.brigadierManager();
+
+                cbm.settings().set(BrigadierSetting.FORCE_EXECUTABLE, true);
+
+            } catch (final Throwable th) {
+
+                logger.error("Failed to register Brigadier native completions. Falling back to standard completions.", th);
+
+            }
+        } else if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+
+            commandManager.registerAsynchronousCompletions();
+
+        }
+
+        final CommandBuilderFactory commandBuilderFactory =
+                new CommandBuilderFactory(
+                        commandManager,
+                        "react",
+                        "React anticheat main command", new String[]{"reactac", "reactai", "ac"}
+                );
+
+        commandManager.command(new AlertsArgument(commandBuilderFactory, alertManager).build());
+
         logger.info(" ");
         logger.info("React successfully enabled!");
         logger.info(" ");
