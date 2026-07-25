@@ -1,5 +1,7 @@
 package com.g4vrk.react.listeners.packet;
 
+import com.g4vrk.react.Permissions;
+import com.g4vrk.react.alert.manager.AlertManager;
 import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -16,15 +18,18 @@ public class ConnectionListener extends PacketListenerAbstract {
     private final PlayerRegistry playerRegistry;
     private final PlayerFactory playerFactory;
     private final AlertPublisher alertPublisher;
+    private final AlertManager alertManager;
 
     public ConnectionListener(
             @NotNull PlayerRegistry playerRegistry,
             @NotNull PlayerFactory playerFactory,
-            @NotNull AlertPublisher alertPublisher
+            @NotNull AlertPublisher alertPublisher,
+            @NotNull AlertManager alertManager
     ) {
         this.playerRegistry = playerRegistry;
         this.playerFactory = playerFactory;
         this.alertPublisher = alertPublisher;
+        this.alertManager = alertManager;
     }
 
     @Override
@@ -38,6 +43,10 @@ public class ConnectionListener extends PacketListenerAbstract {
             final ReactPlayer entity = playerFactory.create(user.getUUID(), user.getName(), bukkitPlayer);
 
             playerRegistry.addPlayer(user.getUUID(), entity);
+
+            if (bukkitPlayer.hasPermission(Permissions.ALERTS_ENABLE_ON_JOIN)) {
+                alertManager.add(bukkitPlayer.getUniqueId());
+            }
 
             alertPublisher.flushAsync();
         } catch (final Exception ex) {
