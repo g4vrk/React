@@ -1,6 +1,7 @@
 package com.g4vrk.react.command.argument.impl;
 
 import com.g4vrk.react.alert.manager.AlertManager;
+import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.command.argument.LocalArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public final class AlertsArgument extends LocalArgument {
 
     private final CommandBuilderFactory builderFactory;
 
+    private final Supplier<AlertPublisher> alertPublisherSupplier;
     private final Supplier<AlertManager> alertManagerSupplier;
 
     @Override
@@ -36,6 +38,8 @@ public final class AlertsArgument extends LocalArgument {
                     if (!alertManager.remove(uuid)) {
                         alertManager.add(uuid);
                     }
+
+                    alertPublisherSupplier.get().flushAsync();
                 });
     }
 

@@ -160,7 +160,7 @@ public class React {
 
         }
 
-        commandManager.command(new AlertsArgument(commandBuilderFactory, () -> alertManager).build());
+        commandManager.command(new AlertsArgument(commandBuilderFactory, () -> alertPublisher, () -> alertManager).build());
 
         logger.info("Main command successfully registered!");
 
