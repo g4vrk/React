@@ -13,16 +13,16 @@ public class AlertManager {
     public AlertManager() {
     }
 
-    public void add(
+    public boolean add(
             final @NotNull UUID uuid
     ) {
-        this.receivers.add(uuid);
+        return this.receivers.add(uuid);
     }
 
-    public void remove(
+    public boolean remove(
             final @NotNull UUID uuid
     ) {
-        this.receivers.remove(uuid);
+        return this.receivers.remove(uuid);
     }
 
     public boolean receives(
