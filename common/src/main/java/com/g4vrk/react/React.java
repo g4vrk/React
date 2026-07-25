@@ -237,7 +237,7 @@ public class React {
         );
 
         this.registerPacketListeners(
-                new ConnectionListener(playerRegistry, playerFactory, alertPublisher),
+                new ConnectionListener(playerRegistry, playerFactory, alertPublisher, alertManager),
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 
