@@ -1,9 +1,11 @@
 package com.g4vrk.react.check;
 
 import com.g4vrk.react.Permissions;
+import com.g4vrk.react.React;
 import com.g4vrk.react.check.decay.DecayStrategy;
 import com.g4vrk.react.check.info.CheckInfo;
 import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.punish.PunishmentManager;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +25,12 @@ public abstract class Check extends AbstractCheck {
 
         final CheckInfo info = this.getClass().getAnnotation(CheckInfo.class);
 
+        if (info == null) {
+            throw new IllegalStateException(
+                    this.getClass().getName() + " is missing the @CheckInfo annotation"
+            );
+        }
+
         super.setName(info.name());
         super.setConfigId(info.configId());
         super.setExperimental(info.experimental());
@@ -40,7 +48,15 @@ public abstract class Check extends AbstractCheck {
     protected final void fail(
             final double amount
     ) {
+        final double previous = this.violations;
+
         this.violations += amount;
+
+        final PunishmentManager punishmentManager = React.INSTANCE.getPunishmentManager();
+
+        if (punishmentManager != null) {
+            punishmentManager.handleFail(this, previous, this.violations);
+        }
     }
 
     protected final void failAndAlert(
@@ -71,7 +87,7 @@ public abstract class Check extends AbstractCheck {
         violations = Math.max(0, decayStrategy().decay(violations));
     }
 
-    protected final void resetVL() {
+    public final void resetViolations() {
         violations = 0D;
     }
 

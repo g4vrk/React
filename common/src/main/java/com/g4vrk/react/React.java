@@ -24,8 +24,10 @@ import com.g4vrk.react.listeners.packet.RotationListener;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.parse.time.TimeParser;
+import com.g4vrk.react.parse.time.TimeValue;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.registry.PlayerRegistry;
+import com.g4vrk.react.punish.PunishmentManager;
 import com.g4vrk.react.resource.ResourceHolder;
 import com.g4vrk.react.resource.impl.PluginResourceHolder;
 import com.g4vrk.react.util.PluginUtil;
@@ -43,7 +45,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.brigadier.BrigadierSetting;
 import org.incendo.cloud.brigadier.CloudBrigadierManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
@@ -58,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -100,6 +102,8 @@ public class React {
     private AlertManager alertManager;
     private AlertPrinter alertPrinter;
 
+    private PunishmentManager punishmentManager;
+
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
 
     private LegacyPaperCommandManager<CommandSender> commandManager;
@@ -118,7 +122,7 @@ public class React {
 
     public void load() {
         if (!PluginUtil.containsPlugin("packetevents")) {
-            logger.error("Plugin 'packetevents' cannot found on this server!");
+            logger.error("Plugin 'packetevents' cannot be found on this server!");
             logger.error("Please, install it, otherwise React will not work.");
             logger.error("For now, disabling our plugin.");
 
@@ -159,10 +163,6 @@ public class React {
             commandManager.registerAsynchronousCompletions();
 
         }
-
-        commandManager.command(new AlertsArgument(commandBuilderFactory, () -> alertPublisher, () -> alertManager).build());
-
-        logger.info("Main command successfully registered!");
 
         final File pluginDir = plugin.getDataFolder();
 
@@ -219,6 +219,10 @@ public class React {
 
         final Component alertFormat = textFormatter.format(alertFormatRaw);
 
+        final boolean showAlertsInConsole = mainConfig.getRoot()
+                .node("alerts", "show-in-console")
+                .getBoolean(true);
+
         this.alertManager = new AlertManager();
 
         this.alertPublisher = new AlertPublisher(
@@ -228,21 +232,42 @@ public class React {
                 audience -> audience instanceof Player player
                         && player.hasPermission(Permissions.ALERTS)
                         && alertManager.receives(player.getUniqueId()),
-                true
+                showAlertsInConsole
         );
 
         this.alertPrinter = new AlertPrinter(alertPublisher, alertFormat);
 
+        this.alertPublisher.flushListeners();
+
+        this.punishmentManager = new PunishmentManager(
+                punishmentsConfig,
+                logger,
+                plugin.getServer(),
+                taskRunner,
+                alertPrinter
+        );
+
         this.mlAimProcessor = new MLAimProcessor(
                 logger, mlServer, taskRunner
         );
+
+        commandManager.command(new AlertsArgument(
+                commandBuilderFactory,
+                () -> alertPublisher,
+                () -> alertManager
+        ).build());
+
+        logger.info("Main command successfully registered!");
 
         this.registerPacketListeners(
                 new ConnectionListener(playerRegistry, playerFactory, alertPublisher, alertManager),
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 
-        final long combatTicks = TimeParser.parse(mainConfig.getRoot().node("combat", "time").getString("5s")).toMillis() / 50L;
+        final long combatTicks = TimeParser.parseOrDefault(
+                mainConfig.getRoot().node("player", "combat", "time").getString("8s"),
+                new TimeValue(8, TimeUnit.SECONDS)
+        ).toMillis() / 50L;
 
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
 
@@ -267,10 +292,20 @@ public class React {
 
             this.unregisterPacketListeners();
 
+            if (this.mlServer != null) {
+                this.mlServer.shutdown();
+            }
+
+            if (this.playerRegistry != null) {
+                this.playerRegistry.clear();
+            }
+
             this.mainConfig = null;
             this.configValues = null;
             this.taskRunnerFactory = null;
             this.mlServer = null;
+            this.mlAimProcessor = null;
+            this.punishmentManager = null;
 
         } catch (final Exception ex) {
             this.logger.error("An internal error occurred when trying to terminate the plugin", ex);
@@ -292,9 +327,18 @@ public class React {
 
     private void unregisterPacketListeners() {
 
-        final EventManager eventManager = PacketEvents.getAPI().getEventManager();
+        if (this.registeredListeners.isEmpty()) {
+            return;
+        }
 
-        eventManager.unregisterListeners(this.registeredListeners.toArray(PacketListenerCommon[]::new));
+        try {
+            final EventManager eventManager = PacketEvents.getAPI().getEventManager();
+
+            eventManager.unregisterListeners(this.registeredListeners.toArray(PacketListenerCommon[]::new));
+
+        } finally {
+            this.registeredListeners.clear();
+        }
 
     }
 }
