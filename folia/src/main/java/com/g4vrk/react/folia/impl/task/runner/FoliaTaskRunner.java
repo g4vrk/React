@@ -58,8 +58,8 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
             task = asyncScheduler.runAtFixedRate(
                     getPlugin(),
                     scheduledTask -> runnable.run(),
-                    toMillis(tickSchedule.getDelay()),
-                    toMillis(tickSchedule.getPeriod()),
+                    positiveMillis(tickSchedule.getDelay()),
+                    positiveMillis(tickSchedule.getPeriod()),
                     TimeUnit.MILLISECONDS
             );
 
@@ -68,7 +68,7 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
             task = asyncScheduler.runDelayed(
                     getPlugin(),
                     scheduledTask -> runnable.run(),
-                    toMillis(tickSchedule.getDelay()),
+                    positiveMillis(tickSchedule.getDelay()),
                     TimeUnit.MILLISECONDS
             );
 
@@ -96,8 +96,8 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
             task = globalRegionScheduler.runAtFixedRate(
                     getPlugin(),
                     scheduledTask -> runnable.run(),
-                    tickSchedule.getDelay(),
-                    tickSchedule.getPeriod()
+                    positiveTicks(tickSchedule.getDelay()),
+                    positiveTicks(tickSchedule.getPeriod())
             );
 
         } else if (tickSchedule.isDelayed()) {
@@ -105,7 +105,7 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
             task = globalRegionScheduler.runDelayed(
                     getPlugin(),
                     scheduledTask -> runnable.run(),
-                    tickSchedule.getDelay()
+                    positiveTicks(tickSchedule.getDelay())
             );
 
         } else {
@@ -134,8 +134,8 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
                     getPlugin(),
                     scheduledTask -> runnable.run(),
                     null,
-                    tickSchedule.getDelay(),
-                    tickSchedule.getPeriod()
+                    positiveTicks(tickSchedule.getDelay()),
+                    positiveTicks(tickSchedule.getPeriod())
             );
 
         } else if (tickSchedule.isDelayed()) {
@@ -144,7 +144,7 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
                     getPlugin(),
                     scheduledTask -> runnable.run(),
                     null,
-                    tickSchedule.getDelay()
+                    positiveTicks(tickSchedule.getDelay())
             );
 
         } else {
@@ -178,8 +178,8 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
                     getPlugin(),
                     location,
                     scheduledTask -> runnable.run(),
-                    tickSchedule.getDelay(),
-                    tickSchedule.getPeriod()
+                    positiveTicks(tickSchedule.getDelay()),
+                    positiveTicks(tickSchedule.getPeriod())
             );
 
         } else if (tickSchedule.isDelayed()) {
@@ -188,7 +188,7 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
                     getPlugin(),
                     location,
                     scheduledTask -> runnable.run(),
-                    tickSchedule.getDelay()
+                    positiveTicks(tickSchedule.getDelay())
             );
 
         } else {
@@ -203,15 +203,21 @@ public final class FoliaTaskRunner extends AbstractTaskRunner {
         return adapt(task);
     }
 
-    private long toMillis(
-            final long ticks
-    ) {
-        return ticks * 50L;
-    }
-
-    private @NotNull Task adapt(
-            @NotNull ScheduledTask task
+    private @NotNull FoliaTask adapt(
+            final @NotNull ScheduledTask task
     ) {
         return new FoliaTask(task);
+    }
+
+    private long positiveTicks(
+            final long ticks
+    ) {
+        return Math.max(1L, ticks);
+    }
+
+    private long positiveMillis(
+            final long ticks
+    ) {
+        return Math.max(1L, ticks * 50L);
     }
 }
