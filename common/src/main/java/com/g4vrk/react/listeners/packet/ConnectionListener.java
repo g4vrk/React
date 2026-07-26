@@ -1,6 +1,7 @@
 package com.g4vrk.react.listeners.packet;
 
 import com.g4vrk.react.Permissions;
+import com.g4vrk.react.React;
 import com.g4vrk.react.alert.manager.AlertManager;
 import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.player.factory.PlayerFactory;
@@ -12,8 +13,11 @@ import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 public class ConnectionListener extends PacketListenerAbstract {
+
+    private final Logger logger = React.INSTANCE.getLogger();
 
     private final PlayerRegistry playerRegistry;
     private final PlayerFactory playerFactory;
@@ -50,7 +54,7 @@ public class ConnectionListener extends PacketListenerAbstract {
 
             alertPublisher.flushAsync();
         } catch (final Exception ex) {
-            throw new RuntimeException(ex);
+            logger.error("Could not handle login of a player", ex);
         }
 
     }
@@ -60,11 +64,12 @@ public class ConnectionListener extends PacketListenerAbstract {
         try {
             final User user = event.getUser();
 
+            alertManager.remove(user.getUUID());
             playerRegistry.removePlayer(user.getUUID());
 
             alertPublisher.flushAsync();
         } catch (final Exception ex) {
-            throw new RuntimeException(ex);
+            logger.error("Could not handle disconnect of a player", ex);
         }
     }
 }
