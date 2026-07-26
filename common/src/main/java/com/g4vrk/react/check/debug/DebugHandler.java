@@ -21,13 +21,13 @@ public class DebugHandler {
             final @NotNull String message
     ) {
         logger.info(format(message, check.getPlayer()));
-        debugToSender(check.getPlayer().bukkitPlayer, message);
     }
 
     public final void debugToSender(
             final @NotNull Audience sender,
             final @NotNull String message
     ) {
+        debug(message);
         sender.sendMessage(Component.text(format(message, check.getPlayer())).color(NamedTextColor.GRAY));
     }
 
