@@ -24,7 +24,7 @@ public class CombatListener implements Listener {
         this.combatTicks = combatTicks;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent event) {
 
         if (!(event.getDamager() instanceof Player damager) || !(event.getEntity() instanceof Player victim)) return;
