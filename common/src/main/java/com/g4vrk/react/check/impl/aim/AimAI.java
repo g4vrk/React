@@ -91,46 +91,60 @@ public final class AimAI extends Check implements RotationCheck {
     private void onServerResult(
             double probability
     ) {
+        try {
 
-        if (debug) {
-            debugHandler.debug("Received ML response: " + probability);
-        }
+            if (probability < 0.0D) {
 
-        final TextColor color = colorResolver.resolve(probability);
+                if (debug) {
+                    debugHandler.debug("ML result unavailable, restarting sample window");
+                }
 
-        final Component verbose = Component.text(
-                String.format("%.1f%%", probability * 100D)
-        ).color(color);
-
-        if (probability > alertThreshold) {
-
-            if (debug) {
-                debugHandler.debug(
-                        "Flagged: " + probability + " > " + alertThreshold
-                );
+                player.rotationData.clear();
+                return;
             }
 
-            failAndAlert(1, verbose);
-
-        } else {
-
             if (debug) {
-                debugHandler.debug(
-                        "Reward: " + probability + " <= " + alertThreshold
-                );
+                debugHandler.debug("Received ML response: " + probability);
             }
 
-            reward();
-        }
+            final TextColor color = colorResolver.resolve(probability);
 
-        player.history.add(new HistoryEntry(this, probability));
+            final Component verbose = Component.text(
+                    String.format("%.1f%%", probability * 100D)
+            ).color(color);
 
-        player.rotationData.clear();
+            if (probability > alertThreshold) {
 
-        requesting = false;
+                if (debug) {
+                    debugHandler.debug(
+                            "Flagged: " + probability + " > " + alertThreshold
+                    );
+                }
 
-        if (debug) {
-            debugHandler.debug("Request finished");
+                failAndAlert(1, verbose);
+
+            } else {
+
+                if (debug) {
+                    debugHandler.debug(
+                            "Reward: " + probability + " <= " + alertThreshold
+                    );
+                }
+
+                reward();
+            }
+
+            player.history.add(new HistoryEntry(this, probability));
+
+            player.rotationData.clear();
+
+        } finally {
+
+            requesting = false;
+
+            if (debug) {
+                debugHandler.debug("Request finished");
+            }
         }
     }
 
