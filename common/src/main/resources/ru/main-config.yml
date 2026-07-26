@@ -22,6 +22,8 @@ alerts:
 
   show-in-console: true
 
+  format: "&c«React» &7| &f{player} - {check} {verbose}"
+
 player:
 
   combat:
