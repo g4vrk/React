@@ -17,7 +17,7 @@ public final class RotationData {
         this.history = new Buffer<>(bufferSize, Rotation[]::new);
     }
 
-    public void push(
+    public synchronized void push(
             final @NotNull Rotation rotation
     ) {
 
@@ -28,11 +28,11 @@ public final class RotationData {
 
     }
 
-    public @Nullable Rotation current() {
+    public synchronized @Nullable Rotation current() {
         return current;
     }
 
-    public @Nullable Rotation previous() {
+    public synchronized @Nullable Rotation previous() {
         return previous;
     }
 
@@ -44,7 +44,7 @@ public final class RotationData {
         return history.size();
     }
 
-    public void clear() {
+    public synchronized void clear() {
 
         this.history.clear();
 
