@@ -95,6 +95,19 @@ public final class MLAimProcessor {
                 RequestBody.create(json, JSON)
         );
 
+        try {
+            enqueue(playerName, request, resultHandler);
+        } catch (final Throwable th) {
+            logger.warn("Could not enqueue ML request for {}", playerName, th);
+            complete(resultHandler, -1.0D);
+        }
+    }
+
+    private void enqueue(
+            final @NotNull String playerName,
+            final @NotNull HttpRequest request,
+            final @NotNull Consumer<Double> resultHandler
+    ) {
         mlServer.callAsync(request, new Callback() {
 
             @Override
