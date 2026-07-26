@@ -23,7 +23,7 @@ dependencies {
 
     compileOnly "org.spongepowered:configurate-yaml:4.2.0"
 
-    implementation "org.incendo:cloud-paper:2.0.0"
+    compileOnly "org.incendo:cloud-paper:2.0.0"
 
     implementation "com.g4vrk:FunctionalActions:2.0.0"
     implementation "com.g4vrk:FastTextFormatter:1.0.1"
