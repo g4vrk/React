@@ -3,6 +3,7 @@ package com.g4vrk.react.buffer;
 import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -74,8 +75,7 @@ public final class Buffer<T> implements Iterable<T> {
     public void clear() {
         lock.writeLock().lock();
         try {
-            //noinspection deprecation
-            ObjectArrays.fill(buffer, null);
+            Arrays.fill(buffer, null);
             head = 0;
             size = 0;
         } finally {
