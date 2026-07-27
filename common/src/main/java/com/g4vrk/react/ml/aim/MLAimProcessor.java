@@ -4,6 +4,8 @@ import com.g4vrk.react.api.task.runner.TaskRunner;
 import com.g4vrk.react.api.task.schedule.TickSchedule;
 import com.g4vrk.react.ml.http.model.HttpRequest;
 import com.g4vrk.react.ml.server.MLServer;
+import com.g4vrk.react.ml.server.settings.InferenceRequestSettings;
+import com.g4vrk.react.ml.server.settings.InferenceResponseSettings;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.util.moshi.MoshiHolder;
 import com.squareup.moshi.JsonAdapter;
@@ -29,10 +31,9 @@ public final class MLAimProcessor {
     private final Logger logger;
     private final MLServer mlServer;
     private final TaskRunner taskRunner;
-    private final String subscriptionToken;
 
     private final JsonAdapter<Map<String, Object>> requestAdapter;
-    private final JsonAdapter<Map<String, Double>> responseAdapter;
+    private final JsonAdapter<Map<String, Object>> responseAdapter;
 
     public MLAimProcessor(
             @NotNull Logger logger,
@@ -42,7 +43,6 @@ public final class MLAimProcessor {
         this.logger = logger;
         this.mlServer = mlServer;
         this.taskRunner = taskRunner;
-        this.subscriptionToken = mlServer.getApiKey().trim();
 
         this.requestAdapter = MoshiHolder.REQUEST_ADAPTER;
         this.responseAdapter = MoshiHolder.RESPONSE_ADAPTER;
@@ -51,10 +51,10 @@ public final class MLAimProcessor {
     public void check(
             final @NotNull String playerName,
             final @NotNull Rotation @NotNull [] snapshot,
-            final @NotNull Consumer<Double> resultHandler
+            final @NotNull Consumer<MLResult> resultHandler
     ) {
         if (!mlServer.isEnabled()) {
-            complete(resultHandler, -1.0D);
+            complete(resultHandler, MLResult.unavailable());
             return;
         }
 
@@ -64,33 +64,29 @@ public final class MLAimProcessor {
                     playerName,
                     snapshot.length
             );
-            complete(resultHandler, -1.0D);
+            complete(resultHandler, MLResult.unavailable());
             return;
         }
 
-        if (subscriptionToken.isEmpty()) {
-            logger.warn("ML subscription token is empty");
-            complete(resultHandler, -1.0D);
-            return;
-        }
+        final InferenceRequestSettings requestSettings = mlServer.getRequestSettings();
 
         final Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("name", playerName);
-        payload.put("frames", snapshot);
-        payload.put("token", subscriptionToken);
+        payload.put(requestSettings.getPlayerNameField(), playerName);
+        payload.put(requestSettings.getRotationsField(), snapshot);
+
+        mlServer.augmentPayload(payload);
 
         final String json;
 
         try {
             json = requestAdapter.toJson(payload);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             logger.warn("Could not serialize ML request for {}", playerName, ex);
-            complete(resultHandler, -1.0D);
+            complete(resultHandler, MLResult.unavailable());
             return;
         }
 
         final HttpRequest request = new HttpRequest(
-                "/analyze",
                 "POST",
                 RequestBody.create(json, JSON)
         );
@@ -99,14 +95,14 @@ public final class MLAimProcessor {
             enqueue(playerName, request, resultHandler);
         } catch (final Throwable th) {
             logger.warn("Could not enqueue ML request for {}", playerName, th);
-            complete(resultHandler, -1.0D);
+            complete(resultHandler, MLResult.unavailable());
         }
     }
 
     private void enqueue(
             final @NotNull String playerName,
             final @NotNull HttpRequest request,
-            final @NotNull Consumer<Double> resultHandler
+            final @NotNull Consumer<MLResult> resultHandler
     ) {
         mlServer.callAsync(request, new Callback() {
 
@@ -121,7 +117,7 @@ public final class MLAimProcessor {
                         ex
                 );
 
-                complete(resultHandler, -1.0D);
+                complete(resultHandler, MLResult.unavailable());
             }
 
             @Override
@@ -141,7 +137,7 @@ public final class MLAimProcessor {
                                 responseText
                         );
 
-                        complete(resultHandler, -1.0D);
+                        complete(resultHandler, MLResult.unavailable());
                         return;
                     }
 
@@ -151,11 +147,11 @@ public final class MLAimProcessor {
                                 playerName
                         );
 
-                        complete(resultHandler, -1.0D);
+                        complete(resultHandler, MLResult.unavailable());
                         return;
                     }
 
-                    final Map<String, Double> result =
+                    final Map<String, Object> result =
                             responseAdapter.fromJson(responseText);
 
                     if (result == null) {
@@ -165,28 +161,43 @@ public final class MLAimProcessor {
                                 responseText
                         );
 
-                        complete(resultHandler, -1.0D);
+                        complete(resultHandler, MLResult.unavailable());
                         return;
                     }
 
-                    final Double probability =
-                            result.get("cheat_probability");
+                    final InferenceResponseSettings responseSettings =
+                            mlServer.getResponseSettings();
+
+                    final Double probability = readNumber(
+                            result,
+                            responseSettings.getProbabilityField()
+                    );
 
                     if (probability == null || !Double.isFinite(probability)) {
                         logger.warn(
-                                "ML response does not contain a valid "
-                                        + "cheat_probability for {}: {}",
+                                "ML response does not contain a valid '{}' field for {}: {}",
+                                responseSettings.getProbabilityField(),
                                 playerName,
                                 responseText
                         );
 
-                        complete(resultHandler, -1.0D);
+                        complete(resultHandler, MLResult.unavailable());
                         return;
                     }
 
+                    final Double confidence = readNumber(
+                            result,
+                            responseSettings.getConfidenceField()
+                    );
+
                     complete(
                             resultHandler,
-                            Math.max(0.0D, Math.min(1.0D, probability))
+                            new MLResult(
+                                    clamp01(probability),
+                                    confidence != null && Double.isFinite(confidence)
+                                            ? clamp01(confidence)
+                                            : Double.NaN
+                            )
                     );
                 } catch (Exception ex) {
                     logger.warn(
@@ -195,15 +206,27 @@ public final class MLAimProcessor {
                             ex
                     );
 
-                    complete(resultHandler, -1.0D);
+                    complete(resultHandler, MLResult.unavailable());
                 }
             }
         });
     }
 
+    private static Double readNumber(
+            final @NotNull Map<String, Object> response,
+            final @NotNull String field
+    ) {
+        final Object raw = response.get(field);
+        return raw instanceof Number number ? number.doubleValue() : null;
+    }
+
+    private static double clamp01(final double value) {
+        return Math.max(0.0D, Math.min(1.0D, value));
+    }
+
     private void complete(
-            @NotNull Consumer<Double> resultHandler,
-            double result
+            @NotNull Consumer<MLResult> resultHandler,
+            @NotNull MLResult result
     ) {
         taskRunner.runTask(
                 () -> resultHandler.accept(result),

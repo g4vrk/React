@@ -16,10 +16,10 @@ public final class MoshiHolder {
             .build();
 
     public static final Type REQUEST_TYPE = Types.newParameterizedType(Map.class, String.class, Object.class);
-    public static final Type RESPONSE_TYPE = Types.newParameterizedType(Map.class, String.class, Double.class);
+    public static final Type RESPONSE_TYPE = Types.newParameterizedType(Map.class, String.class, Object.class);
 
     public static final JsonAdapter<Map<String, Object>> REQUEST_ADAPTER = INSTANCE.adapter(REQUEST_TYPE);
-    public static final JsonAdapter<Map<String, Double>> RESPONSE_ADAPTER = INSTANCE.adapter(RESPONSE_TYPE);
+    public static final JsonAdapter<Map<String, Object>> RESPONSE_ADAPTER = INSTANCE.adapter(RESPONSE_TYPE);
 
     public static class UUIDAdapter {
         @ToJson

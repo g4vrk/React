@@ -1,0 +1,58 @@
+enabled: true
+
+inference:
+
+  endpoint:
+
+    base-url: 'https://api.react-ac.space'
+
+    path: '/analyze'
+
+  request:
+
+    player-name-field: name
+    rotations-field: frames
+
+  response:
+
+    probability-field: cheat_probability
+    confidence-field: confidence
+
+auth:
+
+  enabled: true
+
+  type: body # none / bearer / header / query / body
+
+  bearer:
+    token: YOUR_TOKEN
+
+  header:
+    name: X-Subscription-Token
+    value: YOUR_TOKEN
+
+  query:
+    parameter: token
+    value: YOUR_TOKEN
+
+  body:
+    field: token
+    value: YOUR_TOKEN
+
+client:
+
+  connect-timeout: 10s
+
+  read-timeout: 10s
+
+  write-timeout: 10s
+
+  call-timeout: 10s
+
+  retry-on-failure: true
+
+  connection-pool:
+
+    max-idle-connections: 5
+
+    keep-alive-duration: 5m

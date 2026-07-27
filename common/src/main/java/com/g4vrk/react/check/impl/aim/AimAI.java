@@ -12,6 +12,7 @@ import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.HistoryEntry;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
+import com.g4vrk.react.ml.aim.MLResult;
 import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.player.model.rotation.RotationData;
@@ -89,11 +90,11 @@ public final class AimAI extends Check implements RotationCheck {
     }
 
     private void onServerResult(
-            double probability
+            final @NotNull MLResult result
     ) {
         try {
 
-            if (probability < 0.0D) {
+            if (!result.isAvailable()) {
 
                 if (debug) {
                     debugHandler.debug("ML result unavailable, restarting sample window");
@@ -103,8 +104,14 @@ public final class AimAI extends Check implements RotationCheck {
                 return;
             }
 
+            final double probability = result.getProbability();
+
             if (debug) {
-                debugHandler.debug("Received ML response: " + probability);
+                debugHandler.debug(
+                        result.hasConfidence()
+                                ? "Received ML response: " + probability + " (confidence: " + result.getConfidence() + ")"
+                                : "Received ML response: " + probability
+                );
             }
 
             final TextColor color = colorResolver.resolve(probability);

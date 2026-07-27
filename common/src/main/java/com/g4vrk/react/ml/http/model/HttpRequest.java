@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 @Value
 public class HttpRequest {
-    @NotNull String path;
     @NotNull String method;
     @NotNull RequestBody body;
 }

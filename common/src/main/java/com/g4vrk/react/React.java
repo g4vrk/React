@@ -23,6 +23,8 @@ import com.g4vrk.react.listeners.packet.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
+import com.g4vrk.react.ml.server.settings.InferenceSettingsFactory;
+import com.g4vrk.react.ml.server.settings.InferenceSettings;
 import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.parse.time.TimeValue;
 import com.g4vrk.react.player.factory.PlayerFactory;
@@ -88,6 +90,7 @@ public class React {
     private Config mainConfig;
     private Config punishmentsConfig;
     private Config historyConfig;
+    private Config inferenceConfig;
 
     private ConfigValues configValues;
 
@@ -181,7 +184,8 @@ public class React {
                 "checks/aim-ai.yml",
                 "main-config.yml",
                 "punishments.yml",
-                "history.yml"
+                "history.yml",
+                "inference.yml"
         );
 
         this.configMap = new Object2ObjectOpenHashMap<>();
@@ -202,6 +206,7 @@ public class React {
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
         this.punishmentsConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
         this.historyConfig = Objects.requireNonNull(configMap.get("history.yml"));
+        this.inferenceConfig = Objects.requireNonNull(configMap.get("inference.yml"));
 
         this.configValues = new ConfigValues(mainConfig.getRoot());
 
@@ -209,7 +214,9 @@ public class React {
 
         this.playerRegistry = new PlayerRegistry(playerFactory);
 
-        this.mlServer = new MLServer(configValues.getMlClientSettings());
+        final InferenceSettings inferenceSettings = InferenceSettingsFactory.create(inferenceConfig.getRoot());
+
+        this.mlServer = new MLServer(logger, inferenceSettings);
 
         final TaskRunner taskRunner = taskRunnerFactory.create();
 
@@ -301,6 +308,7 @@ public class React {
             }
 
             this.mainConfig = null;
+            this.inferenceConfig = null;
             this.configValues = null;
             this.taskRunnerFactory = null;
             this.mlServer = null;
