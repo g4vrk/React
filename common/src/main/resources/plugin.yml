@@ -17,6 +17,12 @@ authors:
 website: https://telegram.me/react_ac
 
 permissions:
+  react.command:
+    default: op
+  react.bypass:
+    default: false
+    children:
+      - react.bypass.aim-ai
   react.alerts:
     default: op
   react.admin:
