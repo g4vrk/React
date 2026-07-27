@@ -1,139 +1,93 @@
 # React
 
-**A modern, modular and high-performance AI powered anti-cheat built for Paper and Folia servers.**
+**Античит только под aim, для Paper и Folia. С опциональным слоем AI-вердиктов.**
 
-[![Java](https://img.shields.io/badge/Java-21+-orange)](...)
-[![Paper](https://img.shields.io/badge/Paper-1.21.11-blue)](...)
-[![Folia](https://img.shields.io/badge/Folia-Supported-green)](...)
+[![Java](https://img.shields.io/badge/Java-21+-orange)](.)
+[![Paper](https://img.shields.io/badge/Paper-1.16.5+-blue)](.)
+[![Folia](https://img.shields.io/badge/Folia-Supported-green)](.)
 [![License](https://img.shields.io/github/license/g4vrk/React)](LICENSE)
+[![AI Server](https://img.shields.io/badge/AI%20Server-optional-purple)](#ai-verdict-server)
 
 ---
 
-## Overview
+> [English version](README.en.md)
 
-React is a next-generation Minecraft AI anti-cheat focused on detection accuracy, scalability and maintainability.
+## Что это
 
-Unlike traditional anti-cheats that rely heavily on static thresholds, React combines packet analysis, behavioral analysis and machine learning to identify illegitimate player actions while minimizing false positives.
+React делает одну вещь: смотрит, как игрок целится, и решает, мог ли человек выдать именно такую траекторию.
 
-Designed from the ground up with a modular architecture, React is suitable for both small private servers and large production networks.
+Здесь нет проверок на брейки блоков, нет инвентарных чеков, нет пятнадцати модулей "для комплексности", которые никак не связаны друг с другом. Каждая проверка в этом репозитории отвечает на один вопрос: физически ли правдоподобен паттерн вращения. Дельты ускорения, GCD-ошибка, квантованное сравнение ротаций вместо статичных порогов, которые ломаются от первой же смены чувствительности мыши.
 
----
-
-## Highlights
-
-- ⚡ High-performance packet analysis
-- 🧠 Machine Learning assisted detections
-- 🎯 Accurate Aim & Rotation analysis
-- ⚔️ Combat detection framework
-- 📦 Modular architecture
-- 📡 Async processing
-- 🔧 Fully configurable checks
-- 📢 Flexible alert system
-- 📊 Detailed violation information
-- 📚 Developer-friendly API
-- 🧩 Paper & Folia support
-- 🚀 Built for Java 21
+Сам плагин бесплатный и распространяется под MIT. Запускаете как есть и получаете рабочий эвристический пайплайн из коробки. Нужно второе мнение — подключаете **AI Verdict Server**: отдельный сервис, который принимает выборки ротаций, прогоняет через модель и возвращает уверенность в вердикте. Эта часть платная и работает как хостинг. Но она не привязывает вас намертво: свою модель, свой инференс-эндпоинт, свои пороги подставить можно, React не диктует, чья именно AI должна стоять за плечом.
 
 ---
 
-## Platform Support
+## Как устроена детекция
 
-| Platform | Version | Java         |
-|----------|---------|--------------|
-| Paper | 1.16.5+ | 17 and higher |
-| Folia | 1.20.6+ | 21 and higher |
-
----
-
-## Project Structure
-
-| Module | Description                                               |
-|---------|-----------------------------------------------------------|
-| `common` | Shared anti-cheat logic, checks, processors and utilities |
-| `paper` | Paper implementation                                      |
-| `folia` | Folia implementation                                      |
+- **Эвристический слой (open source, локально).** Все проверки крутятся на сервере в реальном времени, без внешних запросов. Сравнение по GCD, отслеживание дельт ускорения и усреднённая по режимам квантизация ротаций пришли на смену старому попарному GCD-подходу — тот сыпал ложными срабатываниями каждый раз, когда частота опроса мыши игрока не попадала аккуратно в тиковые границы игры.
+- **AI-слой (хостинг, опционально).** История ротаций пакуется и уходит на сервер вердиктов, тот возвращает оценку и уверенность. Размер батча, окно выборки и порог уверенности настраиваются — вы сами решаете, сколько веса дать мнению AI против эвристики.
+- **Вердикт, не бан-молот.** React выдаёт оценку и цепочку рассуждения. Что делать с помеченным игроком — мут, кик, бан, тихий лог — решаете вы, плагин это не зашивает в код.
 
 ---
 
-## Detection Engine
+## Почему не просто больше порогов
 
-React is built around independent detection modules.
-
-Current detection categories include:
-
-- Rotation
-- Combat
-- Machine Learning
-
-Every check is isolated from the others and provides its own:
-
-- configuration
-- violation system
-- decay strategy
-- debugging information
-- alert formatting
-
-This makes new checks easy to develop and existing ones simple to maintain.
+Большинство чеков в стиле GrimAC ломаются одинаково: жёсткий порог, откалиброванный под один клиент, одну чувствительность и один FPS-кап, разваливается везде за пределами этой комбинации. Эвристический слой React пересобран вокруг **усреднённого по режимам квантового сравнения** вместо цепочки попарных GCD-вычислений — конкретно затем, чтобы убить нестабильность, ложные срабатывания от квантования и протечку NaN, которыми страдают наивные GCD-проверки аима. AI-слой закрывает то, что эвристика структурно не видит: паттерны, легальные по отдельности, но нечеловеческие в сумме.
 
 ---
 
-## Machine Learning
+## Бесплатно vs платно
 
-React includes a machine learning pipeline that assists traditional heuristic checks.
-
-Instead of replacing conventional detections, the ML system acts as an additional confidence layer, allowing React to improve detection accuracy while reducing false positives.
-
----
-
-## Alert System
-
-The alert system supports:
-
-- Adventure Components
-- Rich formatting
-- Console listeners
-- Permission filtering
-- Async publishing
-- Custom preprocessors
+| | Плагин (ядро) | AI Verdict Server |
+|---|---|---|
+| Лицензия | MIT, open source | Платный хостинг |
+| Где работает | На вашем сервере | В облаке или у вас, со своей моделью |
+| Что делает | Эвристические проверки аима, конфиг, алерты | Вердикты по паттернам ротации через ML |
+| Обязателен? | Да | Нет — плагин полностью самодостаточен без него |
 
 ---
 
-## Performance
+## Поддерживаемые платформы
 
-Performance has been one of the primary goals since the beginning of the project.
+| Платформа | Версия | Java |
+|-----------|--------|------|
+| Paper | 1.16.5+ | 17+ |
+| Folia | 1.20.6+ | 21+ |
 
-React minimizes:
+## Структура проекта
 
-- object allocations
-- synchronous work
-- packet overhead
-- unnecessary computations
+| Модуль | Описание |
+|--------|----------|
+| `common` | Общая логика проверок, процессоры, утилиты |
+| `paper` | Реализация под Paper |
+| `folia` | Реализация под Folia |
 
-Heavy calculations are executed asynchronously whenever possible.
+## Возможности
 
----
+- Анализ аима на GCD-ошибке и дельтах ускорения
+- Усреднённое по режимам квантовое сравнение ротаций, без попарной цепочки GCD
+- Накопление нарушений сериями, с затуханием
+- Опциональный AI-слой вердиктов: хостинг или своя модель
+- Полностью асинхронно, минимум аллокаций, под Java 21
+- Пороги настраиваются per-check, без пересборки ради тюнинга чувствительности
+- Алерты на Adventure с фильтрацией по правам
 
-## Building
+## Сборка
 
-Requirements
-
-- Java 21+
-- Gradle 9+
+Нужны: Java 21+, Gradle 9+
 
 ```bash
 ./gradlew build
 ```
 
----
+## AI Verdict Server
 
-## Contributing
+AI-сервер — отдельный компонент, не часть этого репозитория, за деталями настройки в его собственную документацию. Он принимает выборки ротаций через простой endpoint и отдаёт объект вердикта: оценку, уверенность, теги причин. Можно подключить хостинг провайдера, а можно поднять свою модель за тем же API-контрактом.
 
-Contributions, bug reports and feature requests are always welcome.
+## Контрибьюция
 
-Please open an Issue before making significant architectural changes.
+Issues и PR приветствуются. Прежде чем лезть в архитектуру — заведите issue, сэкономит переделку и вам, и мне.
 
----
+## Лицензия
 
-## License
-
-React is distributed under the license included in this repository.
+Плагин React распространяется под MIT — см. [LICENSE](LICENSE). AI Verdict Server — отдельный платный сервис, под эту лицензию не подпадает.
