@@ -47,6 +47,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.by1337.addonloader.AddonLoader;
 import org.incendo.cloud.brigadier.BrigadierSetting;
 import org.incendo.cloud.brigadier.CloudBrigadierManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
@@ -78,6 +79,7 @@ public class React {
     private final TextFormatter textFormatter = TextFormatter.textFormatter();
 
     private Plugin plugin;
+    private AddonLoader addonLoader;
 
     private ResourceHolder resourceHolder;
 
@@ -124,6 +126,9 @@ public class React {
     }
 
     public void load() {
+
+        logger.info("Checking for 'PacketEvents' plugin...");
+
         if (!PluginUtil.containsPlugin("packetevents")) {
             logger.error("Plugin 'packetevents' cannot be found on this server!");
             logger.error("Please, install it, otherwise React will not work.");
@@ -133,11 +138,15 @@ public class React {
             return;
         }
 
+        logger.info("Plugin 'PacketEvents' successfully found, our plugin might work normally.");
+
+        logger.info("Creating commandManager for registering commands...");
         this.commandManager = LegacyPaperCommandManager.createNative(
                 plugin,
                 ExecutionCoordinator.simpleCoordinator()
         );
 
+        logger.info("Creating commandBuilderFactory for building arguments...");
         final CommandBuilderFactory commandBuilderFactory =
                 new CommandBuilderFactory(
                         commandManager,
@@ -150,6 +159,7 @@ public class React {
         if (commandManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
             try {
 
+                logger.info("Registering Native Brigadier support in commandManager...");
                 commandManager.registerBrigadier();
 
                 final CloudBrigadierManager<CommandSender, ?> cbm = commandManager.brigadierManager();
@@ -163,11 +173,24 @@ public class React {
             }
         } else if (commandManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
 
+            logger.info("Registering Asynchronous completions in commandManager...");
             commandManager.registerAsynchronousCompletions();
 
         }
 
         final File pluginDir = plugin.getDataFolder();
+
+        pluginDir.mkdirs();
+
+        logger.info("Creating Addon loader...");
+        final File addonsFolder = new File(pluginDir, "addons");
+
+        addonsFolder.mkdirs();
+
+        this.addonLoader = new AddonLoader(
+                java.util.logging.Logger.getLogger("React#AddonLoader"),
+                addonsFolder
+        );
 
         final Language language = Language.resolve();
         final String languageNameLower = language.name().toLowerCase();
@@ -189,11 +212,13 @@ public class React {
         );
 
         this.configMap = new Object2ObjectOpenHashMap<>();
+        logger.info("Loading configurations...");
         try {
-
+            logger.info("Preparing files...");
             this.yamlConfigManager.prepareExpected(resourceHolder, languageNameLower, configsDir);
 
             this.configMap.putAll(yamlConfigManager.loadAndSave(configsDir));
+            logger.info("Configurations successfully loaded.");
 
         } catch (final Exception ex) {
             throw new RuntimeException("An internal error occurred when trying to load configurations", ex);
@@ -201,21 +226,26 @@ public class React {
 
         this.checkConfigRegistry = new SimpleCheckConfigRegistry(configMap);
 
-        logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
-
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
         this.punishmentsConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
         this.historyConfig = Objects.requireNonNull(configMap.get("history.yml"));
         this.inferenceConfig = Objects.requireNonNull(configMap.get("inference.yml"));
 
+        logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
+
         this.configValues = new ConfigValues(mainConfig.getRoot());
 
+        logger.info("Loading all addons...");
+        this.addonLoader.loadAll();
+
+        logger.info("Creating Data management modules...");
         final PlayerFactory playerFactory = new PlayerFactory(configValues.getBufferSize());
 
         this.playerRegistry = new PlayerRegistry(playerFactory);
 
         final InferenceSettings inferenceSettings = InferenceSettingsFactory.create(inferenceConfig.getRoot());
 
+        logger.info("Creating ML server...");
         this.mlServer = new MLServer(logger, inferenceSettings);
 
         final TaskRunner taskRunner = taskRunnerFactory.create();
@@ -230,6 +260,7 @@ public class React {
                 .node("alerts", "show-in-console")
                 .getBoolean(true);
 
+        logger.info("Creating Alerts system...");
         this.alertManager = new AlertManager();
 
         this.alertPublisher = new AlertPublisher(
@@ -246,6 +277,7 @@ public class React {
 
         this.alertPublisher.flushListeners();
 
+        logger.info("Creating Punishment manager...");
         this.punishmentManager = new PunishmentManager(
                 punishmentsConfig,
                 logger,
@@ -258,14 +290,16 @@ public class React {
                 logger, mlServer, taskRunner
         );
 
+        logger.info("Registering command arguments...");
         commandManager.command(new AlertsArgument(
                 commandBuilderFactory,
                 () -> alertPublisher,
                 () -> alertManager
         ).build());
 
-        logger.info("Main command successfully registered!");
+        logger.info("React main command successfully prepared!");
 
+        logger.info("Registering packet listeners...");
         this.registerPacketListeners(
                 new ConnectionListener(playerRegistry, playerFactory, alertPublisher, alertManager),
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
@@ -278,10 +312,14 @@ public class React {
 
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
 
+        logger.info("Registering bukkit listeners...");
         pluginManager.registerEvents(
                 new CombatListener(playerRegistry, combatTicks),
                 plugin
         );
+
+        logger.info("Enabling all addons...");
+        this.addonLoader.enableAll();
 
         logger.info(" ");
         logger.info("React successfully enabled!");
@@ -290,20 +328,27 @@ public class React {
         logger.info("Special thanks to {}", String.join(", ", SPECIAL_THANKS_TO));
         logger.info(" ");
         logger.info("Our telegram channel: https://telegram.me/react_ac");
+        logger.info("Our official site: https://www.react-ac.space");
         logger.info(" ");
     }
 
     public void terminate() {
+        logger.info("Terminating the plugin...");
 
         try {
+            logger.info("Stopping all addons...");
+            this.addonLoader.disableAll();
 
+            logger.info("Unregistering listeners...");
             this.unregisterPacketListeners();
 
             if (this.mlServer != null) {
+                logger.info("Stopping ML server...");
                 this.mlServer.shutdown();
             }
 
             if (this.playerRegistry != null) {
+                logger.info("Clearing player registry...");
                 this.playerRegistry.clear();
             }
 
