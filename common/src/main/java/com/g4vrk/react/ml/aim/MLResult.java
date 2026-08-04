@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 @Value
 public class MLResult {
 
-    private static final double UNAVAILABLE_PROBABILITY = -1.0D;
+    private static final double DEFAULT_VALUE = -1.0D;
 
     double probability;
     double confidence;
@@ -16,10 +16,10 @@ public class MLResult {
     }
 
     public boolean hasConfidence() {
-        return !Double.isNaN(confidence);
+        return confidence >= 0.0D;
     }
 
     public static @NotNull MLResult unavailable() {
-        return new MLResult(UNAVAILABLE_PROBABILITY, Double.NaN);
+        return new MLResult(DEFAULT_VALUE, DEFAULT_VALUE);
     }
 }
