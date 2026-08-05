@@ -12,9 +12,4 @@ player:
   data:
     rotations-buffer-size: 150
 
-actions:
-  alerts:
-    on-enable:
-      - "[message] "
-    on-disable:
-      - "[message] "
+

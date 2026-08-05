@@ -1,6 +1,11 @@
 package com.g4vrk.react;
 
 import com.g4vrk.fastTextFormatter.TextFormatter;
+import com.g4vrk.functionalActions.defaults.DefaultActions;
+import com.g4vrk.functionalActions.parser.ActionParser;
+import com.g4vrk.functionalActions.parser.impl.SimpleActionParser;
+import com.g4vrk.functionalActions.registry.ActionRegistry;
+import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.functionalConfiguration.loader.YamlConfigLoader;
 import com.g4vrk.react.alert.manager.AlertManager;
@@ -9,7 +14,6 @@ import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.api.ReactAPI;
 import com.g4vrk.react.api.addon.JavaAddon;
 import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
-import com.g4vrk.react.api.addon.loader.AddonLoader;
 import com.g4vrk.react.api.addon.loader.impl.JarAddonLoader;
 import com.g4vrk.react.api.addon.repository.impl.JarAddonRepository;
 import com.g4vrk.react.command.argument.impl.AlertsArgument;
@@ -48,6 +52,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -88,7 +93,6 @@ public class React {
     private Plugin plugin;
 
     private Map<String, JavaAddon> addonMap;
-    private AddonLoader addonLoader;
 
     private ResourceHolder resourceHolder;
 
@@ -98,6 +102,7 @@ public class React {
 
     private Map<String, Config> configMap;
 
+    private Config actionsConfig;
     private Config mainConfig;
     private Config punishmentsConfig;
     private Config historyConfig;
@@ -189,6 +194,7 @@ public class React {
 
         final File pluginDir = plugin.getDataFolder();
 
+        //noinspection ResultOfMethodCallIgnored
         pluginDir.mkdirs();
 
         final Language language = Language.resolve();
@@ -204,6 +210,7 @@ public class React {
 
         this.yamlConfigManager.expectedConfigs(
                 "checks/aim-ai.yml",
+                "actions.yml",
                 "main-config.yml",
                 "punishments.yml",
                 "history.yml",
@@ -225,6 +232,7 @@ public class React {
 
         this.checkConfigRegistry = new SimpleCheckConfigRegistry(configMap);
 
+        this.actionsConfig = Objects.requireNonNull(configMap.get("actions.yml"));
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
         this.punishmentsConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
         this.historyConfig = Objects.requireNonNull(configMap.get("history.yml"));
@@ -233,6 +241,12 @@ public class React {
         logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
         this.configValues = new ConfigValues(mainConfig.getRoot());
+
+        final ActionRegistry<Audience> actionRegistry = new SimpleActionRegistry<>(true);
+
+        new DefaultActions.Adventure().registerDefaults(actionRegistry, textFormatter::format, ";");
+
+        final ActionParser<Audience> actionParser = new SimpleActionParser<>(actionRegistry);
 
         logger.info("Loading all addons...");
         this.loadAddons();
@@ -292,8 +306,9 @@ public class React {
         logger.info("Registering command arguments...");
         commandManager.command(new AlertsArgument(
                 commandBuilderFactory,
-                () -> alertPublisher,
-                () -> alertManager
+                alertPublisher,
+                alertManager,
+                actionParser
         ).build());
 
         logger.info("React main command successfully prepared!");
@@ -371,6 +386,7 @@ public class React {
 
         final File addonsDir = new File(this.plugin.getDataFolder(), "addons");
 
+        //noinspection ResultOfMethodCallIgnored
         addonsDir.mkdirs();
 
         final Collection<Path> addonPaths = new JarAddonRepository(addonsDir).discover();

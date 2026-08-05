@@ -1,0 +1,5 @@
+alerts:
+  on-enable:
+    - "[message] &fАлерты успешно включены"
+  on-disable:
+    - "[message] &fАлерты успешно выключены"
