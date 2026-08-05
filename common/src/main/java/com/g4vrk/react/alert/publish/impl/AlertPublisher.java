@@ -1,8 +1,8 @@
 package com.g4vrk.react.alert.publish.impl;
 
 import com.g4vrk.react.alert.publish.Publisher;
-import com.g4vrk.react.api.task.runner.TaskRunner;
-import com.g4vrk.react.api.task.schedule.TickSchedule;
+import com.g4vrk.schedula.task.TickSchedule;
+import com.g4vrk.schedula.task.scheduler.Scheduler;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
@@ -18,7 +18,7 @@ public class AlertPublisher implements Publisher<Component> {
 
     private final Server server;
     private final Executor executor;
-    private final TaskRunner taskRunner;
+    private final Scheduler scheduler;
     private final Predicate<Audience> filter;
     private final boolean includeConsole;
     private final Set<Audience> listeners = ConcurrentHashMap.newKeySet();
@@ -26,13 +26,13 @@ public class AlertPublisher implements Publisher<Component> {
     public AlertPublisher(
             @NotNull Server server,
             @NotNull Executor executor,
-            @NotNull TaskRunner taskRunner,
+            @NotNull Scheduler scheduler,
             @NotNull Predicate<Audience> filter,
             boolean includeConsole
     ) {
         this.server = server;
         this.executor = executor;
-        this.taskRunner = taskRunner;
+        this.scheduler = scheduler;
         this.filter = filter;
         this.includeConsole = includeConsole;
     }
@@ -45,7 +45,7 @@ public class AlertPublisher implements Publisher<Component> {
     private void broadcast(
             final @NotNull Component input
     ) {
-        taskRunner.runTask(() -> {
+        scheduler.schedule(() -> {
             for (final Audience listener : listeners) {
                 try {
                     listener.sendMessage(input);

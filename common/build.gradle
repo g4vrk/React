@@ -25,7 +25,7 @@ dependencies {
 
     compileOnly "org.incendo:cloud-paper:2.0.0"
 
-    implementation "org.by1337.addonloader:AddonLoader:1.0"
+    implementation "com.g4vrk:schedula-common:1.0.0"
 
     implementation "com.g4vrk:FunctionalActions:2.0.0"
     implementation "com.g4vrk:FastTextFormatter:1.0.0"

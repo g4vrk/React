@@ -8,9 +8,9 @@ import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.alert.printer.AlertPrinter;
-import com.g4vrk.react.api.task.runner.TaskRunner;
-import com.g4vrk.react.api.task.schedule.TickSchedule;
 import com.g4vrk.react.check.Check;
+import com.g4vrk.schedula.task.TickSchedule;
+import com.g4vrk.schedula.task.scheduler.Scheduler;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.text.Component;
@@ -32,7 +32,7 @@ public final class PunishmentManager {
 
     private final Logger logger;
     private final Server server;
-    private final TaskRunner taskRunner;
+    private final Scheduler scheduler;
     private final AlertPrinter alertPrinter;
 
     private final ActionRegistry<Context> actionRegistry = new SimpleActionRegistry<>(true);
@@ -44,12 +44,12 @@ public final class PunishmentManager {
             final @NotNull Config config,
             final @NotNull Logger logger,
             final @NotNull Server server,
-            final @NotNull TaskRunner taskRunner,
+            final @NotNull Scheduler scheduler,
             final @NotNull AlertPrinter alertPrinter
     ) {
         this.logger = logger;
         this.server = server;
-        this.taskRunner = taskRunner;
+        this.scheduler = scheduler;
         this.alertPrinter = alertPrinter;
 
         this.registerDefaultActions();
@@ -86,7 +86,7 @@ public final class PunishmentManager {
                 return;
             }
 
-            this.taskRunner.runTask(
+            this.scheduler.schedule(
                     () -> this.server.dispatchCommand(this.server.getConsoleSender(), args),
                     TickSchedule.instant()
             );

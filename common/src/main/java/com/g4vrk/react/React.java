@@ -2,12 +2,16 @@ package com.g4vrk.react;
 
 import com.g4vrk.fastTextFormatter.TextFormatter;
 import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.functionalConfiguration.loader.YamlConfigLoader;
 import com.g4vrk.react.alert.manager.AlertManager;
 import com.g4vrk.react.alert.printer.AlertPrinter;
 import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.api.ReactAPI;
-import com.g4vrk.react.api.task.runner.TaskRunner;
-import com.g4vrk.react.api.task.runner.factory.TaskRunnerFactory;
+import com.g4vrk.react.api.addon.JavaAddon;
+import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
+import com.g4vrk.react.api.addon.loader.AddonLoader;
+import com.g4vrk.react.api.addon.loader.impl.JarAddonLoader;
+import com.g4vrk.react.api.addon.repository.impl.JarAddonRepository;
 import com.g4vrk.react.command.argument.impl.AlertsArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
@@ -33,6 +37,8 @@ import com.g4vrk.react.punish.PunishmentManager;
 import com.g4vrk.react.resource.ResourceHolder;
 import com.g4vrk.react.resource.impl.PluginResourceHolder;
 import com.g4vrk.react.util.PluginUtil;
+import com.g4vrk.schedula.api.SchedulaAPI;
+import com.g4vrk.schedula.task.scheduler.Scheduler;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.EventManager;
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
@@ -47,7 +53,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.by1337.addonloader.AddonLoader;
 import org.incendo.cloud.brigadier.BrigadierSetting;
 import org.incendo.cloud.brigadier.CloudBrigadierManager;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
@@ -58,6 +63,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -79,6 +86,8 @@ public class React {
     private final TextFormatter textFormatter = TextFormatter.textFormatter();
 
     private Plugin plugin;
+
+    private Map<String, JavaAddon> addonMap;
     private AddonLoader addonLoader;
 
     private ResourceHolder resourceHolder;
@@ -98,7 +107,7 @@ public class React {
 
     private CheckConfigRegistry checkConfigRegistry;
 
-    private TaskRunnerFactory taskRunnerFactory;
+    private SchedulaAPI schedulaAPI;
 
     private MLServer mlServer;
     private MLAimProcessor mlAimProcessor;
@@ -119,7 +128,7 @@ public class React {
     ) {
         this.plugin = plugin;
         this.resourceHolder = new PluginResourceHolder(plugin);
-        this.taskRunnerFactory = api.getTaskRunnerFactory();
+        this.schedulaAPI = api.getSchedulaAPI();
     }
 
     public void preLoad() {
@@ -182,16 +191,6 @@ public class React {
 
         pluginDir.mkdirs();
 
-        logger.info("Creating Addon loader...");
-        final File addonsFolder = new File(pluginDir, "addons");
-
-        addonsFolder.mkdirs();
-
-        this.addonLoader = new AddonLoader(
-                java.util.logging.Logger.getLogger("React#AddonLoader"),
-                addonsFolder
-        );
-
         final Language language = Language.resolve();
         final String languageNameLower = language.name().toLowerCase();
 
@@ -236,7 +235,7 @@ public class React {
         this.configValues = new ConfigValues(mainConfig.getRoot());
 
         logger.info("Loading all addons...");
-        this.addonLoader.loadAll();
+        this.loadAddons();
 
         logger.info("Creating Data management modules...");
         final PlayerFactory playerFactory = new PlayerFactory(configValues.getBufferSize());
@@ -248,7 +247,7 @@ public class React {
         logger.info("Creating ML server...");
         this.mlServer = new MLServer(logger, inferenceSettings);
 
-        final TaskRunner taskRunner = taskRunnerFactory.create();
+        final Scheduler scheduler = schedulaAPI.createScheduler();
 
         final String alertFormatRaw = mainConfig.getRoot()
                 .node("alerts", "format")
@@ -266,7 +265,7 @@ public class React {
         this.alertPublisher = new AlertPublisher(
                 plugin.getServer(),
                 ForkJoinPool.commonPool(),
-                taskRunner,
+                scheduler,
                 audience -> audience instanceof Player player
                         && player.hasPermission(Permissions.ALERTS)
                         && alertManager.receives(player.getUniqueId()),
@@ -282,12 +281,12 @@ public class React {
                 punishmentsConfig,
                 logger,
                 plugin.getServer(),
-                taskRunner,
+                scheduler,
                 alertPrinter
         );
 
         this.mlAimProcessor = new MLAimProcessor(
-                logger, mlServer, taskRunner
+                logger, mlServer, scheduler
         );
 
         logger.info("Registering command arguments...");
@@ -319,7 +318,7 @@ public class React {
         );
 
         logger.info("Enabling all addons...");
-        this.addonLoader.enableAll();
+        this.enableAddons();
 
         logger.info(" ");
         logger.info("React successfully enabled!");
@@ -337,7 +336,7 @@ public class React {
 
         try {
             logger.info("Stopping all addons...");
-            this.addonLoader.disableAll();
+            this.disableAddons();
 
             logger.info("Unregistering listeners...");
             this.unregisterPacketListeners();
@@ -355,13 +354,83 @@ public class React {
             this.mainConfig = null;
             this.inferenceConfig = null;
             this.configValues = null;
-            this.taskRunnerFactory = null;
+            this.schedulaAPI = null;
             this.mlServer = null;
             this.mlAimProcessor = null;
             this.punishmentManager = null;
 
         } catch (final Exception ex) {
             this.logger.error("An internal error occurred when trying to terminate the plugin", ex);
+        }
+
+    }
+
+    private void loadAddons() {
+
+        this.addonMap = new Object2ObjectOpenHashMap<>();
+
+        final File addonsDir = new File(this.plugin.getDataFolder(), "addons");
+
+        addonsDir.mkdirs();
+
+        final Collection<Path> addonPaths = new JarAddonRepository(addonsDir).discover();
+
+        final JarAddonLoader addonLoader = new JarAddonLoader(
+                addonsDir,
+                new SimpleAddonDescriptor(new YamlConfigLoader()),
+                metadata -> LoggerFactory.getLogger(NAME + "#" + metadata.name())
+        );
+
+        for (final Path source : addonPaths) {
+            try {
+
+                final JavaAddon addon = addonLoader.load(source);
+
+                addon.onLoad();
+
+                this.addonMap.put(addon.name(), addon);
+
+            } catch (final Exception ex) {
+
+                //noinspection StringConcatenationArgumentToLogCall
+                logger.error("Failed to load addon " + source, ex);
+
+            }
+        }
+    }
+
+    private void enableAddons() {
+
+        for (final JavaAddon addon : this.addonMap.values()) {
+            try {
+
+                addon.setEnabled(true);
+
+            } catch (final Exception ex) {
+
+                //noinspection StringConcatenationArgumentToLogCall
+                logger.error("Failed to enable addon " + addon.name(), ex);
+
+            }
+
+        }
+
+    }
+
+    private void disableAddons() {
+
+        for (final JavaAddon addon : this.addonMap.values()) {
+            try {
+
+                addon.setEnabled(false);
+
+            } catch (final Exception ex) {
+
+                //noinspection StringConcatenationArgumentToLogCall
+                logger.error("Failed to disable addon " + addon.name(), ex);
+
+            }
+
         }
 
     }

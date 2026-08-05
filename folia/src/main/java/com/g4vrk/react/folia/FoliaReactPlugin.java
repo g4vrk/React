@@ -8,11 +8,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class FoliaReactPlugin extends JavaPlugin {
 
     private final React react = React.INSTANCE;
-    private ReactAPI api;
 
     @Override
     public void onLoad() {
-        this.api = new FoliaReactAPI(this);
+        final ReactAPI api = new FoliaReactAPI(this);
 
         this.react.initialize(this, api);
         this.react.preLoad();

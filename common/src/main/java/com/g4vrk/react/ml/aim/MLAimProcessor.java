@@ -1,13 +1,13 @@
 package com.g4vrk.react.ml.aim;
 
-import com.g4vrk.react.api.task.runner.TaskRunner;
-import com.g4vrk.react.api.task.schedule.TickSchedule;
 import com.g4vrk.react.ml.http.model.HttpRequest;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.ml.server.settings.InferenceRequestSettings;
 import com.g4vrk.react.ml.server.settings.InferenceResponseSettings;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.util.moshi.MoshiHolder;
+import com.g4vrk.schedula.task.TickSchedule;
+import com.g4vrk.schedula.task.scheduler.Scheduler;
 import com.squareup.moshi.JsonAdapter;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -30,7 +30,7 @@ public final class MLAimProcessor {
 
     private final Logger logger;
     private final MLServer mlServer;
-    private final TaskRunner taskRunner;
+    private final Scheduler scheduler;
 
     private final JsonAdapter<Map<String, Object>> requestAdapter;
     private final JsonAdapter<Map<String, Object>> responseAdapter;
@@ -38,11 +38,11 @@ public final class MLAimProcessor {
     public MLAimProcessor(
             @NotNull Logger logger,
             @NotNull MLServer mlServer,
-            @NotNull TaskRunner taskRunner
+            @NotNull Scheduler scheduler
     ) {
         this.logger = logger;
         this.mlServer = mlServer;
-        this.taskRunner = taskRunner;
+        this.scheduler = scheduler;
 
         this.requestAdapter = MoshiHolder.REQUEST_ADAPTER;
         this.responseAdapter = MoshiHolder.RESPONSE_ADAPTER;
@@ -228,7 +228,7 @@ public final class MLAimProcessor {
             @NotNull Consumer<MLResult> resultHandler,
             @NotNull MLResult result
     ) {
-        taskRunner.runTask(
+        scheduler.schedule(
                 () -> resultHandler.accept(result),
                 TickSchedule.instant()
         );

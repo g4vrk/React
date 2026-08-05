@@ -8,11 +8,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class PaperReactPlugin extends JavaPlugin {
 
     private final React react = React.INSTANCE;
-    private ReactAPI api;
 
     @Override
     public void onLoad() {
-        this.api = new PaperReactAPI(this);
+        final ReactAPI api = new PaperReactAPI(this);
 
         this.react.initialize(this, api);
         this.react.preLoad();
