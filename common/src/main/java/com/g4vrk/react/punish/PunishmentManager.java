@@ -7,7 +7,9 @@ import com.g4vrk.functionalActions.parser.impl.SimpleActionParser;
 import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.react.React;
 import com.g4vrk.react.alert.printer.AlertPrinter;
+import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.schedula.task.TickSchedule;
 import com.g4vrk.schedula.task.scheduler.Scheduler;
@@ -26,7 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
-public final class PunishmentManager {
+public final class PunishmentManager implements ReloadObserver {
 
     private static final char PERIOD_SEPARATOR = ';';
 
@@ -41,7 +43,6 @@ public final class PunishmentManager {
     private final Map<String, List<Rule>> rulesByCheck = new Object2ObjectOpenHashMap<>();
 
     public PunishmentManager(
-            final @NotNull Config config,
             final @NotNull Logger logger,
             final @NotNull Server server,
             final @NotNull Scheduler scheduler,
@@ -53,7 +54,7 @@ public final class PunishmentManager {
         this.alertPrinter = alertPrinter;
 
         this.registerDefaultActions();
-        this.parse(config.node("punishments"));
+        this.reload();
     }
 
     private void registerDefaultActions() {
@@ -94,9 +95,21 @@ public final class PunishmentManager {
         }, "console", "console-command", "cmd");
     }
 
-    private void parse(
-            final @NotNull ConfigurationNode punishmentsNode
+    public void reload() {
+
+        final Config config = React.INSTANCE.getPunishmentsConfig();
+
+        this.onReload(config);
+
+    }
+
+    @Override
+    public void onReload(
+            final @NotNull Config config
     ) {
+        rulesByCheck.clear();
+
+        final ConfigurationNode punishmentsNode = config.node("punishments");
 
         if (punishmentsNode.virtual()) {
             logger.warn("punishments.yml does not contain a 'punishments' section, no punishments will be applied");

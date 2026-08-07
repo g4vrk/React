@@ -12,6 +12,8 @@ public class Permissions {
 
     public @NotNull String PERMISSION_PREFIX = "react.";
 
+    public @NotNull String COMMAND_USAGE = PERMISSION_PREFIX + "command.usage";
+
     public @NotNull String ALERTS = PERMISSION_PREFIX + "alerts";
     public @NotNull String ALERTS_ENABLE_ON_JOIN = ALERTS + ".enable_on_join";
 

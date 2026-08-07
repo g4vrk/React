@@ -4,7 +4,6 @@ import com.g4vrk.react.ml.auth.AuthSettings;
 import com.g4vrk.react.ml.auth.type.AuthType;
 import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.parse.time.TimeValue;
-import lombok.experimental.UtilityClass;
 import okhttp3.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -12,10 +11,9 @@ import org.spongepowered.configurate.ConfigurationNode;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-@UtilityClass
 public class InferenceSettingsFactory {
 
-    private final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
+    private final Duration defaultTimeout = Duration.ofSeconds(10);
 
     public @NotNull InferenceSettings create(
             final @NotNull ConfigurationNode root
@@ -115,7 +113,7 @@ public class InferenceSettingsFactory {
     ) {
         return TimeParser.parseDurationOrDefault(
                 clientNode.node(key).getString("10s"),
-                DEFAULT_TIMEOUT
+                defaultTimeout
         );
     }
 

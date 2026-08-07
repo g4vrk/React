@@ -1,5 +1,8 @@
 package com.g4vrk.react.check.manager;
 
+import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.react.React;
+import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.check.impl.aim.AimAI;
 import com.g4vrk.react.check.type.RotationCheck;
 import com.g4vrk.react.player.model.ReactPlayer;
@@ -11,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 // realization like in GrimAC
 public final class CheckManager {
@@ -29,6 +33,8 @@ public final class CheckManager {
 
         this.rotationChecksValues = new ObjectArrayList<>(this.rotationChecks.values());
 
+        this.reload();
+
     }
 
     public @Nullable RotationCheck getRotationCheck(
@@ -43,6 +49,23 @@ public final class CheckManager {
 
         for (final RotationCheck check : rotationChecksValues) {
             check.onRotation(data);
+        }
+
+    }
+
+    public void reload() {
+
+        for (final Map.Entry<Class<? extends RotationCheck>, RotationCheck> entry : rotationChecks.entrySet()) {
+
+            final Config config = React.INSTANCE.getCheckConfigRegistry()
+                    .config(entry.getKey());
+
+            if (entry.getValue() instanceof final ReloadObserver reloadableCheck) {
+
+                reloadableCheck.onReload(config);
+
+            }
+
         }
 
     }

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import static java.lang.System.currentTimeMillis;
 
 @Getter
-public final class HistoryEntry {
+public final class InferenceHistoryEntry {
 
     private final long timestamp;
 
@@ -15,7 +15,7 @@ public final class HistoryEntry {
 
     private final double probability;
 
-    public HistoryEntry(
+    public InferenceHistoryEntry(
             @NotNull Check check,
             double probability
     ) {

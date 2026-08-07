@@ -1,5 +1,8 @@
 package com.g4vrk.react.player.factory;
 
+import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.react.React;
+import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.player.model.ReactPlayer;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
@@ -7,10 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-@RequiredArgsConstructor
-public final class PlayerFactory {
+public final class PlayerFactory implements ReloadObserver {
 
-    private final int rotationsBufferSize;
+    private int rotationsBufferSize;
 
     public @NotNull ReactPlayer create(
             final @NotNull UUID uniqueId,
@@ -20,4 +22,18 @@ public final class PlayerFactory {
         return new ReactPlayer(uniqueId, name, bukkitPlayer, rotationsBufferSize);
     }
 
+    public void reload() {
+
+        final Config config = React.INSTANCE.getMainConfig();
+
+        this.onReload(config);
+
+    }
+
+    @Override
+    public void onReload(@NotNull Config config) {
+
+        this.rotationsBufferSize = config.node("player", "data", "rotations-buffer-size").getInt(150);
+
+    }
 }

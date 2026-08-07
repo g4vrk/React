@@ -1,5 +1,11 @@
 alerts:
   on-enable:
-    - "[message] &fАлерты успешно включены"
+    - "[msg] &fАлерты успешно включены"
   on-disable:
-    - "[message] &fАлерты успешно выключены"
+    - "[msg] &fАлерты успешно выключены"
+
+reload:
+  on-start:
+    - "[msg] &fНачинаем перезагрузку React AntiCheat..."
+  on-finish:
+    - "[msg] &fПлагин React AntiCheat успешно перезагружен."

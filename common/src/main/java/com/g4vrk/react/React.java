@@ -17,6 +17,7 @@ import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
 import com.g4vrk.react.api.addon.loader.impl.JarAddonLoader;
 import com.g4vrk.react.api.addon.repository.impl.JarAddonRepository;
 import com.g4vrk.react.command.argument.impl.AlertsArgument;
+import com.g4vrk.react.command.argument.impl.ReloadArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
 import com.g4vrk.react.config.check.impl.SimpleCheckConfigRegistry;
@@ -25,7 +26,6 @@ import com.g4vrk.react.check.processor.rotation.RotationProcessor;
 import com.g4vrk.react.config.lang.Language;
 import com.g4vrk.react.config.loader.UnloadedYamlConfigLoader;
 import com.g4vrk.react.config.manager.YamlConfigManager;
-import com.g4vrk.react.config.values.ConfigValues;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
 import com.g4vrk.react.listeners.packet.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
@@ -33,9 +33,8 @@ import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.ml.server.settings.InferenceSettingsFactory;
 import com.g4vrk.react.ml.server.settings.InferenceSettings;
-import com.g4vrk.react.parse.time.TimeParser;
-import com.g4vrk.react.parse.time.TimeValue;
 import com.g4vrk.react.player.factory.PlayerFactory;
+import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.g4vrk.react.punish.PunishmentManager;
 import com.g4vrk.react.resource.ResourceHolder;
@@ -53,7 +52,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -73,8 +71,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -92,10 +90,16 @@ public class React {
 
     private Plugin plugin;
 
+    private Scheduler scheduler;
+
+    private AlertsArgument alertsArgument;
+    private ReloadArgument reloadArgument;
+
     private Map<String, JavaAddon> addonMap;
 
     private ResourceHolder resourceHolder;
 
+    private PlayerFactory playerFactory;
     private PlayerRegistry playerRegistry;
 
     private YamlConfigManager yamlConfigManager;
@@ -108,13 +112,14 @@ public class React {
     private Config historyConfig;
     private Config inferenceConfig;
 
-    private ConfigValues configValues;
-
     private CheckConfigRegistry checkConfigRegistry;
 
     private SchedulaAPI schedulaAPI;
 
     private MLServer mlServer;
+
+    private InferenceSettingsFactory inferenceSettingsFactory;
+
     private MLAimProcessor mlAimProcessor;
 
     private AlertPublisher alertPublisher;
@@ -122,6 +127,8 @@ public class React {
     private AlertPrinter alertPrinter;
 
     private PunishmentManager punishmentManager;
+
+    private CombatListener combatListener;
 
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
 
@@ -165,7 +172,7 @@ public class React {
                 new CommandBuilderFactory(
                         commandManager,
                         "react",
-                        "react.command",
+                        Permissions.COMMAND_USAGE,
                         "React anticheat main command",
                         new String[]{"reactac", "reactai", "ac"}
                 );
@@ -240,8 +247,6 @@ public class React {
 
         logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
-        this.configValues = new ConfigValues(mainConfig.getRoot());
-
         final ActionRegistry<Audience> actionRegistry = new SimpleActionRegistry<>(true);
 
         new DefaultActions.Adventure().registerDefaults(actionRegistry, textFormatter::format, ";");
@@ -252,26 +257,17 @@ public class React {
         this.loadAddons();
 
         logger.info("Creating Data management modules...");
-        final PlayerFactory playerFactory = new PlayerFactory(configValues.getBufferSize());
+        this.playerFactory = new PlayerFactory();
 
         this.playerRegistry = new PlayerRegistry(playerFactory);
 
-        final InferenceSettings inferenceSettings = InferenceSettingsFactory.create(inferenceConfig.getRoot());
+        this.inferenceSettingsFactory = new InferenceSettingsFactory();
+        final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.getRoot());
 
         logger.info("Creating ML server...");
         this.mlServer = new MLServer(logger, inferenceSettings);
 
-        final Scheduler scheduler = schedulaAPI.createScheduler();
-
-        final String alertFormatRaw = mainConfig.getRoot()
-                .node("alerts", "format")
-                .getString("&c«React» &7| &f{player} - {check} {verbose}");
-
-        final Component alertFormat = textFormatter.format(alertFormatRaw);
-
-        final boolean showAlertsInConsole = mainConfig.getRoot()
-                .node("alerts", "show-in-console")
-                .getBoolean(true);
+        this.scheduler = schedulaAPI.createScheduler();
 
         logger.info("Creating Alerts system...");
         this.alertManager = new AlertManager();
@@ -282,17 +278,15 @@ public class React {
                 scheduler,
                 audience -> audience instanceof Player player
                         && player.hasPermission(Permissions.ALERTS)
-                        && alertManager.receives(player.getUniqueId()),
-                showAlertsInConsole
+                        && alertManager.receives(player.getUniqueId())
         );
 
-        this.alertPrinter = new AlertPrinter(alertPublisher, alertFormat);
+        this.alertPrinter = new AlertPrinter(alertPublisher, textFormatter);
 
         this.alertPublisher.flushListeners();
 
         logger.info("Creating Punishment manager...");
         this.punishmentManager = new PunishmentManager(
-                punishmentsConfig,
                 logger,
                 plugin.getServer(),
                 scheduler,
@@ -304,12 +298,21 @@ public class React {
         );
 
         logger.info("Registering command arguments...");
-        commandManager.command(new AlertsArgument(
+
+        this.alertsArgument = new AlertsArgument(
                 commandBuilderFactory,
                 alertPublisher,
                 alertManager,
                 actionParser
-        ).build());
+        );
+
+        this.reloadArgument = new ReloadArgument(
+                commandBuilderFactory,
+                actionParser
+        );
+
+        commandManager.command(alertsArgument.build());
+        commandManager.command(reloadArgument.build());
 
         logger.info("React main command successfully prepared!");
 
@@ -319,16 +322,12 @@ public class React {
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 
-        final long combatTicks = TimeParser.parseOrDefault(
-                mainConfig.getRoot().node("player", "combat", "time").getString("8s"),
-                new TimeValue(8, TimeUnit.SECONDS)
-        ).toMillis() / 50L;
-
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
 
         logger.info("Registering bukkit listeners...");
+        combatListener = new CombatListener(playerRegistry);
         pluginManager.registerEvents(
-                new CombatListener(playerRegistry, combatTicks),
+                combatListener,
                 plugin
         );
 
@@ -344,6 +343,40 @@ public class React {
         logger.info("Our telegram channel: https://telegram.me/react_ac");
         logger.info("Our official site: https://www.react-ac.space");
         logger.info(" ");
+    }
+
+    public @NotNull CompletableFuture<Void> reloadAsync() {
+        return CompletableFuture.runAsync(this::reload);
+    }
+
+    public void reload() {
+
+        this.alertsArgument.reload();
+        this.reloadArgument.reload();
+
+        final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.getRoot());
+
+        this.mlServer = new MLServer(logger, inferenceSettings);
+
+        this.mlAimProcessor = new MLAimProcessor(
+                logger, mlServer, scheduler
+        );
+
+        this.punishmentManager.reload();
+
+        this.playerFactory.reload();
+        this.combatListener.reload();
+
+        this.alertPublisher.reload();
+        this.alertPrinter.reload();
+
+        for (final ReactPlayer player : this.playerRegistry.all()) {
+
+            player.history.reload();
+            player.checkManager.reload();
+
+        }
+
     }
 
     public void terminate() {
@@ -368,7 +401,6 @@ public class React {
 
             this.mainConfig = null;
             this.inferenceConfig = null;
-            this.configValues = null;
             this.schedulaAPI = null;
             this.mlServer = null;
             this.mlAimProcessor = null;

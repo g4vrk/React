@@ -2,6 +2,7 @@ package com.g4vrk.react.config.check.impl;
 
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.check.Check;
+import com.g4vrk.react.check.ReactCheck;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
 import com.g4vrk.react.check.info.CheckInfo;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +21,7 @@ public final class SimpleCheckConfigRegistry implements CheckConfigRegistry {
 
     @Override
     public @NotNull Config config(
-            @NotNull Class<? extends Check> checkClass
+            @NotNull Class<? extends ReactCheck> checkClass
     ) {
 
         final CheckInfo info = checkClass.getAnnotation(CheckInfo.class);

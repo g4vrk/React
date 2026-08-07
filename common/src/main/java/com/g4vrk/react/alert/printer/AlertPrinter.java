@@ -1,18 +1,51 @@
 package com.g4vrk.react.alert.printer;
 
+import com.g4vrk.fastTextFormatter.TextFormatter;
+import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.react.React;
 import com.g4vrk.react.alert.publish.Publisher;
+import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.player.model.ReactPlayer;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@RequiredArgsConstructor
-public final class AlertPrinter {
+public final class AlertPrinter implements ReloadObserver {
 
     private final Publisher<Component> publisher;
 
-    private final Component alertFormat;
+    private final TextFormatter textFormatter;
+
+    private Component alertFormat;
+
+    public AlertPrinter(
+            @NotNull Publisher<Component> publisher,
+            @NotNull TextFormatter textFormatter
+    ) {
+        this.publisher = publisher;
+        this.textFormatter = textFormatter;
+
+        this.reload();
+    }
+
+    public void reload() {
+
+        final Config config = React.INSTANCE.getMainConfig();
+
+        this.onReload(config);
+
+    }
+
+    @Override
+    public void onReload(@NotNull Config config) {
+
+        final String alertFormatRaw = config.node("alerts", "format")
+                .getString("&c«React» &7| &f{player} - {check} {verbose}");
+
+        this.alertFormat = textFormatter.format(alertFormatRaw);
+
+    }
 
     public void print(
             final @NotNull ReactPlayer player,

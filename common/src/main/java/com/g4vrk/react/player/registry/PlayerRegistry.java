@@ -2,12 +2,14 @@ package com.g4vrk.react.player.registry;
 
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.model.ReactPlayer;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,6 +53,10 @@ public final class PlayerRegistry {
 
     public void clear() {
         players.clear();
+    }
+
+    public @NotNull Set<ReactPlayer> all() {
+        return new ObjectOpenHashSet<>(players.values());
     }
 
     private @Nullable Player findBukkitPlayer(

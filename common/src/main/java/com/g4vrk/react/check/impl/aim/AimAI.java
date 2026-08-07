@@ -2,6 +2,7 @@ package com.g4vrk.react.check.impl.aim;
 
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
+import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.react.check.debug.DebugHandler;
 import com.g4vrk.react.check.decay.DecayStrategy;
@@ -10,7 +11,7 @@ import com.g4vrk.react.check.info.CheckInfo;
 import com.g4vrk.react.check.type.RotationCheck;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
-import com.g4vrk.react.history.entry.HistoryEntry;
+import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.aim.MLResult;
 import com.g4vrk.react.player.model.ReactPlayer;
@@ -24,21 +25,22 @@ import org.jetbrains.annotations.NotNull;
         name = "Aim-AI",
         configId = "aim-ai"
 )
-public final class AimAI extends Check implements RotationCheck {
+public final class AimAI extends Check implements RotationCheck, ReloadObserver {
 
-    private final MLAimProcessor mlAimProcessor;
     private final ValueColorResolver colorResolver;
 
     private final DebugHandler debugHandler;
 
-    private final boolean debug;
+    private MLAimProcessor mlAimProcessor;
 
-    private final int requiredSamples;
-    private final double alertThreshold;
+    private boolean debug;
+
+    private int requiredSamples;
+    private double alertThreshold;
 
     private volatile boolean requesting;
 
-    private final DecayStrategy decayStrategy;
+    private DecayStrategy decayStrategy;
 
     public AimAI(@NotNull ReactPlayer player) {
         super(player);
@@ -46,8 +48,11 @@ public final class AimAI extends Check implements RotationCheck {
         this.mlAimProcessor = React.INSTANCE.getMlAimProcessor();
         this.colorResolver = new ProbabilityColorResolver();
 
-        final Config config = React.INSTANCE.getCheckConfigRegistry()
-                .config(getClass());
+        this.debugHandler = new DebugHandler(this);
+    }
+
+    @Override
+    public void onReload(@NotNull Config config) {
 
         this.debug = config.node("debug").getBoolean();
         this.requiredSamples = config.node("required-samples").getInt(25);
@@ -55,8 +60,10 @@ public final class AimAI extends Check implements RotationCheck {
 
         final double decayAmount = config.node("decay", "amount").getDouble(0.5D);
 
-        this.debugHandler = new DebugHandler(this);
         this.decayStrategy = new LinearDecay(decayAmount);
+
+        this.mlAimProcessor = React.INSTANCE.getMlAimProcessor();
+
     }
 
     @Override
@@ -141,7 +148,7 @@ public final class AimAI extends Check implements RotationCheck {
                 reward();
             }
 
-            player.history.add(new HistoryEntry(this, probability));
+            player.history.add(new InferenceHistoryEntry(this, probability));
 
             player.rotationData.clear();
 

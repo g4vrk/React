@@ -1,5 +1,10 @@
 package com.g4vrk.react.listeners.bukkit;
 
+import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.react.React;
+import com.g4vrk.react.api.ReloadObserver;
+import com.g4vrk.react.parse.time.TimeParser;
+import com.g4vrk.react.parse.time.TimeValue;
 import com.g4vrk.react.player.model.ReactPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,18 +15,38 @@ import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
-public class CombatListener implements Listener {
+import java.util.concurrent.TimeUnit;
+
+public class CombatListener implements Listener, ReloadObserver {
 
     private final PlayerRegistry playerRegistry;
 
-    private final long combatTicks;
+    private long combatTicks;
 
     public CombatListener(
-            @NotNull PlayerRegistry playerRegistry,
-            long combatTicks
+            @NotNull PlayerRegistry playerRegistry
     ) {
         this.playerRegistry = playerRegistry;
-        this.combatTicks = combatTicks;
+
+        this.reload();
+    }
+
+    public void reload() {
+
+        final Config config = React.INSTANCE.getMainConfig();
+
+        this.onReload(config);
+
+    }
+
+    @Override
+    public void onReload(@NotNull Config config) {
+
+        combatTicks = TimeParser.parseOrDefault(
+                config.node("player", "combat", "time").getString("8s"),
+                new TimeValue(8, TimeUnit.SECONDS)
+        ).toMillis() / 50L;
+
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
