@@ -89,6 +89,7 @@ public class React {
     private final TextFormatter textFormatter = TextFormatter.textFormatter();
 
     private Plugin plugin;
+    private Language language;
 
     private Scheduler scheduler;
 
@@ -204,7 +205,7 @@ public class React {
         //noinspection ResultOfMethodCallIgnored
         pluginDir.mkdirs();
 
-        final Language language = Language.resolve();
+        this.language = Language.resolve();
         final String languageNameLower = language.name().toLowerCase();
 
         logger.info("Language successfully resolved: {}", languageNameLower.toUpperCase());
@@ -350,6 +351,27 @@ public class React {
     }
 
     public void reload() {
+
+        final String languageNameLower = language.name().toLowerCase();
+
+        final File configsDir = new File(plugin.getDataFolder(), languageNameLower);
+
+        this.configMap.clear();
+        try {
+
+            this.yamlConfigManager.prepareExpected(resourceHolder, languageNameLower, configsDir);
+
+            this.configMap.putAll(yamlConfigManager.loadAndSave(configsDir));
+
+        } catch (final Exception ex) {
+            throw new RuntimeException("An internal error occurred when trying to load configurations", ex);
+        }
+
+        this.actionsConfig = Objects.requireNonNull(configMap.get("actions.yml"));
+        this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
+        this.punishmentsConfig = Objects.requireNonNull(configMap.get("punishments.yml"));
+        this.historyConfig = Objects.requireNonNull(configMap.get("history.yml"));
+        this.inferenceConfig = Objects.requireNonNull(configMap.get("inference.yml"));
 
         this.alertsArgument.reload();
         this.reloadArgument.reload();
