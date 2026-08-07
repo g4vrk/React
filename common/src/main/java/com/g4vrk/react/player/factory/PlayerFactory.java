@@ -4,7 +4,6 @@ import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.player.model.ReactPlayer;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,6 +12,12 @@ import java.util.UUID;
 public final class PlayerFactory implements ReloadObserver {
 
     private int rotationsBufferSize;
+
+    public PlayerFactory() {
+
+        this.reload();
+
+    }
 
     public @NotNull ReactPlayer create(
             final @NotNull UUID uniqueId,

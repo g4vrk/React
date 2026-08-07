@@ -17,6 +17,9 @@ public final class InferenceHistory implements ReloadObserver {
     private int maxEntries;
 
     public InferenceHistory() {
+
+        this.reload();
+
     }
 
     public void reload() {
