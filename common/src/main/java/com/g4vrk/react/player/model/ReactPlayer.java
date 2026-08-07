@@ -27,7 +27,7 @@ public final class ReactPlayer {
     public final AlertPrinter alertPrinter;
     public final CheckManager checkManager;
 
-    public final InferenceHistory history;
+    public final InferenceHistory inferenceHistory;
 
     public ReactPlayer(
             @NotNull UUID uniqueId,
@@ -40,7 +40,7 @@ public final class ReactPlayer {
         this.bukkitPlayer = bukkitPlayer;
         this.alertPrinter = React.INSTANCE.getAlertPrinter();
         this.checkManager = new CheckManager(this);
-        this.history = new InferenceHistory();
+        this.inferenceHistory = new InferenceHistory();
 
         this.combatActivity = new CombatActivity();
         this.rotationData = new RotationData(rotationHistorySize);

@@ -372,7 +372,7 @@ public class React {
 
         for (final ReactPlayer player : this.playerRegistry.all()) {
 
-            player.history.reload();
+            player.inferenceHistory.reload();
             player.checkManager.reload();
 
         }
