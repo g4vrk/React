@@ -8,7 +8,6 @@ import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.model.ReactPlayer;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -110,39 +109,189 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
     public void print(
             final @NotNull Audience receiver,
-            final @NotNull ReactPlayer reactPlayer
+            final @NotNull ReactPlayer player
     ) {
+        final InferenceHistoryEntry[] history =
+                player.inferenceHistory.entries();
 
-        receiver.sendMessage(this.header);
+        receiver.sendMessage(
+                replaceCommon(
+                        this.header,
+                        player,
+                        history
+                )
+        );
 
-        final List<InferenceHistoryEntry> history = new ObjectArrayList<>(reactPlayer.inferenceHistory.entries());
+        if (history.length == 0) {
+            receiver.sendMessage(
+                    replaceCommon(
+                            this.empty,
+                            player,
+                            history
+                    )
+            );
 
-        int printedEntries = 0;
+            receiver.sendMessage(
+                    replaceCommon(
+                            this.footer,
+                            player,
+                            history
+                    )
+            );
 
-        for (final InferenceHistoryEntry entry : history) {
-
-            if (history.isEmpty()) {
-                receiver.sendMessage(empty);
-                break;
-            }
-
-            if (printedEntries >= this.printEntries) break;
-
-            final double probability = entry.getProbability();
-            final double confidence = entry.getConfidence();
-
-            Component component = entryFormat;
-            component = replace(component, "probability", Component.text(probability).color(colorResolver.resolve(probability)));
-            component = replace(component, "confidence", Component.text(confidence).color(colorResolver.resolve(confidence)));
-
-            receiver.sendMessage(component);
-
-            printedEntries++;
-
+            return;
         }
 
-        receiver.sendMessage(this.footer);
+        final int start = Math.max(
+                0,
+                history.length - this.printEntries
+        );
 
+        for (int i = start; i < history.length; i++) {
+            Component component = replaceCommon(
+                    this.entryFormat,
+                    player,
+                    history
+            );
+
+            component = replaceEntry(
+                    component,
+                    history[i]
+            );
+
+            receiver.sendMessage(component);
+        }
+
+        receiver.sendMessage(
+                replaceCommon(
+                        this.footer,
+                        player,
+                        history
+                )
+        );
+    }
+
+    private @NotNull Component replaceCommon(
+            @NotNull Component component,
+            @NotNull ReactPlayer player,
+            @NotNull InferenceHistoryEntry[] history
+    ) {
+        final double avgProbability = averageProbability(history);
+        final double avgConfidence = averageConfidence(history);
+
+        component = replace(
+                component,
+                "{player}",
+                Component.text(player.getName())
+        );
+
+        component = replace(
+                component,
+                "{size}",
+                Component.text(history.length)
+        );
+
+        component = replace(
+                component,
+                "{avg-probability}",
+                Component.text(avgProbability)
+        );
+
+        component = replace(
+                component,
+                "{avg-probability:colored}",
+                Component.text(avgProbability)
+                        .color(colorResolver.resolve(avgProbability))
+        );
+
+        component = replace(
+                component,
+                "{avg-confidence}",
+                Component.text(avgConfidence)
+        );
+
+        component = replace(
+                component,
+                "{avg-confidence:colored}",
+                Component.text(avgConfidence)
+                        .color(colorResolver.resolve(avgConfidence))
+        );
+
+        return component;
+    }
+
+    private @NotNull Component replaceEntry(
+            @NotNull Component component,
+            @NotNull InferenceHistoryEntry entry
+    ) {
+        final double probability = entry.getProbability();
+        final double confidence = entry.getConfidence();
+
+        component = replace(
+                component,
+                "{probability}",
+                Component.text(probability)
+        );
+
+        component = replace(
+                component,
+                "{probability:colored}",
+                Component.text(probability)
+                        .color(colorResolver.resolve(probability))
+        );
+
+        component = replace(
+                component,
+                "{confidence}",
+                Component.text(confidence)
+        );
+
+        component = replace(
+                component,
+                "{confidence:colored}",
+                Component.text(confidence)
+                        .color(colorResolver.resolve(confidence))
+        );
+
+        component = replace(
+                component,
+                "{check}",
+                Component.text(entry.getCheck().getName())
+        );
+
+        return component;
+    }
+
+    private double averageProbability(
+            @NotNull InferenceHistoryEntry[] history
+    ) {
+        if (history.length == 0) {
+            return 0.0D;
+        }
+
+        double sum = 0.0D;
+
+        for (final InferenceHistoryEntry entry : history) {
+            sum += entry.getProbability();
+        }
+
+        return sum / history.length;
+    }
+
+    private double averageConfidence(
+            @NotNull InferenceHistoryEntry[] history
+    ) {
+        if (history.length == 0) {
+            return 0.0D;
+        }
+
+        double sum = 0.0D;
+
+        for (final InferenceHistoryEntry entry : history) {
+            sum += entry.getConfidence();
+        }
+
+        return sum / history.length;
     }
 
     private @NotNull Component replace(
@@ -151,8 +300,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
             final @NotNull Component replacement
     ) {
         return component.replaceText(builder ->
-                builder
-                        .matchLiteral('{' + placeholder + '}')
+                builder.matchLiteral(placeholder)
                         .replacement(replacement)
         );
     }
