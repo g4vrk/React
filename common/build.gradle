@@ -2,10 +2,17 @@ plugins {
     id 'java-library'
 }
 
+repositories {
+    maven {
+        url = "https://repo.extendedclip.com/content/repositories/placeholderapi/"
+    }
+}
+
 dependencies {
 
     compileOnly "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT"
 
+    compileOnly "me.clip:placeholderapi:2.11.6"
     compileOnly "com.github.retrooper:packetevents-spigot:2.13.0"
 
     compileOnly "com.squareup.moshi:moshi:1.15.0"
