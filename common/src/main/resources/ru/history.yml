@@ -4,19 +4,22 @@ history:
 
     format:
 
-      print-entries: 18
+      print-entries: 12
 
       header:
-        - " &fИстория ИИ {player} "
+        - ""
+        - " <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <white>История AI <gray>→</gray> <#ff3655>{player}"
+        - " <gray>➥ Показатели анализа последних сессий"
+        - ""
+        - " <white>Средняя вероятность читерства: {avg-probability:colored}"
+        - " <white>Средняя уверенность модели: {avg-confidence:colored}"
+        - ""
 
       empty:
-        - "История пуста"
+        - " <gray>- Пусто..."
 
       entry-format:
-        - "&fПроцент читерства: {probability} &7| &fУверенность AI: {confidence}"
+        - " <gray>-</gray> <white>Читерство: {probability:colored} <dark_gray>|</dark_gray> <white>Уверенность: {confidence:colored}"
 
       footer:
-        - " &fИИ может ошибаться "
-
-    entries:
-      max: 100
+        - ""
