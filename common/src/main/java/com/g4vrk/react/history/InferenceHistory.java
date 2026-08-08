@@ -12,8 +12,6 @@ public final class InferenceHistory implements ReloadObserver {
 
     private Buffer<InferenceHistoryEntry> entries;
 
-    private int maxEntries;
-
     public InferenceHistory() {
 
         this.reload();
@@ -31,7 +29,7 @@ public final class InferenceHistory implements ReloadObserver {
     @Override
     public void onReload(@NotNull Config config) {
 
-        this.maxEntries = config.node("history", "inference", "entries", "max").getInt(200);
+        int maxEntries = config.node("history", "inference", "entries", "max").getInt(200);
 
         this.entries = new Buffer<>(maxEntries, InferenceHistoryEntry[]::new);
 
@@ -41,6 +39,16 @@ public final class InferenceHistory implements ReloadObserver {
             final @NotNull InferenceHistoryEntry entry
     ) {
         this.entries.add(entry);
+    }
+
+    public @Nullable InferenceHistoryEntry get(
+            final int index
+    ) {
+        if (index < 0 || index >= this.size()) {
+            return null;
+        }
+
+        return this.entries.getUnsafe(index);
     }
 
     public @NotNull InferenceHistoryEntry[] entries() {
