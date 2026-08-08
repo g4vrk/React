@@ -35,6 +35,7 @@ import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
 import com.g4vrk.react.ml.server.settings.InferenceSettingsFactory;
 import com.g4vrk.react.ml.server.settings.InferenceSettings;
+import com.g4vrk.react.placeholder.ReactPlaceholderExpansion;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
@@ -42,6 +43,7 @@ import com.g4vrk.react.punish.PunishmentManager;
 import com.g4vrk.react.resource.ResourceHolder;
 import com.g4vrk.react.resource.impl.PluginResourceHolder;
 import com.g4vrk.react.util.PluginUtil;
+import com.g4vrk.react.util.placeholder.PlaceholderAPIUtil;
 import com.g4vrk.schedula.api.SchedulaAPI;
 import com.g4vrk.schedula.task.scheduler.Scheduler;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -340,6 +342,21 @@ public class React {
                 combatListener,
                 plugin
         );
+
+        if (PlaceholderAPIUtil.apiPresent()) {
+
+            logger.info("Registering PlaceholderAPI expansion...");
+
+            final ReactPlaceholderExpansion placeholderExpansion = new ReactPlaceholderExpansion(
+                    plugin.getName(),
+                    "g4vrk",
+                    plugin.getDescription().getVersion(),
+                    playerRegistry
+            );
+
+            placeholderExpansion.register();
+
+        }
 
         logger.info("Enabling all addons...");
         this.enableAddons();
