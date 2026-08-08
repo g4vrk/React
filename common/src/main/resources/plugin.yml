@@ -3,6 +3,7 @@ name: React
 description: "An AI powered Anti-Cheat product, ready for advanced use"
 version: ${version}
 
+# noinspection PluginYml,YAMLSchemaValidation
 main: ${mainClass}
 api-version: '1.16'
 
@@ -18,7 +19,7 @@ authors:
 website: https://telegram.me/react_ac
 
 permissions:
-  react.command:
+  react.command.usage:
     default: op
   react.bypass.aim-ai:
     default: false
