@@ -3,16 +3,14 @@ package com.g4vrk.react.history;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
+import com.g4vrk.react.buffer.Buffer;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayDeque;
-import java.util.List;
-
 public final class InferenceHistory implements ReloadObserver {
 
-    private final ArrayDeque<InferenceHistoryEntry> entries = new ArrayDeque<>();
+    private Buffer<InferenceHistoryEntry> entries;
 
     private int maxEntries;
 
@@ -33,35 +31,35 @@ public final class InferenceHistory implements ReloadObserver {
     @Override
     public void onReload(@NotNull Config config) {
 
-        this.maxEntries = config.node("history", "entries", "max").getInt(200);
+        this.maxEntries = config.node("history", "inference", "entries", "max").getInt(200);
+
+        this.entries = new Buffer<>(maxEntries, InferenceHistoryEntry[]::new);
 
     }
 
-    public synchronized void add(
+    public void add(
             final @NotNull InferenceHistoryEntry entry
     ) {
+        this.entries.add(entry);
+    }
 
-        if (this.entries.size() >= maxEntries) {
-            this.entries.removeFirst();
+    public @NotNull InferenceHistoryEntry[] entries() {
+        return this.entries.snapshot();
+    }
+
+    public @Nullable InferenceHistoryEntry latest() {
+        if (this.size() == 0) {
+            return null;
         }
 
-        this.entries.addLast(entry);
-
+        return this.entries.getUnsafe(this.size() - 1);
     }
 
-    public synchronized @NotNull List<InferenceHistoryEntry> getEntries() {
-        return List.copyOf(this.entries);
-    }
-
-    public synchronized @Nullable InferenceHistoryEntry getLatest() {
-        return this.entries.peekLast();
-    }
-
-    public synchronized int size() {
+    public int size() {
         return this.entries.size();
     }
 
-    public synchronized void clear() {
+    public void clear() {
         this.entries.clear();
     }
 }
