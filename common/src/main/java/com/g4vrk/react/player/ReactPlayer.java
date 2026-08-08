@@ -5,6 +5,7 @@ import com.g4vrk.react.alert.printer.AlertPrinter;
 import com.g4vrk.react.check.manager.CheckManager;
 import com.g4vrk.react.history.InferenceHistory;
 import com.g4vrk.react.player.model.rotation.RotationData;
+import com.g4vrk.react.statistic.InferenceStatistic;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,7 @@ public final class ReactPlayer {
     public final CheckManager checkManager;
 
     public final InferenceHistory inferenceHistory;
+    public final InferenceStatistic inferenceStatistic;
 
     public ReactPlayer(
             @NotNull UUID uniqueId,
@@ -40,6 +42,7 @@ public final class ReactPlayer {
         this.alertPrinter = React.INSTANCE.getAlertPrinter();
         this.checkManager = new CheckManager(this);
         this.inferenceHistory = new InferenceHistory();
+        this.inferenceStatistic = new InferenceStatistic(this.inferenceHistory);
 
         this.combatActivity = new CombatActivity();
         this.rotationData = new RotationData(rotationHistorySize);

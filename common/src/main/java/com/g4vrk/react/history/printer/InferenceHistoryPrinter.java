@@ -9,6 +9,7 @@ import com.g4vrk.react.color.resolver.impl.ConfidenceColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.ReactPlayer;
+import com.g4vrk.react.statistic.InferenceStatistic;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -179,8 +180,10 @@ public class InferenceHistoryPrinter implements ReloadObserver {
             @NotNull ReactPlayer player,
             @NotNull InferenceHistoryEntry[] history
     ) {
-        final double avgProbability = averageProbability(history);
-        final double avgConfidence = averageConfidence(history);
+        final InferenceStatistic.Result statisticResult = player.inferenceStatistic.calculate();
+
+        final double avgProbability = statisticResult.averageProbability();
+        final double avgConfidence = statisticResult.averageConfidence();
 
         component = replace(
                 component,
@@ -263,38 +266,6 @@ public class InferenceHistoryPrinter implements ReloadObserver {
         );
 
         return component;
-    }
-
-    private double averageProbability(
-            @NotNull InferenceHistoryEntry[] history
-    ) {
-        if (history.length == 0) {
-            return 0.0D;
-        }
-
-        double sum = 0.0D;
-
-        for (final InferenceHistoryEntry entry : history) {
-            sum += entry.getProbability();
-        }
-
-        return sum / history.length;
-    }
-
-    private double averageConfidence(
-            @NotNull InferenceHistoryEntry[] history
-    ) {
-        if (history.length == 0) {
-            return 0.0D;
-        }
-
-        double sum = 0.0D;
-
-        for (final InferenceHistoryEntry entry : history) {
-            sum += entry.getConfidence();
-        }
-
-        return sum / history.length;
     }
 
     private @NotNull Component replace(
