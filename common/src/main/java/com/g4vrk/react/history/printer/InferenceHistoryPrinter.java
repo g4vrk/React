@@ -107,18 +107,22 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
         final List<InferenceHistoryEntry> history = new ObjectArrayList<>(reactPlayer.inferenceHistory.entries());
 
-        
+        int printedEntries = 0;
 
         for (final InferenceHistoryEntry entry : history) {
+
+            if (printedEntries >= this.printEntries) break;
 
             final double probability = entry.getProbability();
             final double confidence = entry.getConfidence();
 
             Component component = entryFormat;
-            component = replace(component, "{probability}", Component.text(probability).color(colorResolver.resolve(probability)));
-            component = replace(component, "{confidence}", Component.text(confidence).color(colorResolver.resolve(confidence)));
+            component = replace(component, "probability", Component.text(probability).color(colorResolver.resolve(probability)));
+            component = replace(component, "confidence", Component.text(confidence).color(colorResolver.resolve(confidence)));
 
             receiver.sendMessage(component);
+
+            printedEntries++;
 
         }
 
