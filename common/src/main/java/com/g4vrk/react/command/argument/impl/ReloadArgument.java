@@ -46,7 +46,8 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
     public @NotNull Command.Builder<CommandSender> build() {
         return Objects.requireNonNull(builderFactory)
                 .create()
-                .required("reload", LiteralParser.literal("reload", "reboot"))
+                .literal("reload")
+                .literal("reboot")
                 .handler(context -> {
 
                     final CommandSender sender = context.sender();

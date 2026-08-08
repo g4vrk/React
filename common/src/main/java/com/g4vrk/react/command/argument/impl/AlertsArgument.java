@@ -53,7 +53,8 @@ public final class AlertsArgument extends LocalArgument implements ReloadObserve
     public @NotNull Command.Builder<CommandSender> build() {
         return Objects.requireNonNull(builderFactory)
                 .create()
-                .required("alerts", LiteralParser.literal("alerts", "notifications"))
+                .literal("alerts")
+                .literal("notifications")
                 .handler(context -> {
 
                     final CommandSender sender = context.sender();
