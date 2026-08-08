@@ -7,9 +7,10 @@ import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.command.argument.LocalArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
+import com.g4vrk.schedula.task.TickSchedule;
+import com.g4vrk.schedula.task.scheduler.Scheduler;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.parser.standard.LiteralParser;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,8 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
 
     private final CommandBuilderFactory builderFactory;
 
+    private final Scheduler scheduler;
+
     private final ActionParser<Audience> actionParser;
 
     private ExecutableActionList<? super Audience> startActions;
@@ -29,9 +32,11 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
 
     public ReloadArgument(
             @NotNull CommandBuilderFactory builderFactory,
+            @NotNull Scheduler scheduler,
             @NotNull ActionParser<Audience> actionParser
     ) {
         this.builderFactory = builderFactory;
+        this.scheduler = scheduler;
         this.actionParser = actionParser;
 
         this.reload();
@@ -48,9 +53,9 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
 
                     startActions.run(sender);
 
-                    React.INSTANCE.reloadAsync();
-
-                    finishActions.run(sender);
+                    React.INSTANCE.reloadAsync().thenRun(
+                            () -> scheduler.schedule(() -> finishActions.run(sender), TickSchedule.instant())
+                    );
 
                 });
     }

@@ -1,3 +1,19 @@
 history:
-  entries:
-    max: 200
+
+  inference:
+
+    format:
+
+      print-entries: 18
+
+      header:
+        - " &fИстория ИИ {player} "
+
+      entry-format:
+        - "&fПроцент читерства: {probability} &7| &fУверенность AI: {confidence}"
+
+      footer:
+        - " &fИИ может ошибаться "
+
+    entries:
+      max: 100

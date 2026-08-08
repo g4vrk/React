@@ -309,6 +309,7 @@ public class React {
 
         this.reloadArgument = new ReloadArgument(
                 commandBuilderFactory,
+                scheduler,
                 actionParser
         );
 
