@@ -25,6 +25,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
     private Component header;
     private Component entryFormat;
+    private Component empty;
     private Component footer;
 
     private int printEntries;
@@ -71,6 +72,15 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                     ).getList(String.class, Collections.emptyList())
             );
 
+            this.empty = formatList(
+                    config.node(
+                            "history",
+                            "inference",
+                            "format",
+                            "empty"
+                    ).getList(String.class, Collections.emptyList())
+            );
+
             this.footer = formatList(
                     config.node(
                             "history",
@@ -110,6 +120,11 @@ public class InferenceHistoryPrinter implements ReloadObserver {
         int printedEntries = 0;
 
         for (final InferenceHistoryEntry entry : history) {
+
+            if (history.isEmpty()) {
+                receiver.sendMessage(empty);
+                break;
+            }
 
             if (printedEntries >= this.printEntries) break;
 

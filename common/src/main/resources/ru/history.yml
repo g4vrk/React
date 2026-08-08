@@ -9,6 +9,9 @@ history:
       header:
         - " &fИстория ИИ {player} "
 
+      empty:
+        - "История пуста"
+
       entry-format:
         - "&fПроцент читерства: {probability} &7| &fУверенность AI: {confidence}"
 
