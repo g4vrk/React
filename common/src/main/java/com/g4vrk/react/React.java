@@ -17,6 +17,7 @@ import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
 import com.g4vrk.react.api.addon.loader.impl.JarAddonLoader;
 import com.g4vrk.react.api.addon.repository.impl.JarAddonRepository;
 import com.g4vrk.react.command.argument.impl.AlertsArgument;
+import com.g4vrk.react.command.argument.impl.HistoryArgument;
 import com.g4vrk.react.command.argument.impl.ReloadArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
@@ -26,6 +27,7 @@ import com.g4vrk.react.check.processor.rotation.RotationProcessor;
 import com.g4vrk.react.config.lang.Language;
 import com.g4vrk.react.config.loader.UnloadedYamlConfigLoader;
 import com.g4vrk.react.config.manager.YamlConfigManager;
+import com.g4vrk.react.history.printer.InferenceHistoryPrinter;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
 import com.g4vrk.react.listeners.packet.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
@@ -128,6 +130,7 @@ public class React {
     private AlertPrinter alertPrinter;
 
     private PunishmentManager punishmentManager;
+    private InferenceHistoryPrinter inferenceHistoryPrinter;
 
     private CombatListener combatListener;
 
@@ -298,6 +301,10 @@ public class React {
                 logger, mlServer, scheduler
         );
 
+        logger.info("Creating inference history modules...");
+
+        this.inferenceHistoryPrinter = new InferenceHistoryPrinter(textFormatter);
+
         logger.info("Registering command arguments...");
 
         this.alertsArgument = new AlertsArgument(
@@ -315,6 +322,7 @@ public class React {
 
         commandManager.command(alertsArgument.build());
         commandManager.command(reloadArgument.build());
+        commandManager.command(new HistoryArgument(commandBuilderFactory, inferenceHistoryPrinter, playerRegistry).build());
 
         logger.info("React main command successfully prepared!");
 
@@ -386,6 +394,7 @@ public class React {
         );
 
         this.punishmentManager.reload();
+        this.inferenceHistoryPrinter.reload();
 
         this.playerFactory.reload();
         this.combatListener.reload();
