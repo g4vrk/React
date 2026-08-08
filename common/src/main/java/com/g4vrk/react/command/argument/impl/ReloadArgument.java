@@ -47,7 +47,6 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
         return Objects.requireNonNull(builderFactory)
                 .create()
                 .literal("reload")
-                .literal("reboot")
                 .handler(context -> {
 
                     final CommandSender sender = context.sender();
