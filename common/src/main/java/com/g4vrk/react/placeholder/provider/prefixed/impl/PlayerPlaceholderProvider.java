@@ -4,7 +4,7 @@ import com.g4vrk.react.placeholder.provider.prefixed.PrefixedPlaceholderProvider
 
 public class PlayerPlaceholderProvider extends PrefixedPlaceholderProvider {
 
-    protected PlayerPlaceholderProvider() {
+    public PlayerPlaceholderProvider() {
 
         super("player");
 

@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InferenceHistoryPlaceholderProvider extends PrefixedPlaceholderProvider {
 
-    protected InferenceHistoryPlaceholderProvider(
+    public InferenceHistoryPlaceholderProvider(
             @NotNull PlayerRegistry registry
     ) {
 
