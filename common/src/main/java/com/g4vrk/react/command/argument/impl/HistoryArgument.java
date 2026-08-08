@@ -3,7 +3,7 @@ package com.g4vrk.react.command.argument.impl;
 import com.g4vrk.react.command.argument.LocalArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import com.g4vrk.react.history.printer.InferenceHistoryPrinter;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

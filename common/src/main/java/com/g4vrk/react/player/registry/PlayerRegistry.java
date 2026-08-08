@@ -1,7 +1,7 @@
 package com.g4vrk.react.player.registry;
 
 import com.g4vrk.react.player.factory.PlayerFactory;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;

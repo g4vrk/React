@@ -3,7 +3,7 @@ package com.g4vrk.react.player.factory;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 

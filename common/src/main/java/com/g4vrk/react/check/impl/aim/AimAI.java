@@ -14,7 +14,7 @@ import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.aim.MLResult;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import net.kyori.adventure.text.Component;

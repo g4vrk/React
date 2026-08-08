@@ -37,7 +37,7 @@ import com.g4vrk.react.ml.server.settings.InferenceSettingsFactory;
 import com.g4vrk.react.ml.server.settings.InferenceSettings;
 import com.g4vrk.react.placeholder.ReactPlaceholderExpansion;
 import com.g4vrk.react.player.factory.PlayerFactory;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.g4vrk.react.punish.PunishmentManager;
 import com.g4vrk.react.resource.ResourceHolder;

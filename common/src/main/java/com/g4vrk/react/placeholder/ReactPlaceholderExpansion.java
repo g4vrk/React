@@ -4,7 +4,7 @@ import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ConfidenceColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;

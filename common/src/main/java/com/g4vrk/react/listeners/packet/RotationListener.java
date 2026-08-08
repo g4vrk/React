@@ -1,7 +1,7 @@
 package com.g4vrk.react.listeners.packet;
 
 import com.g4vrk.react.check.processor.rotation.RotationProcessor;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;

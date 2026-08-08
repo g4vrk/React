@@ -4,7 +4,7 @@ import com.g4vrk.react.Permissions;
 import com.g4vrk.react.React;
 import com.g4vrk.react.check.decay.DecayStrategy;
 import com.g4vrk.react.check.info.CheckInfo;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.punish.PunishmentManager;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;

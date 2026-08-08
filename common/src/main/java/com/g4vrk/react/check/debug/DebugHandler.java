@@ -2,7 +2,7 @@ package com.g4vrk.react.check.debug;
 
 import com.g4vrk.react.React;
 import com.g4vrk.react.check.Check;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

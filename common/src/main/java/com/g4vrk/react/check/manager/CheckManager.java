@@ -5,7 +5,7 @@ import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.check.impl.aim.AimAI;
 import com.g4vrk.react.check.type.RotationCheck;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;

@@ -1,10 +1,9 @@
-package com.g4vrk.react.player.model;
+package com.g4vrk.react.player;
 
 import com.g4vrk.react.React;
 import com.g4vrk.react.alert.printer.AlertPrinter;
 import com.g4vrk.react.check.manager.CheckManager;
 import com.g4vrk.react.history.InferenceHistory;
-import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import lombok.Getter;
 import org.bukkit.entity.Player;

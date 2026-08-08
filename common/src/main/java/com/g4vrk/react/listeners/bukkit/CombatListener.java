@@ -5,7 +5,7 @@ import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.parse.time.TimeValue;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

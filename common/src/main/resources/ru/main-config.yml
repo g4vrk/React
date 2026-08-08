@@ -2,7 +2,7 @@ alerts:
 
   show-in-console: true
 
-  format: "&c«React» &7| &f{player} - {check} {verbose}"
+  format: "<b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <color:#eb2544>{player}</color> <white>провалил <color:#eb2544>{check}</color> <gray>{verbose}</gray>"
 
 player:
 

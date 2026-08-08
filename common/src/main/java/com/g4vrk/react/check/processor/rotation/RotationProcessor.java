@@ -1,7 +1,7 @@
 package com.g4vrk.react.check.processor.rotation;
 
 import com.g4vrk.react.player.model.rotation.Rotation;
-import com.g4vrk.react.player.model.ReactPlayer;
+import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.model.rotation.RotationData;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
