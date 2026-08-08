@@ -5,6 +5,7 @@ import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
+import com.g4vrk.react.color.resolver.impl.ConfidenceColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.model.ReactPlayer;
@@ -20,7 +21,8 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
     private final TextFormatter textFormatter;
 
-    private final ValueColorResolver colorResolver;
+    private final ValueColorResolver confidenceColorResolver;
+    private final ValueColorResolver probabilityColorResolver;
 
     private Component header;
     private Component entryFormat;
@@ -34,7 +36,8 @@ public class InferenceHistoryPrinter implements ReloadObserver {
     ) {
 
         this.textFormatter = textFormatter;
-        this.colorResolver = new ProbabilityColorResolver();
+        this.confidenceColorResolver = new ConfidenceColorResolver();
+        this.probabilityColorResolver = new ProbabilityColorResolver();
 
         this.reload();
 
@@ -142,12 +145,12 @@ public class InferenceHistoryPrinter implements ReloadObserver {
             return;
         }
 
-        final int start = Math.max(
+        final int end = Math.max(
                 0,
                 history.length - this.printEntries
         );
 
-        for (int i = start; i < history.length; i++) {
+        for (int i = history.length - 1; i >= end; i--) {
             Component component = replaceCommon(
                     this.entryFormat,
                     player,
@@ -201,7 +204,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 component,
                 "{avg-probability:colored}",
                 Component.text(avgProbability)
-                        .color(colorResolver.resolve(avgProbability))
+                        .color(probabilityColorResolver.resolve(avgProbability))
         );
 
         component = replace(
@@ -214,7 +217,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 component,
                 "{avg-confidence:colored}",
                 Component.text(avgConfidence)
-                        .color(colorResolver.resolve(avgConfidence))
+                        .color(confidenceColorResolver.resolve(avgConfidence))
         );
 
         return component;
@@ -237,7 +240,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 component,
                 "{probability:colored}",
                 Component.text(probability)
-                        .color(colorResolver.resolve(probability))
+                        .color(probabilityColorResolver.resolve(probability))
         );
 
         component = replace(
@@ -250,7 +253,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 component,
                 "{confidence:colored}",
                 Component.text(confidence)
-                        .color(colorResolver.resolve(confidence))
+                        .color(confidenceColorResolver.resolve(confidence))
         );
 
         component = replace(

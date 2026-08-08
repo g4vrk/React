@@ -1,6 +1,7 @@
 package com.g4vrk.react.placeholder;
 
 import com.g4vrk.react.color.resolver.ValueColorResolver;
+import com.g4vrk.react.color.resolver.impl.ConfidenceColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.model.ReactPlayer;
@@ -18,7 +19,8 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
 
     private final PlayerRegistry registry;
 
-    private final ValueColorResolver colorResolver = new ProbabilityColorResolver();
+    private final ValueColorResolver probabilityColorResolver = new ProbabilityColorResolver();
+    private final ValueColorResolver confidenceColorResolver = new ConfidenceColorResolver();
 
     public ReactPlaceholderExpansion(
             @NotNull String id,
@@ -115,7 +117,7 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
                     final double probability = entry.getProbability();
 
                     yield "<" +
-                            colorResolver.resolve(probability).asHexString() +
+                            probabilityColorResolver.resolve(probability).asHexString() +
                             ">" +
                             probability;
                 }
@@ -130,7 +132,7 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
                     final double confidence = entry.getConfidence();
 
                     yield "<" +
-                            colorResolver.resolve(confidence).asHexString() +
+                            confidenceColorResolver.resolve(confidence).asHexString() +
                             ">" +
                             confidence;
                 }
@@ -190,7 +192,7 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
                 final double average = sum / size;
 
                 yield "<" +
-                        colorResolver.resolve(average).asHexString() +
+                        probabilityColorResolver.resolve(average).asHexString() +
                         ">" +
                         average;
             }
@@ -239,7 +241,7 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
                 final double average = sum / size;
 
                 yield "<" +
-                        colorResolver.resolve(average).asHexString() +
+                        confidenceColorResolver.resolve(average).asHexString() +
                         ">" +
                         average;
             }
