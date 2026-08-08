@@ -8,9 +8,9 @@ import com.g4vrk.react.player.model.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
-public class ReactPlayerPlaceholderProvider extends PrefixedPlaceholderProvider {
+public class InferenceHistoryPlaceholderProvider extends PrefixedPlaceholderProvider {
 
-    protected ReactPlayerPlaceholderProvider(
+    protected InferenceHistoryPlaceholderProvider(
             @NotNull PlayerRegistry registry
     ) {
 
