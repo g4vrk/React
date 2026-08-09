@@ -39,11 +39,9 @@ public final class HistoryArgument extends LocalArgument {
                     final CommandSender sender = context.sender();
 
                     final SinglePlayerSelector selector = context.getOrDefault("player", null);
-                    final Player target = selector.single();
 
                     final ReactPlayer reactPlayer;
 
-                    //noinspection ConstantValue
                     if (selector == null) {
 
                         if (!(sender instanceof Player player)) return;
@@ -52,6 +50,7 @@ public final class HistoryArgument extends LocalArgument {
 
                     } else {
 
+                        final Player target = selector.single();
                         reactPlayer = this.playerRegistry.getPlayer(target.getUniqueId());
 
                     }
