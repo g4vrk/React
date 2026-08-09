@@ -8,6 +8,8 @@ import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
+import org.incendo.cloud.bukkit.data.Selector;
+import org.incendo.cloud.bukkit.data.SinglePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,11 +38,13 @@ public final class HistoryArgument extends LocalArgument {
                 .handler(context -> {
                     final CommandSender sender = context.sender();
 
-                    final Player target = context.getOrDefault("player", null);
+                    final SinglePlayerSelector selector = context.getOrDefault("player", null);
+                    final Player target = selector.single();
 
                     final ReactPlayer reactPlayer;
 
-                    if (target == null) {
+                    //noinspection ConstantValue
+                    if (selector == null) {
 
                         if (!(sender instanceof Player player)) return;
 
