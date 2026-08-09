@@ -8,7 +8,7 @@ import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.parser.PlayerParser;
+import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
 import org.jetbrains.annotations.NotNull;
 
 public final class HistoryArgument extends LocalArgument {
@@ -32,7 +32,7 @@ public final class HistoryArgument extends LocalArgument {
     public @NotNull Command.Builder<CommandSender> build() {
         return builderFactory.create()
                 .literal("history")
-                .optional("player", PlayerParser.playerParser())
+                .optional("player", SinglePlayerSelectorParser.singlePlayerSelectorParser())
                 .handler(context -> {
                     final CommandSender sender = context.sender();
 
