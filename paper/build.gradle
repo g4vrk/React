@@ -3,14 +3,27 @@ plugins {
     id 'com.gradleup.shadow' version '9.4.2'
 }
 
+def dependenciesDir = file("${rootProject.projectDir}/dependencies")
+
 dependencies {
 
     implementation project(":common")
 
     compileOnly "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT"
 
-    implementation "com.g4vrk:schedula-bukkit:1.0.0"
+    implementation fileTree(
+            dir: dependenciesDir,
+            include: [
+                    'schedula-bukkit-1.0.0.jar',
+            ]
+    )
 
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 sourceSets {

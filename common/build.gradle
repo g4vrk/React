@@ -8,6 +8,8 @@ repositories {
     }
 }
 
+def dependenciesDir = file("${rootProject.projectDir}/dependencies")
+
 dependencies {
 
     compileOnly "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT"
@@ -32,10 +34,21 @@ dependencies {
 
     compileOnly "org.incendo:cloud-paper:2.0.0"
 
-    implementation "com.g4vrk:schedula-common:1.0.0"
 
-    implementation "com.g4vrk:FunctionalActions:2.0.0"
-    implementation "com.g4vrk:FastTextFormatter:1.0.0"
-    implementation "com.g4vrk:FunctionalConfiguration:1.0.0"
+    implementation fileTree(
+            dir: dependenciesDir,
+            include: [
+                    'schedula-common-1.0.0.jar',
+                    'FunctionalActions-2.0.0.jar',
+                    'FastTextFormatter-1.0.0.jar',
+                    'FunctionalConfiguration-1.0.0.jar'
+            ]
+    )
 
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
