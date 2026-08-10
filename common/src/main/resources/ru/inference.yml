@@ -1,13 +1,28 @@
+
+#
+# React - АнтиЧит основанный на Проверках от Нейросети
+#
+# Исходный код плагина: https://github.com/g4vrk/React
+# (ИИ модель не входит в проект)
+#
+# Купить доступ к нашей модели -> https://www.react-ac.space/
+#
+
+# Включить ИИ сервер?
 enabled: true
 
+# Настройки ИИ сервера
 inference:
 
+  # Endpoint для подключений из плагина,
+  # для нашей модели не изменяйте значения
   endpoint:
 
     base-url: 'https://api.react-ac.space'
 
     path: '/analyze'
 
+  # Нужно только для своих кастомных моделей
   request:
 
     player-name-field: name
@@ -18,10 +33,13 @@ inference:
     probability-field: cheat_probability
     confidence-field: confidence
 
+# Авторизация через токен
 auth:
 
+  # Включена ли отправка токена через что либо
   enabled: true
 
+  # Настройки для кастомных ИИ моделей, для нашей модели не изменяйте
   type: body # none / bearer / header / query / body
 
   bearer:
@@ -37,8 +55,10 @@ auth:
 
   body:
     field: token
+    # Если используете нашу модель (https://www.react-ac.space), то вставьте ваш ключ СЮДА
     value: YOUR_TOKEN
 
+# Настройки клиента подключений
 client:
 
   connect-timeout: 10s

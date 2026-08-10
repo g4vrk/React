@@ -1,15 +1,33 @@
+
+#
+# React - АнтиЧит основанный на Проверках от Нейросети
+#
+# Исходный код плагина: https://github.com/g4vrk/React
+# (ИИ модель не входит в проект)
+#
+# Купить доступ к нашей модели -> https://www.react-ac.space/
+#
+
+# Настройка оповещений
 alerts:
 
+  # Показывать ли их в консоли?
   show-in-console: true
 
+  # Формат оповещений для чата
   format: "<b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <color:#eb2544>{player}</color> <white>провалил <color:#eb2544>{check}</color> <gray>{verbose}</gray>"
 
+# Настройки игроков
 player:
 
+  # Настройки PvP - Активности
   combat:
+    # Сколько секунд после удара, идет анализ поворотов?
     time: 2s
 
+  # Настройки данных
   data:
+    # Сколько поворотов максимально хранить у игрока?
     rotations-buffer-size: 150
 
 
