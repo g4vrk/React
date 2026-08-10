@@ -18,7 +18,7 @@ history:
     format:
 
       # Сколько выводиться анализов за 1 раз
-      print-entries: 12
+      print-entries: 11
 
       header:
         - ""
@@ -36,4 +36,5 @@ history:
         - " <gray>-</gray> <white>Читерство: {probability:colored} <dark_gray>|</dark_gray> <white>Уверенность: {confidence:colored}"
 
       footer:
-        - " <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:previous}'><hover:show_text:'<white>Предыдущая страница'>«««</hover></click></gradient>    <gray>|    <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:next}'><hover:show_text:'<white>Следующая страница'>»»»</hover></click></gradient>"
+        - ""
+        - "                <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:previous}'><hover:show_text:'<white>Предыдущая страница'>«««««</hover></click></gradient>       <gray>|       <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:next}'><hover:show_text:'<white>Следующая страница'>»»»»»»</hover></click></gradient>"
