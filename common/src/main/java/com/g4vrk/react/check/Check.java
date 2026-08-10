@@ -2,6 +2,7 @@ package com.g4vrk.react.check;
 
 import com.g4vrk.react.Permissions;
 import com.g4vrk.react.React;
+import com.g4vrk.react.api.event.PlayerCheckFailEvent;
 import com.g4vrk.react.check.decay.DecayStrategy;
 import com.g4vrk.react.check.info.CheckInfo;
 import com.g4vrk.react.player.ReactPlayer;
@@ -57,6 +58,9 @@ public abstract class Check extends AbstractCheck {
         if (punishmentManager != null) {
             punishmentManager.handleFail(this, previous, this.violations);
         }
+
+        new PlayerCheckFailEvent(player, this).callEvent();
+
     }
 
     protected final void failAndAlert(
