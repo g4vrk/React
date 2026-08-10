@@ -1,4 +1,15 @@
 
+#
+# React - АнтиЧит основанный на Проверках от Нейросети
+#
+# Исходный код плагина: https://github.com/g4vrk/React
+# (ИИ модель не входит в проект)
+#
+# Купить доступ к нашей модели -> https://www.react-ac.space/
+#
+
+# а и да, я везде оформляю красиво, даже тут :)
+
 name: React
 description: "An AI powered Anti-Cheat product, ready for advanced use"
 version: ${version}
