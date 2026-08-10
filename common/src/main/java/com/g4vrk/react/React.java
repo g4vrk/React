@@ -97,6 +97,8 @@ public class React {
 
     private Scheduler scheduler;
 
+    private CommandBuilderFactory commandBuilderFactory;
+
     private AlertsArgument alertsArgument;
     private ReloadArgument reloadArgument;
 
@@ -174,7 +176,7 @@ public class React {
         );
 
         logger.info("Creating commandBuilderFactory for building arguments...");
-        final CommandBuilderFactory commandBuilderFactory =
+        this.commandBuilderFactory =
                 new CommandBuilderFactory(
                         commandManager,
                         "react",
