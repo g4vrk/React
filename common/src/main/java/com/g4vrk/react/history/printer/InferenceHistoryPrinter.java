@@ -115,14 +115,31 @@ public class InferenceHistoryPrinter implements ReloadObserver {
             final @NotNull Audience receiver,
             final @NotNull ReactPlayer player
     ) {
+        print(receiver, player, 1);
+    }
+
+    public void print(
+            final @NotNull Audience receiver,
+            final @NotNull ReactPlayer player,
+            int page
+    ) {
         final InferenceHistoryEntry[] history =
                 player.inferenceHistory.entries();
+
+        final int totalPages = Math.max(
+                1,
+                (int) Math.ceil((double) history.length / this.printEntries)
+        );
+
+        page = Math.max(1, Math.min(page, totalPages));
 
         receiver.sendMessage(
                 replaceCommon(
                         this.header,
                         player,
-                        history
+                        history,
+                        page,
+                        totalPages
                 )
         );
 
@@ -131,7 +148,9 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                     replaceCommon(
                             this.empty,
                             player,
-                            history
+                            history,
+                            page,
+                            totalPages
                     )
             );
 
@@ -139,23 +158,30 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                     replaceCommon(
                             this.footer,
                             player,
-                            history
+                            history,
+                            page,
+                            totalPages
                     )
             );
 
             return;
         }
 
+        final int start =
+                history.length - 1 - ((page - 1) * this.printEntries);
+
         final int end = Math.max(
-                0,
-                history.length - this.printEntries
+                -1,
+                start - this.printEntries
         );
 
-        for (int i = history.length - 1; i >= end; i--) {
+        for (int i = start; i > end; i--) {
             Component component = replaceCommon(
                     this.entryFormat,
                     player,
-                    history
+                    history,
+                    page,
+                    totalPages
             );
 
             component = replaceEntry(
@@ -170,7 +196,9 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 replaceCommon(
                         this.footer,
                         player,
-                        history
+                        history,
+                        page,
+                        totalPages
                 )
         );
     }
@@ -178,7 +206,9 @@ public class InferenceHistoryPrinter implements ReloadObserver {
     private @NotNull Component replaceCommon(
             @NotNull Component component,
             @NotNull ReactPlayer player,
-            @NotNull InferenceHistoryEntry[] history
+            @NotNull InferenceHistoryEntry[] history,
+            int currentPage,
+            int maxPage
     ) {
         final InferenceStatistic.Result statisticResult = player.inferenceStatistic.calculate();
 
@@ -195,6 +225,30 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 component,
                 "{size}",
                 Component.text(history.length)
+        );
+
+        component = replace(
+                component,
+                "{page:previous}",
+                Component.text(Math.max(1, currentPage - 1))
+        );
+
+        component = replace(
+                component,
+                "{page:current}",
+                Component.text(currentPage)
+        );
+
+        component = replace(
+                component,
+                "{page:next}",
+                Component.text(Math.min(maxPage, currentPage + 1))
+        );
+
+        component = replace(
+                component,
+                "{page:max}",
+                Component.text(maxPage)
         );
 
         component = replace(

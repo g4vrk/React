@@ -22,7 +22,7 @@ history:
 
       header:
         - ""
-        - " <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <white>История AI <gray>→</gray> <#ff3655>{player}"
+        - " <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <white>История AI <gray>→</gray> <#ff3655>{player} &7(стр. {page:current} / {page:max})"
         - " <gray>➥ Показатели анализа последних сессий"
         - ""
         - " <white>Средняя вероятность читерства: {avg-probability:colored}"
@@ -36,4 +36,4 @@ history:
         - " <gray>-</gray> <white>Читерство: {probability:colored} <dark_gray>|</dark_gray> <white>Уверенность: {confidence:colored}"
 
       footer:
-        - ""
+        - " <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:previous}'><hover:show_text:'<white>Предыдущая страница'>«««</hover></click></gradient>    <gray>|    <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:next}'><hover:show_text:'<white>Следующая страница'>»»»</hover></click></gradient>"

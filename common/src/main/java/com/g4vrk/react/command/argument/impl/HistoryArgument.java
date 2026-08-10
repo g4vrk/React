@@ -8,9 +8,10 @@ import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.data.Selector;
 import org.incendo.cloud.bukkit.data.SinglePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
+import org.incendo.cloud.component.DefaultValue;
+import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
 
 public final class HistoryArgument extends LocalArgument {
@@ -35,10 +36,12 @@ public final class HistoryArgument extends LocalArgument {
         return builderFactory.create()
                 .literal("history")
                 .optional("player", SinglePlayerSelectorParser.singlePlayerSelectorParser())
+                .optional("page", IntegerParser.integerParser(), DefaultValue.constant(1))
                 .handler(context -> {
                     final CommandSender sender = context.sender();
 
                     final SinglePlayerSelector selector = context.getOrDefault("player", null);
+                    final int page = context.getOrDefault("page", 1);
 
                     final ReactPlayer reactPlayer;
 
@@ -57,7 +60,7 @@ public final class HistoryArgument extends LocalArgument {
 
                     if (reactPlayer != null) {
 
-                        this.printer.print(sender, reactPlayer);
+                        this.printer.print(sender, reactPlayer, page);
 
                     }
                 });
