@@ -475,7 +475,8 @@ public class React {
         final JarAddonLoader addonLoader = new JarAddonLoader(
                 addonsDir,
                 new SimpleAddonDescriptor(new YamlConfigLoader()),
-                metadata -> LoggerFactory.getLogger(NAME + "#" + metadata.name())
+                metadata -> LoggerFactory.getLogger(NAME + "#" + metadata.name()),
+                "react-addon.yml"
         );
 
         for (final Path source : addonPaths) {

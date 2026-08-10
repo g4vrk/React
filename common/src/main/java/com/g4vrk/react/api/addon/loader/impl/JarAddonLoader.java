@@ -1,6 +1,5 @@
 package com.g4vrk.react.api.addon.loader.impl;
 
-import com.g4vrk.react.api.addon.Addon;
 import com.g4vrk.react.api.addon.internal.JavaAddonClassLoader;
 import com.g4vrk.react.api.addon.JavaAddon;
 import com.g4vrk.react.api.addon.descriptor.AddonDescriptor;
@@ -11,6 +10,8 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.function.Function;
 
@@ -21,15 +22,18 @@ public class JarAddonLoader implements AddonLoader<Path> {
     private final AddonDescriptor<Path> descriptor;
 
     private final Function<AddonMetadata, Logger> loggerFactory;
+    private final String addonMetadataFile;
 
     public JarAddonLoader(
             @NotNull File directory,
             @NotNull AddonDescriptor<Path> descriptor,
-            @NotNull Function<AddonMetadata, Logger> loggerFactory
+            @NotNull Function<AddonMetadata, Logger> loggerFactory,
+            @NotNull String addonMetadataFile
     ) {
         this.directory = directory;
         this.descriptor = descriptor;
         this.loggerFactory = loggerFactory;
+        this.addonMetadataFile = addonMetadataFile;
     }
 
     @Override
@@ -37,31 +41,36 @@ public class JarAddonLoader implements AddonLoader<Path> {
 
         final File sourceFile = source.toFile();
 
-        final AddonMetadata metadata = this.descriptor.read(source);
+        try (final FileSystem fileSystem = FileSystems.newFileSystem(source, (ClassLoader) null)) {
 
-        final File addonDir = new File(this.directory, metadata.name());
+            final Path descriptorPath = fileSystem.getPath(addonMetadataFile);
 
-        //noinspection ResultOfMethodCallIgnored
-        addonDir.mkdirs();
+            final AddonMetadata metadata = this.descriptor.read(descriptorPath);
 
-        final JavaAddonClassLoader classLoader = new JavaAddonClassLoader(
-                this.getClass().getClassLoader(),
-                metadata.mainClass(),
-                new URL[]{sourceFile.toURI().toURL()}
-        );
+            final File addonDir = new File(this.directory, metadata.name());
 
-        final JavaAddon addon = classLoader.addon();
+            //noinspection ResultOfMethodCallIgnored
+            addonDir.mkdirs();
 
-        addon.init(
-                sourceFile,
-                addonDir,
-                metadata,
-                loggerFactory.apply(metadata),
-                classLoader
-        );
+            final JavaAddonClassLoader classLoader = new JavaAddonClassLoader(
+                    this.getClass().getClassLoader(),
+                    metadata.mainClass(),
+                    new URL[]{sourceFile.toURI().toURL()}
+            );
 
-        addon.onLoad();
+            final JavaAddon addon = classLoader.addon();
 
-        return addon;
+            addon.init(
+                    sourceFile,
+                    addonDir,
+                    metadata,
+                    loggerFactory.apply(metadata),
+                    classLoader
+            );
+
+            addon.onLoad();
+
+            return addon;
+        }
     }
 }
