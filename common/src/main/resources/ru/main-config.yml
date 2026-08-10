@@ -7,7 +7,7 @@ alerts:
 player:
 
   combat:
-    time: 8s
+    time: 2s
 
   data:
     rotations-buffer-size: 150

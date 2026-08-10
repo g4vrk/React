@@ -43,7 +43,7 @@ public class CombatListener implements Listener, ReloadObserver {
     public void onReload(@NotNull Config config) {
 
         combatTicks = TimeParser.parseOrDefault(
-                config.node("player", "combat", "time").getString("8s"),
+                config.node("player", "combat", "time").getString("2s"),
                 new TimeValue(8, TimeUnit.SECONDS)
         ).toMillis() / 50L;
 
@@ -52,15 +52,12 @@ public class CombatListener implements Listener, ReloadObserver {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent event) {
 
-        if (!(event.getDamager() instanceof Player damager) || !(event.getEntity() instanceof Player victim)) return;
+        if (!(event.getDamager() instanceof Player damager) || !(event.getEntity() instanceof Player)) return;
 
         final ReactPlayer localDamager = playerRegistry.getPlayer(damager.getUniqueId());
-        final ReactPlayer localVictim = playerRegistry.getPlayer(victim.getUniqueId());
 
         final CombatActivity damagerCombatActivity = localDamager != null ? localDamager.combatActivity : null;
-        final CombatActivity victimCombatActivity = localVictim != null ? localVictim.combatActivity : null;
 
         if (damagerCombatActivity != null) damagerCombatActivity.extend(combatTicks);
-        if (victimCombatActivity != null) victimCombatActivity.extend(combatTicks);
     }
 }
