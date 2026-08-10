@@ -102,6 +102,9 @@ public class React {
     private AlertsArgument alertsArgument;
     private ReloadArgument reloadArgument;
 
+    private ActionRegistry<Audience> actionRegistry;
+    private ActionParser<Audience> actionParser;
+
     private Map<String, JavaAddon> addonMap;
 
     private ResourceHolder resourceHolder;
@@ -255,11 +258,11 @@ public class React {
 
         logger.info("Successfully loaded {} configurations: {}", this.configMap.size(), String.join(", ", this.configMap.keySet()));
 
-        final ActionRegistry<Audience> actionRegistry = new SimpleActionRegistry<>(true);
+        this.actionRegistry = new SimpleActionRegistry<>(true);
 
         new DefaultActions.Adventure().registerDefaults(actionRegistry, textFormatter::format, ";");
 
-        final ActionParser<Audience> actionParser = new SimpleActionParser<>(actionRegistry);
+        this.actionParser = new SimpleActionParser<>(actionRegistry);
 
         logger.info("Loading all addons...");
         this.loadAddons();
