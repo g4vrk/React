@@ -29,7 +29,7 @@ import com.g4vrk.react.config.loader.UnloadedYamlConfigLoader;
 import com.g4vrk.react.config.manager.YamlConfigManager;
 import com.g4vrk.react.history.printer.InferenceHistoryPrinter;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
-import com.g4vrk.react.listeners.packet.ConnectionListener;
+import com.g4vrk.react.listeners.bukkit.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
 import com.g4vrk.react.ml.aim.MLAimProcessor;
 import com.g4vrk.react.ml.server.MLServer;
@@ -335,16 +335,22 @@ public class React {
 
         logger.info("Registering packet listeners...");
         this.registerPacketListeners(
-                new ConnectionListener(playerRegistry, playerFactory, alertPublisher, alertManager),
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 
         final PluginManager pluginManager = plugin.getServer().getPluginManager();
 
         logger.info("Registering bukkit listeners...");
+
         combatListener = new CombatListener(playerRegistry);
+
         pluginManager.registerEvents(
                 combatListener,
+                plugin
+        );
+
+        pluginManager.registerEvents(
+                new ConnectionListener(playerRegistry, playerFactory, alertPublisher, alertManager),
                 plugin
         );
 
