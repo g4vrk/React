@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.g4vrk'
-version = '1.0.0'
+version = '1.0.1'
 
 allprojects {
     repositories {
@@ -35,6 +35,12 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
+    }
+
+    java {
+
+        withSourcesJar()
+
     }
 
     dependencies {

@@ -45,8 +45,6 @@ libraries:
 
   - org.spongepowered:configurate-yaml:4.2.0
 
-  - com.squareup.okhttp3:okhttp:4.12.0
-
   - org.ejml:ejml-core:0.41
   - org.ejml:ejml-ddense:0.41
   - org.ejml:ejml-simple:0.41
