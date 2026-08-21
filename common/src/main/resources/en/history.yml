@@ -1,0 +1,40 @@
+
+#
+# React - АнтиЧит основанный на Проверках от Нейросети
+#
+# Исходный код плагина: https://github.com/g4vrk/React
+# (ИИ модель не входит в проект)
+#
+# Купить доступ к нашей модели -> https://www.react-ac.space/
+#
+
+# Настройки истории
+history:
+
+  # История Aim-AI анализа
+  inference:
+
+    # Настройки формата сообщения
+    format:
+
+      # Сколько выводиться анализов за 1 раз
+      print-entries: 11
+
+      header:
+        - ""
+        - " <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <white>История AI <gray>→</gray> <#ff3655>{player} &7(стр. {page:current} / {page:max})"
+        - " <gray>➥ Показатели анализа последних сессий"
+        - ""
+        - " <white>Средняя вероятность читерства: {avg-probability:colored}"
+        - " <white>Средняя уверенность модели: {avg-confidence:colored}"
+        - ""
+
+      empty:
+        - " <gray>- Пусто..."
+
+      entry-format:
+        - " <gray>-</gray> <white>Читерство: {probability:colored} <dark_gray>|</dark_gray> <white>Уверенность: {confidence:colored}"
+
+      footer:
+        - ""
+        - "                <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:previous}'><hover:show_text:'<white>Предыдущая страница'>«««««</hover></click></gradient>       <gray>|       <gradient:#eb2544:#ff3655><click:run_command:'/react history {player} {page:next}'><hover:show_text:'<white>Следующая страница'>»»»»»»</hover></click></gradient>"

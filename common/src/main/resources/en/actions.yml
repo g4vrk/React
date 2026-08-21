@@ -1,0 +1,51 @@
+
+#
+# React - АнтиЧит основанный на Проверках от Нейросети
+#
+# Исходный код плагина: https://github.com/g4vrk/React
+# (ИИ модель не входит в проект)
+#
+# Купить доступ к нашей модели -> https://www.react-ac.space/
+#
+
+# Действия, вот весь список:
+
+# [message] <текст> — отправить сообщение игроку. Алиасы: [msg]
+# [actionbar] <текст> — показать текст в ActionBar игроку. Алиасы: [bar]
+# [title] <заголовок>;<подзаголовок> — показать Title игроку. Алиасы: [show-title]
+# [sound] <звук>;<громкость>;<тон> — проиграть звук игроку. Алиасы: [play-sound]
+# [broadcast] <текст> — отправить сообщение всем игрокам. Алиасы: [bc]
+# [broadcast-actionbar] <текст> — показать ActionBar всем игрокам. Алиасы: [broadcast-bar], [bcbar]
+# [broadcast-title] <заголовок>;<подзаголовок> — показать Title всем игрокам. Алиасы: [bctitle]
+# [console-command] <команда> — выполнить команду от имени консоли. Алиасы: [console], [cmd]
+
+# Действия связанные с оповещениями
+alerts:
+
+  # Действия при включении оповещений
+  on-enable:
+    - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#11ff11>включены ✔"
+    - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#11ff11>включены ✔"
+    - "[sound] entity.player.levelup;1.0;1.0"
+
+  # Действия при выключении оповещений
+  on-disable:
+    - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#ff1111>выключены ✘"
+    - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#ff1111>выключены ✘"
+    - "[sound] entity.creeper.hurt;1.0;1.0"
+
+# Действия связанные с перезагрузкой плагина
+reload:
+
+  # Действия при начале перезагрузки
+  on-start:
+    - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Начата перезагрузка плагина..."
+    - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Начата перезагрузка..."
+    - "[sound] block.note_block.pling;1.0;1.0"
+
+  # Действия при окончании перезагрузки
+  on-finish:
+    - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Плагин перезагружен!"
+    - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Плагин успешно перезагружен!"
+    - "[sound] entity.player.levelup;1.0;1.0"
+
