@@ -47,6 +47,10 @@ processResources {
     }
 }
 
+jar {
+    enabled = false
+}
+
 build {
     dependsOn shadowJar
 }
