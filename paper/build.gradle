@@ -1,6 +1,7 @@
 plugins {
     id 'java'
-    id 'com.gradleup.shadow' version '9.4.2'
+    id 'react.base-conventions'
+    id 'react.shadow-conventions'
 }
 
 def dependenciesDir = file("${rootProject.projectDir}/dependencies")
@@ -44,14 +45,6 @@ processResources {
                 mainClass: "com.g4vrk.react.paper.PaperReactPlugin"
         )
     }
-}
-
-shadowJar {
-
-    archiveBaseName.set("react")
-    archiveVersion.set(project.version.toString())
-    archiveClassifier.set("paper")
-
 }
 
 jar {

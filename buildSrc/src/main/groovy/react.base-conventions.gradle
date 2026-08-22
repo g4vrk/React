@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+    id 'com.diffplug.spotless'
+}
+
+java {
+
+    withSourcesJar()
+
+    disableAutoTargetJvm()
+
+}
+
+spotless {
+
+    java {
+
+        endWithNewline()
+        leadingTabsToSpaces(4)
+
+        removeUnusedImports()
+
+        trimTrailingWhitespace()
+
+        targetExclude("build/generated/**/*")
+
+    }
+
+    groovyGradle {
+
+        endWithNewline()
+        leadingTabsToSpaces(4)
+        trimTrailingWhitespace()
+
+    }
+
+}

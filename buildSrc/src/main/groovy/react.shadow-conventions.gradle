@@ -1,0 +1,11 @@
+plugins {
+    id 'com.gradleup.shadow'
+}
+
+tasks.named("shadowJar") {
+
+    archiveFileName = "${rootProject.name.toLowerCase()}-${project.name}-${rootProject.version}.jar"
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+}

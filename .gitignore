@@ -28,3 +28,5 @@ Thumbs.db
 
 # Minecraft specific
 plugins/*.jar
+
+lib/

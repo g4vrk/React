@@ -1,12 +1,18 @@
+import util.VersionUtility
+
 plugins {
     id 'java'
 }
 
 group = 'com.g4vrk'
-version = '1.0.1'
+
+def baseVersion = '1.0.1'
+version = VersionUtility.version(project, baseVersion)
 
 allprojects {
+
     repositories {
+
         mavenCentral()
 
         maven {
@@ -23,7 +29,9 @@ allprojects {
             name = "codemc-public"
             url = "https://repo.codemc.io/repository/maven-public/"
         }
+
     }
+
 }
 
 jar {
@@ -50,7 +58,9 @@ subprojects {
     }
 
     dependencies {
+
         compileOnly "org.projectlombok:lombok:1.18.42"
         annotationProcessor "org.projectlombok:lombok:1.18.42"
     }
+
 }
