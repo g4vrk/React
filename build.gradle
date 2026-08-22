@@ -26,6 +26,12 @@ allprojects {
     }
 }
 
+jar {
+
+    enabled = false
+
+}
+
 subprojects {
 
     group = rootProject.group
