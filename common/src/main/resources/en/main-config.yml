@@ -1,36 +1,36 @@
 
 #
-# React - АнтиЧит основанный на Проверках от Нейросети
+# React - AI-Powered Anti-Cheat
 #
-# Исходный код плагина: https://github.com/g4vrk/React
-# (ИИ модель не входит в проект)
+# Plugin source code: https://github.com/g4vrk/React
+# (The AI model is not included in this project)
 #
-# Купить доступ к нашей модели -> https://www.react-ac.space/
+# Purchase access to our model -> https://www.react-ac.space/
 #
 
-# Настройка оповещений
+# Alert settings
 alerts:
 
-  # Показывать ли их в консоли?
+  # Show alerts in the console?
   show-in-console: true
 
-  # Формат оповещений для чата
+  # Chat alert format
   format: "<b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <color:#eb2544>{player}</color> <white>провалил <color:#eb2544>{check}</color> <gray>{verbose}</gray>"
 
-# Настройки игроков
+# Player settings
 player:
 
-  # Проверять ли бедрок игроков?
+  # Check Bedrock players?
   check-bedrock-players: false
 
-  # Настройки PvP - Активности
+  # PvP activity settings
   combat:
-    # Сколько секунд после удара, идет анализ поворотов?
+    # Number of seconds to analyze rotations after a hit
     time: 2s
 
-  # Настройки данных
+  # Player data settings
   data:
-    # Сколько поворотов максимально хранить у игрока?
+    # Maximum number of rotations stored for each player
     rotations-buffer-size: 150
 
 

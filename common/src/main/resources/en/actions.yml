@@ -1,49 +1,49 @@
 
 #
-# React - АнтиЧит основанный на Проверках от Нейросети
+# React - AI-Powered Anti-Cheat
 #
-# Исходный код плагина: https://github.com/g4vrk/React
-# (ИИ модель не входит в проект)
+# Plugin source code: https://github.com/g4vrk/React
+# (The AI model is not included in this project)
 #
-# Купить доступ к нашей модели -> https://www.react-ac.space/
+# Purchase access to our model -> https://www.react-ac.space/
 #
 
-# Действия, вот весь список:
+# Available actions:
 
-# [message] <текст> — отправить сообщение игроку. Алиасы: [msg]
-# [actionbar] <текст> — показать текст в ActionBar игроку. Алиасы: [bar]
-# [title] <заголовок>;<подзаголовок> — показать Title игроку. Алиасы: [show-title]
-# [sound] <звук>;<громкость>;<тон> — проиграть звук игроку. Алиасы: [play-sound]
-# [broadcast] <текст> — отправить сообщение всем игрокам. Алиасы: [bc]
-# [broadcast-actionbar] <текст> — показать ActionBar всем игрокам. Алиасы: [broadcast-bar], [bcbar]
-# [broadcast-title] <заголовок>;<подзаголовок> — показать Title всем игрокам. Алиасы: [bctitle]
-# [console-command] <команда> — выполнить команду от имени консоли. Алиасы: [console], [cmd]
+# [message] <text> — send a message to the player. Aliases: [msg]
+# [actionbar] <text> — show text in the player's action bar. Aliases: [bar]
+# [title] <title>;<subtitle> — show a title to the player. Aliases: [show-title]
+# [sound] <sound>;<volume>;<pitch> — play a sound for the player. Aliases: [play-sound]
+# [broadcast] <text> — send a message to all players. Aliases: [bc]
+# [broadcast-actionbar] <text> — show text in every player's action bar. Aliases: [broadcast-bar], [bcbar]
+# [broadcast-title] <title>;<subtitle> — show a title to all players. Aliases: [bctitle]
+# [console-command] <command> — execute a command as the console. Aliases: [console], [cmd]
 
-# Действия связанные с оповещениями
+# Alert-related actions
 alerts:
 
-  # Действия при включении оповещений
+  # Actions performed when alerts are enabled
   on-enable:
     - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#11ff11>включены ✔"
     - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#11ff11>включены ✔"
     - "[sound] entity.player.levelup;1.0;1.0"
 
-  # Действия при выключении оповещений
+  # Actions performed when alerts are disabled
   on-disable:
     - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#ff1111>выключены ✘"
     - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#ff1111>выключены ✘"
     - "[sound] entity.creeper.hurt;1.0;1.0"
 
-# Действия связанные с перезагрузкой плагина
+# Plugin reload actions
 reload:
 
-  # Действия при начале перезагрузки
+  # Actions performed when a reload starts
   on-start:
     - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Начата перезагрузка плагина..."
     - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Начата перезагрузка..."
     - "[sound] block.note_block.pling;1.0;1.0"
 
-  # Действия при окончании перезагрузки
+  # Actions performed when a reload finishes
   on-finish:
     - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Плагин перезагружен!"
     - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Плагин успешно перезагружен!"

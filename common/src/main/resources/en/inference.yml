@@ -1,28 +1,28 @@
 
 #
-# React - АнтиЧит основанный на Проверках от Нейросети
+# React - AI-Powered Anti-Cheat
 #
-# Исходный код плагина: https://github.com/g4vrk/React
-# (ИИ модель не входит в проект)
+# Plugin source code: https://github.com/g4vrk/React
+# (The AI model is not included in this project)
 #
-# Купить доступ к нашей модели -> https://www.react-ac.space/
+# Purchase access to our model -> https://www.react-ac.space/
 #
 
-# Включить ИИ сервер?
+# Enable the AI server?
 enabled: true
 
-# Настройки ИИ сервера
+# AI server settings
 inference:
 
-  # Endpoint для подключений из плагина,
-  # для нашей модели не изменяйте значения
+  # Inference endpoint used by the plugin.
+  # Do not change these values when using our model.
   endpoint:
 
     base-url: 'https://api.react-ac.space'
 
     path: '/analyze'
 
-  # Нужно только для своих кастомных моделей
+  # Only required for custom models
   request:
 
     player-name-field: name
@@ -33,13 +33,13 @@ inference:
     probability-field: cheat_probability
     confidence-field: confidence
 
-# Авторизация через токен
+# Token authentication
 auth:
 
-  # Включена ли отправка токена через что либо
+  # Whether token authentication is enabled
   enabled: true
 
-  # Настройки для кастомных ИИ моделей, для нашей модели не изменяйте
+  # Authentication method for custom AI models; do not change this when using our model
   type: body # none / bearer / header / query / body
 
   bearer:
@@ -55,10 +55,10 @@ auth:
 
   body:
     field: token
-    # Если используете нашу модель (https://www.react-ac.space), то вставьте ваш ключ СЮДА
+    # When using our model (https://www.react-ac.space), enter your access key HERE
     value: YOUR_TOKEN
 
-# Настройки клиента подключений
+# HTTP client settings
 client:
 
   connect-timeout: 10s

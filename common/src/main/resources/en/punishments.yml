@@ -1,29 +1,29 @@
 
 #
-# React - АнтиЧит основанный на Проверках от Нейросети
+# React - AI-Powered Anti-Cheat
 #
-# Исходный код плагина: https://github.com/g4vrk/React
-# (ИИ модель не входит в проект)
+# Plugin source code: https://github.com/g4vrk/React
+# (The AI model is not included in this project)
 #
-# Купить доступ к нашей модели -> https://www.react-ac.space/
+# Purchase access to our model -> https://www.react-ac.space/
 #
 
 punishments:
   aim:
 
-    # Проверки, к которым применяется наказание
+    # Checks to which this punishment applies
     checks:
       - "aim-ai"
 
-    # Действия при достижении определённого VL
+    # Actions performed when the player reaches a specific VL
     actions:
 
-      # Сработает после 25 VL, затем будет повторяться каждые 50 VL
+      # Runs at 10 VL, then repeats every 8 VL
       10;8:
 
-        # Выполнить команду от имени консоли
+        # Execute a command as the console
         - "[console] kick {player} [React] Heuristic violations (Aim-AI)"
 
-        # Сбросить VL игрока
+        # Reset the player's VL
         #- "[reset-vl]"
 

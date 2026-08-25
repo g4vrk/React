@@ -1,21 +1,21 @@
 
 #
-# React - АнтиЧит основанный на Проверках от Нейросети
+# React - AI-Powered Anti-Cheat
 #
-# Исходный код плагина: https://github.com/g4vrk/React
-# (ИИ модель не входит в проект)
+# Plugin source code: https://github.com/g4vrk/React
+# (The AI model is not included in this project)
 #
-# Купить доступ к нашей модели -> https://www.react-ac.space/
+# Purchase access to our model -> https://www.react-ac.space/
 #
 
-# Сколько нужно поворотов, для того чтобы отправить их на анализ.
-# Если используете модель от React, то ставьте не менее 40
+# Number of rotations required before sending them for analysis.
+# If you use the React model, set this to at least 40.
 required-samples: 150
 
-# С какого процента читерства игрок считается нарушителем
+# Probability threshold above which a player is considered to be cheating
 alert:
   threshold: 0.45
 
-# На сколько уменьшать VL, если игрок не читерит (После указанного количества поворотов)
+# Amount by which VL is reduced when the player is legitimate (after the configured number of rotations)
 decay:
   amount: 0.25

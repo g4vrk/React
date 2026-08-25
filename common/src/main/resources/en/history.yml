@@ -1,23 +1,23 @@
 
 #
-# React - АнтиЧит основанный на Проверках от Нейросети
+# React - AI-Powered Anti-Cheat
 #
-# Исходный код плагина: https://github.com/g4vrk/React
-# (ИИ модель не входит в проект)
+# Plugin source code: https://github.com/g4vrk/React
+# (The AI model is not included in this project)
 #
-# Купить доступ к нашей модели -> https://www.react-ac.space/
+# Purchase access to our model -> https://www.react-ac.space/
 #
 
-# Настройки истории
+# History settings
 history:
 
-  # История Aim-AI анализа
+  # Aim-AI analysis history
   inference:
 
-    # Настройки формата сообщения
+    # Message format settings
     format:
 
-      # Сколько выводиться анализов за 1 раз
+      # Number of analysis entries displayed per page
       print-entries: 11
 
       header:
