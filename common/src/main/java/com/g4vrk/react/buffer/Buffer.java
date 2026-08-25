@@ -53,6 +53,10 @@ public final class Buffer<T> implements Iterable<T> {
         }
     }
 
+    public int capacity() {
+        return capacity;
+    }
+
     @SuppressWarnings("unchecked")
     public T[] snapshot() {
         lock.readLock().lock();

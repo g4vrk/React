@@ -22,6 +22,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @CheckInfo(
         name = "Aim-AI",
         configId = "aim-ai"
@@ -39,7 +41,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     private int requiredSamples;
     private double alertThreshold;
 
-    private volatile boolean requesting;
+    private final AtomicBoolean requesting = new AtomicBoolean();
 
     private DecayStrategy decayStrategy;
 
@@ -56,7 +58,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     public void onReload(@NotNull Config config) {
 
         this.debug = config.node("debug").getBoolean();
-        this.requiredSamples = config.node("required-samples").getInt(25);
+        this.requiredSamples = Math.max(3, config.node("required-samples").getInt(25));
         this.alertThreshold = config.node("alert", "threshold").getDouble(0.49D);
 
         final double decayAmount = config.node("decay", "amount").getDouble(0.5D);
@@ -76,25 +78,41 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     public void onRotation(@NotNull RotationData currentData) {
 
         if (!player.combatActivity.isActive()
-                || currentData.historySize() < requiredSamples
-                || requesting
-                || !shouldCheck()) {
+                || !shouldCheck()
+                || !requesting.compareAndSet(false, true)) {
             return;
         }
 
-        final Rotation[] snapshot = currentData.snapshotHistory();
+        final int sampleWindowSize = Math.min(
+                requiredSamples,
+                currentData.historyCapacity()
+        );
 
-        requesting = true;
+        final Rotation[] snapshot = currentData.drainHistory(sampleWindowSize);
+
+        if (snapshot == null) {
+            requesting.set(false);
+            return;
+        }
 
         if (debug) {
             debugHandler.debug("Sending ML request (" + snapshot.length + " rotations)");
         }
 
-        mlAimProcessor.check(
-                player.getName(),
-                snapshot,
-                this::onServerResult
-        );
+        try {
+            mlAimProcessor.check(
+                    player.getName(),
+                    snapshot,
+                    this::onServerResult
+            );
+        } catch (final Throwable th) {
+            requesting.set(false);
+            React.INSTANCE.getLogger().warn(
+                    "Could not start ML request for {}",
+                    player.getName(),
+                    th
+            );
+        }
     }
 
     private void onServerResult(
@@ -102,13 +120,16 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     ) {
         try {
 
+            if (!player.bukkitPlayer.isOnline() || !shouldCheck()) {
+                return;
+            }
+
             if (!result.isAvailable()) {
 
                 if (debug) {
-                    debugHandler.debug("ML result unavailable, restarting sample window");
+                    debugHandler.debug("ML result unavailable");
                 }
 
-                player.rotationData.clear();
                 return;
             }
 
@@ -156,11 +177,9 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
 
             new InferenceHistoryEntryAddedEvent(player, entry).callEvent();
 
-            player.rotationData.clear();
-
         } finally {
 
-            requesting = false;
+            requesting.set(false);
 
             if (debug) {
                 debugHandler.debug("Request finished");

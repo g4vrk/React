@@ -9,7 +9,7 @@ public final class RotationData {
     private Rotation current;
     private Rotation previous;
 
-    private final Buffer<Rotation> history;
+    private Buffer<Rotation> history;
 
     public RotationData(
             int bufferSize
@@ -36,12 +36,57 @@ public final class RotationData {
         return previous;
     }
 
-    public @NotNull Rotation[] snapshotHistory() {
+    public synchronized @NotNull Rotation[] snapshotHistory() {
         return history.snapshot();
     }
 
-    public int historySize() {
+    public synchronized int historySize() {
         return history.size();
+    }
+
+    public synchronized int historyCapacity() {
+        return history.capacity();
+    }
+
+    public synchronized @Nullable Rotation[] drainHistory(
+            final int minimumSize
+    ) {
+        if (minimumSize <= 0) {
+            throw new IllegalArgumentException("minimumSize must be higher than 0");
+        }
+
+        if (history.size() < minimumSize) {
+            return null;
+        }
+
+        final Rotation[] snapshot = history.snapshot();
+
+        history.clear();
+
+        return snapshot;
+    }
+
+    public synchronized void resizeHistory(
+            final int bufferSize
+    ) {
+        if (bufferSize <= 0) {
+            throw new IllegalArgumentException("bufferSize must be higher than 0");
+        }
+
+        if (history.capacity() == bufferSize) {
+            return;
+        }
+
+        final Rotation[] snapshot = history.snapshot();
+        final Buffer<Rotation> resizedHistory = new Buffer<>(bufferSize, Rotation[]::new);
+
+        final int firstEntry = Math.max(0, snapshot.length - bufferSize);
+
+        for (int i = firstEntry; i < snapshot.length; i++) {
+            resizedHistory.add(snapshot[i]);
+        }
+
+        this.history = resizedHistory;
     }
 
     public synchronized void clear() {
