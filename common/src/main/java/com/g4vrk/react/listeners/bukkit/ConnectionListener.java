@@ -48,7 +48,7 @@ public class ConnectionListener implements Listener {
 
             final ReactPlayer entity = playerFactory.create(uniqueId, bukkitPlayer.getName(), bukkitPlayer);
 
-            playerRegistry.addPlayer(uniqueId, entity);
+            if (entity != null) playerRegistry.addPlayer(uniqueId, entity);
 
             if (bukkitPlayer.hasPermission(Permissions.ALERTS_ENABLE_ON_JOIN)) {
                 alertManager.add(uniqueId);
