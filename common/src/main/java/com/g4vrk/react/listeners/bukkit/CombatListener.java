@@ -44,7 +44,7 @@ public class CombatListener implements Listener, ReloadObserver {
 
         combatTicks = TimeParser.parseOrDefault(
                 config.node("player", "combat", "time").getString("2s"),
-                new TimeValue(8, TimeUnit.SECONDS)
+                new TimeValue(2, TimeUnit.SECONDS)
         ).toMillis() / 50L;
 
     }
@@ -58,6 +58,12 @@ public class CombatListener implements Listener, ReloadObserver {
 
         final CombatActivity damagerCombatActivity = localDamager != null ? localDamager.combatActivity : null;
 
-        if (damagerCombatActivity != null) damagerCombatActivity.extend(combatTicks);
+        if (damagerCombatActivity == null) return;
+
+        if (!damagerCombatActivity.isActive()) {
+            localDamager.rotationData.clear();
+        }
+
+        damagerCombatActivity.extend(combatTicks);
     }
 }
