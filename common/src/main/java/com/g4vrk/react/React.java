@@ -432,6 +432,7 @@ public class React {
 
         for (final ReactPlayer player : this.playerRegistry.all()) {
 
+            player.rotationData.resizeHistory(playerFactory.getRotationsBufferSize());
             player.inferenceHistory.reload();
             player.checkManager.reload();
 
