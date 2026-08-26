@@ -30,11 +30,23 @@ dependencies {
 
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
 
+    implementation("com.zaxxer:HikariCP:7.1.0") {
+        exclude group: "org.slf4j", module: "slf4j-api"
+    }
+    implementation "com.h2database:h2:2.4.240"
+    implementation("com.mysql:mysql-connector-j:26.7.0") {
+        exclude group: "org.slf4j", module: "slf4j-api"
+    }
+    implementation("org.mongodb:mongodb-driver-sync:5.10.0") {
+        exclude group: "org.slf4j", module: "slf4j-api"
+    }
+    implementation("org.xerial:sqlite-jdbc:3.53.2.1") {
+        exclude group: "org.slf4j", module: "slf4j-api"
+    }
+
     compileOnly "org.ejml:ejml-core:0.41"
     compileOnly "org.ejml:ejml-ddense:0.41"
     compileOnly "org.ejml:ejml-simple:0.41"
-
-    compileOnly "org.xerial:sqlite-jdbc:3.42.0.0"
 
     compileOnly "io.papermc:paperlib:1.0.8"
 
@@ -55,6 +67,13 @@ dependencies {
             ]
     )
 
+    testImplementation platform("org.junit:junit-bom:5.13.4")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+
+}
+
+tasks.named("test") {
+    useJUnitPlatform()
 }
 
 java {

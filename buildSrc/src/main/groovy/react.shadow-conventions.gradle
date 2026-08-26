@@ -8,4 +8,6 @@ tasks.named("shadowJar") {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
+    mergeServiceFiles()
+
 }
