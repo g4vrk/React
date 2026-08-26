@@ -1,0 +1,44 @@
+# Database configuration changes require a plugin/server restart.
+# Enables persistent player data storage.
+enabled: true
+
+# Available types: sqlite, h2, mysql, mongodb.
+type: sqlite
+
+history:
+  # Inference history has no entry limit. Entries older than this value are removed.
+  # Supported units: ms, s, m, h, d.
+  retention: 30d
+
+  # How often expired inference entries are removed from the database.
+  cleanup-interval: 1h
+
+async:
+  # Number of threads used for blocking database operations.
+  executor-threads: 2
+
+  # Maximum number of scheduled database tasks waiting for an executor thread.
+  executor-queue-capacity: 256
+
+  # Maximum fail-open buffer size while the database is unavailable.
+  # This is only a temporary write buffer and is not a history entry limit.
+  pending-write-capacity: 8192
+
+  # Maximum number of VL/history changes written in one transaction or bulk request.
+  batch-size: 128
+
+  # Delay between buffered write attempts.
+  flush-interval: 250ms
+
+  # Maximum time spent flushing data when the plugin shuts down.
+  shutdown-timeout: 10s
+
+  retry:
+    # Initial reconnect delay after a database failure.
+    initial-delay: 1s
+
+    # Maximum reconnect delay.
+    maximum-delay: 1m
+
+    # Exponential reconnect delay multiplier.
+    multiplier: 2.0

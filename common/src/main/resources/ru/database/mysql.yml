@@ -1,0 +1,28 @@
+host: 127.0.0.1
+port: 3306
+database: react
+username: react
+password: change-me
+
+pool:
+  maximum-pool-size: 10
+  minimum-idle: 2
+  connection-timeout: 10s
+  validation-timeout: 5s
+  idle-timeout: 10m
+  max-lifetime: 30m
+
+properties:
+  use-ssl: false
+  verify-server-certificate: true
+
+  # Включайте только если сервер требует получение публичного ключа для авторизации.
+  allow-public-key-retrieval: false
+
+  character-encoding: UTF-8
+  cache-prepared-statements: true
+  prepared-statement-cache-size: 250
+  prepared-statement-cache-sql-limit: 2048
+  use-server-prepared-statements: true
+  rewrite-batched-statements: true
+  tcp-keep-alive: true

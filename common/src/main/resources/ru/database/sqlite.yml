@@ -1,0 +1,26 @@
+# Имя файла SQLite. Файл хранится в plugins/React/.data/sqlite/.
+file: react.db
+
+pool:
+  # Для SQLite обычно нужен один connection, потому что одновременно пишет только один writer.
+  maximum-pool-size: 1
+  minimum-idle: 1
+  connection-timeout: 10s
+  validation-timeout: 5s
+  idle-timeout: 10m
+  max-lifetime: 30m
+
+pragmas:
+  # WAL значительно улучшает одновременное чтение и запись.
+  journal-mode: WAL
+
+  # NORMAL — безопасная и производительная настройка при включённом WAL.
+  synchronous: NORMAL
+
+  # Сколько SQLite ожидает освобождения заблокированной базы перед ошибкой запроса.
+  busy-timeout-millis: 5000
+
+  foreign-keys: true
+
+  # Отрицательное значение задаёт кэш в KiB. -20000 — примерно 20 MiB.
+  cache-size: -20000

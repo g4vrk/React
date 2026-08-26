@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class TimeParser {
 
-    private final Pattern PATTERN = Pattern.compile("^(\\d+)([smhd])$");
+    private final Pattern PATTERN = Pattern.compile("^(\\d+)(ms|[smhd])$");
 
     public @NotNull TimeValue parse(final @NotNull String input) {
         final Matcher matcher = PATTERN.matcher(input.trim().toLowerCase());
@@ -25,6 +25,7 @@ public class TimeParser {
 
         final long value = Long.parseLong(matcher.group(1));
         final TimeUnit unit = switch (matcher.group(2)) {
+            case "ms" -> TimeUnit.MILLISECONDS;
             case "s" -> TimeUnit.SECONDS;
             case "m" -> TimeUnit.MINUTES;
             case "h" -> TimeUnit.HOURS;

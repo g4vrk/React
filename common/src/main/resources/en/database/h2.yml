@@ -1,0 +1,19 @@
+# H2 file name. H2 adds its native .mv.db suffix and stores the file in plugins/React/.data/h2/.
+file: react.db
+
+username: sa
+password: ""
+
+# REGULAR is recommended. Other H2 modes may be used for compatibility when required.
+compatibility-mode: REGULAR
+
+# Allows multiple JVM processes to open the same local file. Keep disabled for a normal server.
+auto-server: false
+
+pool:
+  maximum-pool-size: 4
+  minimum-idle: 1
+  connection-timeout: 10s
+  validation-timeout: 5s
+  idle-timeout: 10m
+  max-lifetime: 30m

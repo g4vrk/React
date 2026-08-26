@@ -1,0 +1,24 @@
+# Если URI не пустой, он используется вместо host, port, username и password.
+uri: ""
+
+host: 127.0.0.1
+port: 27017
+database: react
+username: ""
+password: ""
+authentication-database: admin
+
+application-name: React
+tls: false
+retry-writes: true
+
+pool:
+  minimum-size: 0
+  maximum-size: 10
+  max-idle-time: 10m
+  max-life-time: 30m
+
+timeouts:
+  connect: 10s
+  socket: 10s
+  server-selection: 10s
