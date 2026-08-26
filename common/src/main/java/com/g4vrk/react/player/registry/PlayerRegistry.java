@@ -1,10 +1,7 @@
 package com.g4vrk.react.player.registry;
 
-import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.ReactPlayer;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import lombok.RequiredArgsConstructor;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,12 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.bukkit.Bukkit.getServer;
-
-@RequiredArgsConstructor
 public final class PlayerRegistry {
-
-    private final PlayerFactory factory;
 
     private final Map<UUID, ReactPlayer> players = new ConcurrentHashMap<>();
 
@@ -39,15 +31,7 @@ public final class PlayerRegistry {
             final @NotNull UUID uuid
     ) {
 
-        return players.computeIfAbsent(uuid, uniqueId -> {
-
-            final Player bukkitPlayer = this.findBukkitPlayer(uniqueId);
-
-            if (bukkitPlayer == null || !bukkitPlayer.isOnline()) return null;
-
-            return factory.create(uniqueId, bukkitPlayer.getName(), bukkitPlayer);
-
-        });
+        return players.get(uuid);
 
     }
 
@@ -57,11 +41,5 @@ public final class PlayerRegistry {
 
     public @NotNull Set<ReactPlayer> all() {
         return new ObjectOpenHashSet<>(players.values());
-    }
-
-    private @Nullable Player findBukkitPlayer(
-            final @NotNull UUID uuid
-    ) {
-        return getServer().getPlayer(uuid);
     }
 }

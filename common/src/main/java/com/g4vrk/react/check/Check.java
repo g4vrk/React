@@ -17,7 +17,7 @@ public abstract class Check extends AbstractCheck {
     protected final ReactPlayer player;
 
     @Getter
-    private double violations;
+    private volatile double violations;
 
     protected Check(
             @NotNull ReactPlayer player
@@ -40,18 +40,19 @@ public abstract class Check extends AbstractCheck {
     }
 
     public final boolean shouldCheck() {
-        return !Permissions.hasBypassForCheck(
+        return player.isDataReady() && !Permissions.hasBypassForCheck(
                 player.bukkitPlayer,
                 getConfigId()
         );
     }
 
-    protected final void fail(
+    protected final synchronized void fail(
             final double amount
     ) {
         final double previous = this.violations;
 
         this.violations += amount;
+        this.persistViolations();
 
         final PunishmentManager punishmentManager = React.INSTANCE.getPunishmentManager();
 
@@ -87,12 +88,32 @@ public abstract class Check extends AbstractCheck {
         this.player.alertPrinter.print(player, getName(), verbose);
     }
 
-    protected final void reward() {
-        violations = Math.max(0, decayStrategy().decay(violations));
+    protected final synchronized void reward() {
+        final double updated = Math.max(0, decayStrategy().decay(violations));
+        if (Double.compare(updated, violations) == 0) {
+            return;
+        }
+        violations = updated;
+        this.persistViolations();
     }
 
-    public final void resetViolations() {
+    public final synchronized void resetViolations() {
         violations = 0D;
+        this.persistViolations();
+    }
+
+    public final synchronized void restoreViolations(final double violations) {
+        this.violations = Math.max(0.0D, violations);
+    }
+
+    private void persistViolations() {
+        if (React.INSTANCE.getStorageManager() != null) {
+            React.INSTANCE.getStorageManager().saveViolation(
+                    player.getUniqueId(),
+                    getConfigId(),
+                    violations
+            );
+        }
     }
 
     public abstract @NotNull DecayStrategy decayStrategy();

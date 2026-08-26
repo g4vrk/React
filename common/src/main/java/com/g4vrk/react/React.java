@@ -42,6 +42,9 @@ import com.g4vrk.react.player.registry.PlayerRegistry;
 import com.g4vrk.react.punish.PunishmentManager;
 import com.g4vrk.react.resource.ResourceHolder;
 import com.g4vrk.react.resource.impl.PluginResourceHolder;
+import com.g4vrk.react.storage.StorageManager;
+import com.g4vrk.react.storage.config.DatabaseSettings;
+import com.g4vrk.react.storage.config.DatabaseSettingsFactory;
 import com.g4vrk.react.util.PluginUtil;
 import com.g4vrk.react.util.placeholder.PlaceholderAPIUtil;
 import com.g4vrk.schedula.api.SchedulaAPI;
@@ -121,6 +124,9 @@ public class React {
     private Config punishmentsConfig;
     private Config historyConfig;
     private Config inferenceConfig;
+
+    private DatabaseSettings databaseSettings;
+    private StorageManager storageManager;
 
     private CheckConfigRegistry checkConfigRegistry;
 
@@ -232,7 +238,12 @@ public class React {
                 "main-config.yml",
                 "punishments.yml",
                 "history.yml",
-                "inference.yml"
+                "inference.yml",
+                "database.yml",
+                "database/h2.yml",
+                "database/mysql.yml",
+                "database/mongodb.yml",
+                "database/sqlite.yml"
         );
 
         this.configMap = new Object2ObjectOpenHashMap<>();
@@ -268,9 +279,13 @@ public class React {
         this.loadAddons();
 
         logger.info("Creating Data management modules...");
+        this.databaseSettings = new DatabaseSettingsFactory().create(configMap, pluginDir);
+        this.storageManager = new StorageManager(logger, databaseSettings);
+        this.storageManager.start();
+
         this.playerFactory = new PlayerFactory();
 
-        this.playerRegistry = new PlayerRegistry(playerFactory);
+        this.playerRegistry = new PlayerRegistry();
 
         this.inferenceSettingsFactory = new InferenceSettingsFactory();
         final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.getRoot());
@@ -349,10 +364,18 @@ public class React {
                 plugin
         );
 
-        pluginManager.registerEvents(
-                new ConnectionListener(playerRegistry, playerFactory, alertPublisher, alertManager),
-                plugin
+        final ConnectionListener connectionListener = new ConnectionListener(
+                playerRegistry,
+                playerFactory,
+                alertPublisher,
+                alertManager,
+                storageManager
         );
+        pluginManager.registerEvents(connectionListener, plugin);
+
+        for (final Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
+            connectionListener.registerPlayer(onlinePlayer);
+        }
 
         if (PlaceholderAPIUtil.apiPresent()) {
 
@@ -433,7 +456,6 @@ public class React {
         for (final ReactPlayer player : this.playerRegistry.all()) {
 
             player.rotationData.resizeHistory(playerFactory.getRotationsBufferSize());
-            player.inferenceHistory.reload();
             player.checkManager.reload();
 
         }
@@ -453,6 +475,13 @@ public class React {
             if (this.mlServer != null) {
                 logger.info("Stopping ML server...");
                 this.mlServer.shutdown();
+            }
+
+            if (this.storageManager != null) {
+                logger.info("Flushing and closing database storage...");
+                this.storageManager.close(
+                        this.playerRegistry == null ? Set.of() : this.playerRegistry.all()
+                );
             }
 
             if (this.playerRegistry != null) {

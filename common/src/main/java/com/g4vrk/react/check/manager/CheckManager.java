@@ -3,6 +3,7 @@ package com.g4vrk.react.check.manager;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
+import com.g4vrk.react.check.Check;
 import com.g4vrk.react.check.impl.aim.AimAI;
 import com.g4vrk.react.check.type.RotationCheck;
 import com.g4vrk.react.player.ReactPlayer;
@@ -23,6 +24,8 @@ public final class CheckManager {
 
     private final List<RotationCheck> rotationChecksValues;
 
+    private final List<Check> checksValues;
+
     public CheckManager(
             @NotNull ReactPlayer player
     ) {
@@ -32,6 +35,9 @@ public final class CheckManager {
                 .build();
 
         this.rotationChecksValues = new ObjectArrayList<>(this.rotationChecks.values());
+        this.checksValues = this.rotationChecksValues.stream()
+                .map(check -> (Check) check)
+                .toList();
 
         this.reload();
 
@@ -51,6 +57,19 @@ public final class CheckManager {
             check.onRotation(data);
         }
 
+    }
+
+    public @NotNull List<Check> checks() {
+        return this.checksValues;
+    }
+
+    public @Nullable Check getCheck(final @NotNull String configId) {
+        for (final Check check : checksValues) {
+            if (check.getConfigId().equalsIgnoreCase(configId)) {
+                return check;
+            }
+        }
+        return null;
     }
 
     public void reload() {
