@@ -271,7 +271,7 @@ public class React {
 
         this.actionRegistry = new SimpleActionRegistry<>(true);
 
-        new DefaultActions.Adventure().registerDefaults(actionRegistry, textFormatter::format, ";");
+        DefaultActions.Adventure.registerDefaults(actionRegistry, textFormatter::format, ";");
 
         this.actionParser = new SimpleActionParser<>(actionRegistry);
 

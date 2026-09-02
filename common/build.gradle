@@ -61,7 +61,7 @@ dependencies {
             dir: dependenciesDir,
             include: [
                     'schedula-common-1.0.0.jar',
-                    'FunctionalActions-2.0.0.jar',
+                    'FunctionalActions-2.1.1-d94a91d.jar',
                     'FastTextFormatter-1.0.0.jar',
                     'FunctionalConfiguration-1.0.0.jar'
             ]
