@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.g4vrk'
 
-def baseVersion = '1.0.2'
+def baseVersion = '1.0.3'
 version = VersionUtility.version(project, baseVersion)
 
 allprojects {
