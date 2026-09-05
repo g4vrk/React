@@ -20,7 +20,7 @@ def dependenciesDir = file("${rootProject.projectDir}/dependencies")
 
 dependencies {
 
-    compileOnly "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:26.2.build.121-stable"
 
     compileOnly "me.clip:placeholderapi:2.11.6"
     compileOnly "com.github.retrooper:packetevents-spigot:2.13.0"

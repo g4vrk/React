@@ -10,7 +10,7 @@ dependencies {
 
     implementation project(":common")
 
-    compileOnly "io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:26.2.build.121-stable"
 
     implementation fileTree(
             dir: dependenciesDir,
