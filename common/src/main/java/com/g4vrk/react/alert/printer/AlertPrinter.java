@@ -1,6 +1,5 @@
 package com.g4vrk.react.alert.printer;
 
-import com.g4vrk.fastTextFormatter.TextFormatter;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.alert.publish.Publisher;
@@ -10,20 +9,22 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 public final class AlertPrinter implements ReloadObserver {
 
     private final Publisher<Component> publisher;
 
-    private final TextFormatter textFormatter;
+    private final Function<String, Component> serializer;
 
     private Component alertFormat;
 
     public AlertPrinter(
             @NotNull Publisher<Component> publisher,
-            @NotNull TextFormatter textFormatter
+            @NotNull Function<String, Component> serializer
     ) {
         this.publisher = publisher;
-        this.textFormatter = textFormatter;
+        this.serializer = serializer;
 
         this.reload();
     }
@@ -42,7 +43,7 @@ public final class AlertPrinter implements ReloadObserver {
         final String alertFormatRaw = config.node("alerts", "format")
                 .getString("&c«React» &7| &f{player} - {check} {verbose}");
 
-        this.alertFormat = textFormatter.format(alertFormatRaw);
+        this.alertFormat = serializer.apply(alertFormatRaw);
 
     }
 

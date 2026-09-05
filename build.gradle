@@ -30,6 +30,11 @@ allprojects {
             url = "https://repo.codemc.io/repository/maven-public/"
         }
 
+        maven {
+            name = "jitpack"
+            url = "https://jitpack.io/"
+        }
+
     }
 
 }

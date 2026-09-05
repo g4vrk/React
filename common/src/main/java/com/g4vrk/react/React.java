@@ -1,6 +1,5 @@
 package com.g4vrk.react;
 
-import com.g4vrk.fastTextFormatter.TextFormatter;
 import com.g4vrk.functionalActions.defaults.DefaultActions;
 import com.g4vrk.functionalActions.parser.ActionParser;
 import com.g4vrk.functionalActions.parser.impl.SimpleActionParser;
@@ -49,6 +48,8 @@ import com.g4vrk.react.util.PluginUtil;
 import com.g4vrk.react.util.placeholder.PlaceholderAPIUtil;
 import com.g4vrk.schedula.api.SchedulaAPI;
 import com.g4vrk.schedula.task.scheduler.Scheduler;
+import com.g4vrk.text.LegacySerializers;
+import com.g4vrk.text.Serializers;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.EventManager;
 import com.github.retrooper.packetevents.event.PacketListenerCommon;
@@ -93,7 +94,7 @@ public class React {
 
     private final Logger logger = LoggerFactory.getLogger(NAME);
 
-    private final TextFormatter textFormatter = TextFormatter.textFormatter();
+    private final Serializers serializers = LegacySerializers.INSTANCE;
 
     private Plugin plugin;
     private Language language;
@@ -271,7 +272,7 @@ public class React {
 
         this.actionRegistry = new SimpleActionRegistry<>(true);
 
-        DefaultActions.Adventure.registerDefaults(actionRegistry, textFormatter::format, ";");
+        DefaultActions.Adventure.registerDefaults(actionRegistry, serializers.universalSerializer()::serialize, ";");
 
         this.actionParser = new SimpleActionParser<>(actionRegistry);
 
@@ -307,7 +308,7 @@ public class React {
                         && alertManager.receives(player.getUniqueId())
         );
 
-        this.alertPrinter = new AlertPrinter(alertPublisher, textFormatter);
+        this.alertPrinter = new AlertPrinter(alertPublisher, serializers.universalSerializer()::serialize);
 
         this.alertPublisher.flushListeners();
 
@@ -325,7 +326,7 @@ public class React {
 
         logger.info("Creating inference history modules...");
 
-        this.inferenceHistoryPrinter = new InferenceHistoryPrinter(textFormatter);
+        this.inferenceHistoryPrinter = new InferenceHistoryPrinter(serializers.universalSerializer()::serialize);
 
         logger.info("Registering command arguments...");
 

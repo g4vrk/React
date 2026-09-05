@@ -57,12 +57,13 @@ dependencies {
     compileOnly "org.geysermc.geyser:api:2.9.0-SNAPSHOT"
     compileOnly "org.geysermc.floodgate:api:2.2.4-SNAPSHOT"
 
+    implementation "com.github.g4vrk.TextSerializer:legacy:1.0.0"
+
     implementation fileTree(
             dir: dependenciesDir,
             include: [
                     'schedula-common-1.0.0.jar',
                     'FunctionalActions-2.1.1-d94a91d.jar',
-                    'FastTextFormatter-1.0.0.jar',
                     'FunctionalConfiguration-1.0.0.jar'
             ]
     )

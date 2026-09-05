@@ -1,7 +1,5 @@
 package com.g4vrk.react.history.printer;
 
-import com.g4vrk.fastTextFormatter.TextFormatter;
-import com.g4vrk.fastTextFormatter.function.TextPreProcessor;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
@@ -18,10 +16,11 @@ import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 public class InferenceHistoryPrinter implements ReloadObserver {
 
-    private final TextFormatter textFormatter;
+    private final Function<String, Component> serializer;
 
     private final ValueColorResolver confidenceColorResolver;
     private final ValueColorResolver probabilityColorResolver;
@@ -34,10 +33,10 @@ public class InferenceHistoryPrinter implements ReloadObserver {
     private int printEntries;
 
     public InferenceHistoryPrinter(
-            @NotNull TextFormatter textFormatter
+            @NotNull Function<String, Component> serializer
     ) {
 
-        this.textFormatter = textFormatter;
+        this.serializer = serializer;
         this.confidenceColorResolver = new ConfidenceColorResolver();
         this.probabilityColorResolver = new ProbabilityColorResolver();
 
@@ -156,7 +155,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
         final double avgConfidence =
                 statisticResult.averageConfidence();
 
-        final TextPreProcessor commonProcessor = createCommonProcessor(
+        final Function<String, String> commonProcessor = createCommonProcessor(
                 player,
                 history,
                 page,
@@ -230,7 +229,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
         );
     }
 
-    private @NotNull TextPreProcessor createCommonProcessor(
+    private @NotNull Function<String, String> createCommonProcessor(
             final @NotNull ReactPlayer player,
             final @NotNull InferenceHistoryEntry[] history,
             final int currentPage,
@@ -287,16 +286,13 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
     private @NotNull Component formatCommon(
             final @NotNull String input,
-            final @NotNull TextPreProcessor commonProcessor,
+            final @NotNull Function<String, String> commonProcessor,
             final double avgProbability,
             final double avgConfidence
     ) {
 
-        Component component = this.textFormatter.formatWithPreProcessors(
-                input,
-                List.of(
-                        commonProcessor
-                )
+        Component component = this.serializer.apply(
+                commonProcessor.apply(input)
         );
 
         component = replaceColoredCommon(
@@ -310,7 +306,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
     private @NotNull Component formatEntry(
             final @NotNull String input,
-            final @NotNull TextPreProcessor commonProcessor,
+            final @NotNull Function<String, String> commonProcessor,
             final @NotNull InferenceHistoryEntry entry,
             final double avgProbability,
             final double avgConfidence
@@ -322,7 +318,7 @@ public class InferenceHistoryPrinter implements ReloadObserver {
         final double confidence =
                 entry.getConfidence();
 
-        final TextPreProcessor entryProcessor = text -> text
+        final Function<String, String> entryProcessor = text -> text
                 .replace(
                         "{probability}",
                         String.valueOf(probability)
@@ -336,12 +332,8 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                         entry.getCheck().getName()
                 );
 
-        Component component = this.textFormatter.formatWithPreProcessors(
-                input,
-                List.of(
-                        commonProcessor,
-                        entryProcessor
-                )
+        Component component = this.serializer.apply((
+                commonProcessor.apply(entryProcessor.apply(input)))
         );
 
         component = replaceColoredCommon(
