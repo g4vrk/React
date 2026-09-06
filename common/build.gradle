@@ -44,9 +44,9 @@ dependencies {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
 
-    compileOnly "org.ejml:ejml-core:0.41"
-    compileOnly "org.ejml:ejml-ddense:0.41"
-    compileOnly "org.ejml:ejml-simple:0.41"
+    compileOnly "org.ejml:ejml-core:0.46.1"
+    compileOnly "org.ejml:ejml-ddense:0.46.1"
+    compileOnly "org.ejml:ejml-simple:0.46.1"
 
     compileOnly "io.papermc:paperlib:1.0.8"
 
