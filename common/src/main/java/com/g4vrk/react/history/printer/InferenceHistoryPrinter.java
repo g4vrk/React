@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Function;
 
 public class InferenceHistoryPrinter implements ReloadObserver {

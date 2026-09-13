@@ -1,7 +1,6 @@
 package com.g4vrk.react.config.check.impl;
 
 import com.g4vrk.functionalConfiguration.Config;
-import com.g4vrk.react.check.Check;
 import com.g4vrk.react.check.ReactCheck;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
 import com.g4vrk.react.check.info.CheckInfo;

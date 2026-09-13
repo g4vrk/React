@@ -26,4 +26,3 @@ public class Permissions {
         return permissible.hasPermission(BASE_BYPASS + "." + checkName);
     }
 }
-
