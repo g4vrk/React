@@ -121,7 +121,7 @@ subprojects {
             create<MavenPublication>("maven") {
 
                 groupId = System.getenv("GROUP") ?: project.group.toString()
-                artifactId = System.getenv("ARTIFACT") ?: (rootProject.name + project.name)
+                artifactId = rootProject.name + project.name
                 version = System.getenv("VERSION") ?: project.version.toString()
 
                 artifact(tasks.named<ShadowJar>("shadowJar"))
