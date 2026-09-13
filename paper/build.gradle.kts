@@ -4,6 +4,8 @@ plugins {
     id("react.shadow-conventions")
 }
 
+val mainClass = "com.g4vrk.react.paper.PaperReactPlugin"
+
 val dependenciesDir = file("${rootProject.projectDir}/dependencies")
 
 dependencies {
@@ -30,24 +32,26 @@ sourceSets {
 
 tasks {
 
-    withType<ProcessResources>().configureEach {
+    named<ProcessResources>("processResources") {
 
-        inputs.property(
-            "mainClass",
-            "com.g4vrk.react.paper.PaperReactPlugin"
+        notCompatibleWithConfigurationCache(
+            "Uses Groovy template expansion for plugin.yml"
+        )
+
+        inputs.properties(
+            "version" to rootProject.version.toString(),
+            "mainClass" to mainClass
         )
 
         filesMatching("plugin.yml") {
-
             expand(
-                "mainClass" to "com.g4vrk.react.paper.PaperReactPlugin"
+                "version" to rootProject.version.toString(),
+                "mainClass" to mainClass
             )
-
         }
-
     }
 
-    withType<Jar>().configureEach {
+    named<Jar>("jar") {
         enabled = false
     }
 

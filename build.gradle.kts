@@ -105,17 +105,6 @@ subprojects {
             jvmArgs("-Xms2G", "-Xmx2G", "-Dcom.mojang.eula.agree=true")
         }
 
-        withType<ProcessResources>().configureEach {
-            val props = mapOf(
-                "version" to version,
-                "description" to description,
-                "name" to rootProject.name
-            )
-            filesMatching("plugin.yml") {
-                expand(props)
-            }
-        }
-
         named("build") {
 
             dependsOn(named("shadowJar"))

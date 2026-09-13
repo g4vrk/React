@@ -11,8 +11,8 @@
 # а и да, я везде оформляю красиво, даже тут :)
 
 # noinspection YAMLSchemaValidation
-name: ${name}
-description: ${description}
+name: React
+description: 'An AI powered Anti-Cheat product, ready for advanced use, product for www.react-ac.space'
 version: ${version}
 
 # noinspection PluginYml,YAMLSchemaValidation

@@ -4,6 +4,8 @@ plugins {
     id("react.shadow-conventions")
 }
 
+val mainClass = "com.g4vrk.react.folia.FoliaReactPlugin"
+
 val dependenciesDir = file("${rootProject.projectDir}/dependencies")
 
 dependencies {
@@ -36,24 +38,28 @@ sourceSets {
 }
 
 tasks {
-    withType<ProcessResources>().configureEach {
 
-        inputs.property(
-            "mainClass",
-            "com.g4vrk.react.folia.FoliaReactPlugin"
+    named<ProcessResources>("processResources") {
+
+        notCompatibleWithConfigurationCache(
+            "Uses Groovy template expansion for plugin.yml"
+        )
+
+        inputs.properties(
+            "version" to rootProject.version.toString(),
+            "mainClass" to mainClass
         )
 
         filesMatching("plugin.yml") {
-
             expand(
-                "mainClass" to "com.g4vrk.react.folia.FoliaReactPlugin"
+                "version" to rootProject.version.toString(),
+                "mainClass" to mainClass
             )
-
         }
-
     }
 
-    withType<Jar>().configureEach {
+    named<Jar>("jar") {
         enabled = false
     }
+
 }
