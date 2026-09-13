@@ -124,7 +124,9 @@ subprojects {
                 artifactId = rootProject.name + "-" + project.name
                 version = System.getenv("VERSION") ?: project.version.toString()
 
-                artifact(tasks.named<ShadowJar>("shadowJar"))
+                artifact(tasks.named<ShadowJar>("shadowJar")) {
+                    classifier = ""
+                }
                 artifact(tasks.named<Jar>("sourcesJar"))
 
                 pom {
