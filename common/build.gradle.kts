@@ -17,6 +17,10 @@ repositories {
     }
 }
 
+tasks.named<ProcessResources>("processResources") {
+    enabled = false
+}
+
 val dependenciesDir = file("${rootProject.projectDir}/dependencies")
 
 dependencies {
