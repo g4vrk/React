@@ -21,7 +21,7 @@ okhttp = "4.12.0"
 hikaricp = "7.1.0"
 h2 = "2.4.240"
 mysql = "26.7.0"
-mongodb = "5.10.0"
+mongodb = "5.11.1"
 sqlite = "3.53.2.1"
 
 ejml = "0.41"
