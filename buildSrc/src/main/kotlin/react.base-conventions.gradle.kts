@@ -1,17 +1,18 @@
+import com.diffplug.gradle.spotless.SpotlessExtension
+
 plugins {
-    id 'java'
-    id 'com.diffplug.spotless'
+    `java-library`
 }
 
-java {
+apply(plugin = "com.diffplug.spotless")
 
-    withSourcesJar()
+java {
 
     disableAutoTargetJvm()
 
 }
 
-spotless {
+extensions.configure<SpotlessExtension> {
 
     java {
 
@@ -21,7 +22,6 @@ spotless {
         removeUnusedImports()
 
         trimTrailingWhitespace()
-
         targetExclude("build/generated/**/*")
 
     }
@@ -29,7 +29,9 @@ spotless {
     groovyGradle {
 
         endWithNewline()
+
         leadingTabsToSpaces(4)
+
         trimTrailingWhitespace()
 
     }

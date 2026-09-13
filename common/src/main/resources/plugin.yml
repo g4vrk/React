@@ -10,8 +10,9 @@
 
 # а и да, я везде оформляю красиво, даже тут :)
 
-name: React
-description: "An AI powered Anti-Cheat product, ready for advanced use"
+# noinspection YAMLSchemaValidation
+name: ${name}
+description: ${description}
 version: ${version}
 
 # noinspection PluginYml,YAMLSchemaValidation
@@ -27,7 +28,7 @@ softdepend:
 authors:
   - g4vrk
 
-website: https://telegram.me/react_ac
+website: https://www.react-ac.space
 
 permissions:
   react.command.usage:
