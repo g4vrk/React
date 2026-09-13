@@ -85,7 +85,7 @@ public abstract class Check extends AbstractCheck {
     protected final void alert(
             final @NotNull Component verbose
     ) {
-        this.player.alertPrinter.print(player, getName(), verbose);
+        this.player.alertPrinter.print(player, getName(), violations, verbose);
     }
 
     protected final synchronized void reward() {

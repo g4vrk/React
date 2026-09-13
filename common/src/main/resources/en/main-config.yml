@@ -15,7 +15,7 @@ alerts:
   show-in-console: true
 
   # Chat alert format
-  format: "<b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <color:#eb2544>{player}</color> <white>провалил <color:#eb2544>{check}</color> <gray>{verbose}</gray>"
+  format: "<b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <color:#eb2544>{player}</color> <white>провалил <color:#eb2544>{check}</color> <dark_gray>(x{vl}) <gray>{verbose}</gray>"
 
 # Player settings
 player:

@@ -68,6 +68,7 @@ public final class PunishmentManager implements ReloadObserver {
             this.alertPrinter.print(
                     ctx.check().getPlayer(),
                     ctx.check().getName(),
+                    ctx.check().getViolations(),
                     Component.text(text).color(NamedTextColor.RED)
             );
 

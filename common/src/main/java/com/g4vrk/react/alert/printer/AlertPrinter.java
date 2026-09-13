@@ -49,17 +49,19 @@ public final class AlertPrinter implements ReloadObserver {
 
     public void print(
             final @NotNull ReactPlayer player,
-            final @NotNull String checkName
+            final @NotNull String checkName,
+            final double violations
     ) {
-        print(player, checkName, null);
+        print(player, checkName, violations, null);
     }
 
     public void print(
             final @NotNull ReactPlayer player,
             final @NotNull String checkName,
+            final double violations,
             final @Nullable Component verbose
     ) {
-        final Component formatted = formatAlert(alertFormat, player.getName(), checkName, verbose);
+        final Component formatted = formatAlert(alertFormat, player.getName(), checkName, violations, verbose);
 
         publisher.publish(formatted);
     }
@@ -68,6 +70,7 @@ public final class AlertPrinter implements ReloadObserver {
             final @NotNull Component format,
             final @NotNull String playerName,
             final @NotNull String checkName,
+            final double violations,
             final @Nullable Component verbose
     ) {
         Component component = format;
@@ -75,6 +78,8 @@ public final class AlertPrinter implements ReloadObserver {
         component = replace(component, "player", Component.text(playerName));
         component = replace(component, "check", Component.text(checkName));
         component = replace(component, "verbose", verbose == null ? Component.empty() : verbose);
+        component = replace(component, "vl", Component.text(violations));
+        component = replace(component, "violations", Component.text(violations));
 
         return component;
     }
