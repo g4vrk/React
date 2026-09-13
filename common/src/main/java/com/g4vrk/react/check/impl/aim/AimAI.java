@@ -38,7 +38,9 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
 
     private boolean debug;
 
-    private int requiredSamples;
+    private int sampleWindowSize;
+    private int requestStep;
+    private int samplesSinceLastRequest;
     private double alertThreshold;
 
     private final AtomicBoolean requesting = new AtomicBoolean();
@@ -58,7 +60,17 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     public void onReload(@NotNull Config config) {
 
         this.debug = config.node("debug").getBoolean();
-        this.requiredSamples = Math.max(3, config.node("required-samples").getInt(25));
+        final int legacyRequiredSamples = config.node("required-samples").getInt(40);
+
+        this.sampleWindowSize = Math.max(
+                3,
+                config.node("buffer", "size").getInt(legacyRequiredSamples)
+        );
+        this.requestStep = Math.max(
+                1,
+                config.node("buffer", "send-step").getInt(10)
+        );
+        this.samplesSinceLastRequest = 0;
         this.alertThreshold = config.node("alert", "threshold").getDouble(0.49D);
 
         final double decayAmount = config.node("decay", "amount").getDouble(0.5D);
@@ -77,23 +89,39 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     @Override
     public void onRotation(@NotNull RotationData currentData) {
 
-        if (!player.combatActivity.isActive()
-                || !shouldCheck()
+        if (!player.combatActivity.isActive() || !shouldCheck()) {
+            return;
+        }
+
+        if (currentData.historyCapacity() < sampleWindowSize) {
+            currentData.resizeHistory(sampleWindowSize);
+        }
+
+        samplesSinceLastRequest++;
+
+        if (currentData.historySize() < sampleWindowSize
+                || samplesSinceLastRequest < requestStep
                 || !requesting.compareAndSet(false, true)) {
             return;
         }
 
-        final int sampleWindowSize = Math.min(
-                requiredSamples,
-                currentData.historyCapacity()
-        );
+        final Rotation[] history = currentData.snapshotHistory();
 
-        final Rotation[] snapshot = currentData.drainHistory(sampleWindowSize);
-
-        if (snapshot == null) {
+        if (history.length < sampleWindowSize) {
             requesting.set(false);
             return;
         }
+
+        samplesSinceLastRequest = 0;
+
+        final Rotation[] snapshot = new Rotation[sampleWindowSize];
+        System.arraycopy(
+                history,
+                history.length - sampleWindowSize,
+                snapshot,
+                0,
+                sampleWindowSize
+        );
 
         if (debug) {
             debugHandler.debug("Sending ML request (" + snapshot.length + " rotations)");
