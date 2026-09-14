@@ -1,93 +1,150 @@
-# React
+<div align="center">
 
-**Aim-only anti-cheat for Paper and Folia, with an optional AI verdict layer.**
+<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Manrope&weight=700&size=38&pause=1000&color=EB2544&background=FFFFFF00&center=true&vCenter=true&width=700&lines=React+AntiCheat;Minecraft+Cheat+Protection" alt="React Typing SVG"/></a>
 
-[![Java](https://img.shields.io/badge/Java-21+-orange)](.)
-[![Paper](https://img.shields.io/badge/Paper-1.16.5+-blue)](.)
-[![Folia](https://img.shields.io/badge/Folia-Supported-green)](.)
-[![License](https://img.shields.io/github/license/g4vrk/React)](LICENSE)
-[![AI Server](https://img.shields.io/badge/AI%20Server-optional-purple)](#ai-verdict-server)
+<p>Protection powered by AI-based rotation analysis</p>
+
+<p>
+  <a href="https://github.com/g4vrk/React/actions/workflows/gradle-publish.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/g4vrk/React/build.yml?style=flat&label=build&logo=github&logoColor=white" alt="Build">
+  </a>
+  <a href="https://jitpack.io/#g4vrk/React">
+    <img src="https://img.shields.io/jitpack/version/com.github.g4vrk/React?style=flat&logo=jitpack&logoColor=white" alt="JitPack">
+  </a>
+  <a href="https://github.com/g4vrk/React/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/g4vrk/React?style=flat&logo=opensourceinitiative&logoColor=white" alt="License">
+  </a>
+  <br>
+  <a href="https://github.com/g4vrk/React/stargazers">
+    <img src="https://img.shields.io/github/stars/g4vrk/React?style=flat&logo=githubsponsors&logoColor=white" alt="Stars">
+  </a>
+  <a href="https://github.com/g4vrk/React/network/members">
+    <img src="https://img.shields.io/github/forks/g4vrk/React?style=flat&logo=git&logoColor=white" alt="Forks">
+  </a>
+</p>
+
+<p>
+  <a href="https://react-ac.space">Website</a>
+  &nbsp;•&nbsp;
+  <a href="https://t.me/react_ac">Channel</a>
+  &nbsp;•&nbsp;
+  <a href="https://t.me/react_ac_support">Support</a>
+</p>
+
+</div>
 
 ---
 
 > [Русская версия](README.md)
 
-## What this is
+## Download
 
-React does one thing: it watches how players aim, and decides whether a human could have produced that data.
+* Latest releases:
 
-No block-break heuristics, no inventory checks, no fifteen unrelated modules bolted onto a "combat suite." Every check in this repo exists to answer one question — is this rotation pattern physically plausible — using acceleration deltas, GCD-based error scoring, and quantized rotation comparison instead of static thresholds that break the moment someone changes their sensitivity.
-
-The plugin itself is free and MIT-licensed. Run it as-is and you get a solid heuristic pipeline out of the box. If you want a second opinion, point it at the **AI Verdict Server**: a separate service that ingests rotation samples, runs them through a model, and returns a confidence score. That part is a paid, hosted add-on — but it's also swappable. Bring your own model, your own inference endpoint, your own thresholds. React doesn't lock you into ours.
-
----
-
-## How detection works
-
-- **Heuristic layer (open source, local).** Every check runs on the server, in real time, with no external calls. GCD-based comparisons, acceleration delta tracking, and mode-averaged rotation quantization replace the old pairwise-GCD approach, which was prone to false positives whenever a player's mouse polling rate didn't line up neatly with in-game tick boundaries.
-- **AI layer (hosted, optional).** Rotation history gets batched and sent to the verdict server, which returns a verdict plus a confidence value. Configurable batch size, sample window, and confidence thresholds mean you decide how much weight the AI opinion carries relative to the heuristic checks.
-- **Verdict, not a ban hammer.** React reports a score and a reasoning trail. What you do with a flagged player — mute, kick, ban, silent-log — is your call, not baked into the plugin.
+    * **[GitHub Tags](https://github.com/g4vrk/react/tags)** *(recommended)*
+    * **[SpigotMC RU](https://spigotmc.ru/resources/react-besplatnyj-antichit-s-ii-proverkami.5997/updates)**
 
 ---
 
-## Why not just more thresholds
+## Requirements & Installation
 
-Most GrimAC-style checks fail the same way: static cutoffs that work for one client, one sensitivity, one FPS cap, and fall apart everywhere else. React's heuristic layer was rebuilt around **mode-averaged quantum comparison** instead of chained pairwise GCD calculations, specifically to kill the instability, quantization false positives, and NaN propagation that plague naive GCD-based aim checks. The AI layer exists for the cases heuristics structurally can't catch — patterns that are individually legal but collectively inhuman.
+* Server versions: `1.16.5 - 26.2`
+* Server software: `Paper / Folia`
 
----
+1. Download the plugin `.jar` file.
+2. Move it to the `plugins/` folder.
+3. After starting the server, configure `inference.yml` to connect to an external analysis server.
 
-## Free vs. paid
-
-| | Core plugin | AI Verdict Server |
-|---|---|---|
-| License | MIT, open source | Paid hosted service |
-| Runs | On your server | Cloud, or self-hosted with your own model |
-| What it does | Heuristic aim checks, config, alerts | Rotation-pattern verdicts via ML |
-| Required? | Yes | No — the plugin works fully standalone |
+> [!IMPORTANT]
+> If you are using our model through https://www.react-ac.space/, no additional configuration is required. Simply
+> download the ready-to-use `inference.yml` from the website and replace the file in the plugin folder.
 
 ---
 
-## Platform support
+## Building from Source
 
-| Platform | Version | Java |
-|----------|---------|------|
-| Paper | 1.16.5+ | 17+ |
-| Folia | 1.20.6+ | 21+ |
+1. `git clone https://github.com/g4vrk/React.git`
+2. `cd React`
+3. `./gradlew build`
+4. The built plugin files will be available in `<platform>/build/libs`.
 
-## Project structure
+---
 
-| Module | Description |
-|--------|-------------|
-| `common` | Shared check logic, processors, utilities |
-| `paper` | Paper implementation |
-| `folia` | Folia implementation |
+## How Does the Analysis Work?
 
-## Features
+* React sends analysis requests to an externally configured server. You can use our service
+  at https://www.react-ac.space/ or deploy and use your own model.
+* After receiving the analysis response, the plugin processes the returned data so that player statistics and analysis
+  history can be tracked. The same data is also stored and made available to addons through the API.
+* What you do with the results is entirely up to you. You can ban players, kick them, or simply review the data
+  manually. The main purpose of React is to simplify this process.
 
-- GCD-error and acceleration-delta based aim analysis
-- Mode-averaged quantum rotation comparison (no pairwise GCD chaining)
-- Streak-based violation buffering with decay
-- Optional AI verdict layer — hosted or bring-your-own-model
-- Fully async, low allocation, built for Java 21
-- Configurable per-check thresholds, no recompiling to tune sensitivity
-- Adventure-based alerts with permission filtering
+---
 
-## Building
+## Project Structure
 
-Requirements: Java 21+, Gradle 9+
+| Module   | Description                                   |
+|----------|-----------------------------------------------|
+| `common` | Core anti-cheat logic, data, checks, and more |
+| `paper`  | Implementation for Paper servers              |
+| `folia`  | Implementation for Folia servers              |
 
-```bash
-./gradlew build
+---
+
+## Developer API
+
+> [!IMPORTANT]
+> If you want to add your own functionality or mechanics to the plugin, you can create an addon. Help with addon
+> development is available at https://t.me/g4vrk/
+
+<details>
+<summary><b>Using JitPack</b></summary>
+
+<br>
+
+<div align="center">
+
+<b>Gradle (Kotlin DSL)</b>
+
+</div>
+
+```kotlin
+repositories {
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    compileOnly("com.github.g4vrk.React:react-common:VERSION")
+}
 ```
 
-## AI Verdict Server
+<div align="center">
 
-The AI server is a separate component from this repository — see its own docs for setup. It exposes a simple ingestion endpoint for rotation samples and returns a verdict object (score, confidence, reasoning tags). You can point React at Anthropic's/your provider's hosted instance, or run your own model behind the same API contract.
+<b>Maven</b>
 
-## Contributing
+</div>
 
-Issues and PRs are welcome. Open an issue before starting on anything architectural — it saves both of us a rewrite.
+```xml
+
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>com.github.g4vrk.React</groupId>
+    <artifactId>react-common</artifactId>
+    <version>VERSION</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+</details>
+
+---
 
 ## License
 
-React (the plugin) is MIT-licensed — see [LICENSE](LICENSE). The AI Verdict Server is a separate paid service and is not covered by this license.
+The plugin is distributed under the MIT License. See [LICENSE](LICENSE).
