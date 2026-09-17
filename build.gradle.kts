@@ -145,6 +145,12 @@ subprojects {
 
 tasks {
 
+    withType<Jar>().configureEach {
+
+        enabled = false
+
+    }
+
     clean {
 
         dependsOn(subprojects.map { "${it.path}:clean" })
