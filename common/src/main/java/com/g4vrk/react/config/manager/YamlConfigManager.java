@@ -14,11 +14,16 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public final class YamlConfigManager {
 
     private static final char JAR_PATH_SEPARATOR = '/';
     private static final String YML_FILE_FORMAT = ".yml";
+
+    private static final Set<String> IGNORED_PATHS = Set.of(
+            "addons"
+    );
 
     private final MappedConfigLoader<YamlConfig> mappedConfigLoader;
 
@@ -119,11 +124,19 @@ public final class YamlConfigManager {
 
         for (final File child : children) {
 
-            if (child.isDirectory())
+            if (child.isDirectory()) {
+
+                if (IGNORED_PATHS.contains(child.getName())) {
+                    continue;
+                }
+
                 collectConfigs(child, files);
 
-            else if (child.getName().endsWith(YML_FILE_FORMAT))
+            } else if (child.getName().endsWith(YML_FILE_FORMAT)) {
+
                 files.add(child);
+
+            }
 
         }
 
