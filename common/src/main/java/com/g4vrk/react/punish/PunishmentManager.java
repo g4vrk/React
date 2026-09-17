@@ -8,7 +8,7 @@ import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
-import com.g4vrk.react.api.channel.alert.AlertPrinter;
+import com.g4vrk.react.api.channel.print.impl.AlertPrinter;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.schedula.task.TickSchedule;

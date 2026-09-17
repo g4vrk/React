@@ -8,7 +8,7 @@ import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.functionalConfiguration.loader.YamlConfigLoader;
 import com.g4vrk.react.api.channel.ReactChannels;
-import com.g4vrk.react.api.channel.alert.AlertPrinter;
+import com.g4vrk.react.api.channel.print.impl.AlertPrinter;
 import com.g4vrk.react.api.ReactAPI;
 import com.g4vrk.react.api.addon.JavaAddon;
 import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
