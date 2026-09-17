@@ -5,6 +5,7 @@ import com.g4vrk.react.api.channel.impl.ChatMessageChannel;
 public final class ReactChannels {
 
     public static final ChatMessageChannel ALERTS = new ChatMessageChannel();
+    public static final ChatMessageChannel VERBOSE = new ChatMessageChannel();
 
     private ReactChannels() {
     }

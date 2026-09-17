@@ -2,6 +2,7 @@ package com.g4vrk.react.player;
 
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.channel.print.impl.AlertPrinter;
+import com.g4vrk.react.api.channel.print.impl.VerbosePrinter;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.react.check.manager.CheckManager;
 import com.g4vrk.react.history.InferenceHistory;
@@ -32,6 +33,7 @@ public final class ReactPlayer {
     public final RotationData rotationData;
 
     public final AlertPrinter alertPrinter;
+    public final VerbosePrinter verbosePrinter;
     public final CheckManager checkManager;
 
     public final InferenceHistory inferenceHistory;
@@ -50,6 +52,7 @@ public final class ReactPlayer {
         this.name = name;
         this.bukkitPlayer = bukkitPlayer;
         this.alertPrinter = React.INSTANCE.getAlertPrinter();
+        this.verbosePrinter = React.INSTANCE.getVerbosePrinter();
         this.checkManager = new CheckManager(this);
         this.inferenceHistory = new InferenceHistory(
                 React.INSTANCE.getStorageManager().historyRetention(),

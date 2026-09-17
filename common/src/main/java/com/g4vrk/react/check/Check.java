@@ -78,6 +78,14 @@ public abstract class Check extends AbstractCheck {
         this.alert(verbose);
     }
 
+    protected final void failAndVerbose(
+            final double amount,
+            final @NotNull Component verbose
+    ) {
+        this.fail(amount);
+        this.verbose(verbose);
+    }
+
     protected final void alert() {
         this.alert(Component.empty());
     }
@@ -86,6 +94,12 @@ public abstract class Check extends AbstractCheck {
             final @NotNull Component verbose
     ) {
         this.player.alertPrinter.print(player, getName(), violations, verbose);
+    }
+
+    protected final void verbose(
+            final @NotNull Component verbose
+    ) {
+        this.player.verbosePrinter.print(player, getName(), violations, verbose);
     }
 
     protected final synchronized void reward() {

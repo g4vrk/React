@@ -11,11 +11,14 @@
 # Настройка оповещений
 alerts:
 
-  # Показывать ли их в консоли?
-  show-in-console: true
-
   # Формат оповещений для чата
   format: "<b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <color:#eb2544>{player}</color> <white>провалил <color:#eb2544>{check}</color> <dark_gray>(x{vl}) <gray>{verbose}</gray>"
+
+# Настройка оповещений для любого анализа
+verbose:
+
+  # Формат оповещений для чата
+  format: "<b><gradient:#747474:#6C6C6C>⚡ ᴍᴏɴɪᴛᴏʀ</gradient></b> <dark_gray>»</dark_gray> <dark_gray>Аналитика: <color:#747474>{player}</color> <dark_gray>-></dark_gray> <color:#747474>{check}</color> <dark_gray>{verbose}</dark_gray>"
 
 # Настройки игроков
 player:

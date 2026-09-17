@@ -199,6 +199,8 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
                 reward();
             }
 
+            verbose(verbose);
+
             final InferenceHistoryEntry entry = new InferenceHistoryEntry(this, probability, confidence);
 
             player.inferenceHistory.add(entry);

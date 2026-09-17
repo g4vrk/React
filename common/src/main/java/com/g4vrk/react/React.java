@@ -15,9 +15,11 @@ import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
 import com.g4vrk.react.api.addon.loader.impl.JarAddonLoader;
 import com.g4vrk.react.api.addon.repository.impl.JarAddonRepository;
 import com.g4vrk.react.api.channel.bind.PermissionChannelBinder;
+import com.g4vrk.react.api.channel.print.impl.VerbosePrinter;
 import com.g4vrk.react.command.argument.impl.AlertsArgument;
 import com.g4vrk.react.command.argument.impl.HistoryArgument;
 import com.g4vrk.react.command.argument.impl.ReloadArgument;
+import com.g4vrk.react.command.argument.impl.VerboseArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import com.g4vrk.react.config.check.CheckConfigRegistry;
 import com.g4vrk.react.config.check.impl.SimpleCheckConfigRegistry;
@@ -104,6 +106,7 @@ public class React {
     private CommandBuilderFactory commandBuilderFactory;
 
     private AlertsArgument alertsArgument;
+    private VerboseArgument verboseArgument;
     private ReloadArgument reloadArgument;
 
     private ActionRegistry<Audience> actionRegistry;
@@ -140,6 +143,7 @@ public class React {
     private MLAimProcessor mlAimProcessor;
 
     private AlertPrinter alertPrinter;
+    private VerbosePrinter verbosePrinter;
 
     private PunishmentManager punishmentManager;
     private InferenceHistoryPrinter inferenceHistoryPrinter;
@@ -301,9 +305,14 @@ public class React {
         final PermissionChannelBinder alertsBinder =
                 new PermissionChannelBinder(Permissions.ALERTS_ENABLE_ON_JOIN, ReactChannels.ALERTS, false);
 
+        final PermissionChannelBinder verboseBinder =
+                new PermissionChannelBinder(Permissions.VERBOSE_ENABLE_ON_JOIN, ReactChannels.VERBOSE, false);
+
         joinHandlers.add(alertsBinder::accept);
+        joinHandlers.add(verboseBinder::accept);
 
         this.alertPrinter = new AlertPrinter(ReactChannels.ALERTS::publish, serializers.universalSerializer()::serialize);
+        this.verbosePrinter = new VerbosePrinter(ReactChannels.VERBOSE::publish, serializers.universalSerializer()::serialize);
 
         logger.info("Creating Punishment manager...");
         this.punishmentManager = new PunishmentManager(
@@ -328,6 +337,11 @@ public class React {
                 actionParser
         );
 
+        this.verboseArgument = new VerboseArgument(
+                commandBuilderFactory,
+                actionParser
+        );
+
         this.reloadArgument = new ReloadArgument(
                 commandBuilderFactory,
                 scheduler,
@@ -335,6 +349,7 @@ public class React {
         );
 
         commandManager.command(alertsArgument.build());
+        commandManager.command(verboseArgument.build());
         commandManager.command(reloadArgument.build());
         commandManager.command(new HistoryArgument(commandBuilderFactory, inferenceHistoryPrinter, playerRegistry).build());
 
@@ -426,6 +441,7 @@ public class React {
         this.inferenceConfig = Objects.requireNonNull(configMap.get("inference.yml"));
 
         this.alertsArgument.reload();
+        this.verboseArgument.reload();
         this.reloadArgument.reload();
 
         final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.getRoot());
@@ -443,6 +459,7 @@ public class React {
         this.combatListener.reload();
 
         this.alertPrinter.reload();
+        this.verbosePrinter.reload();
 
         for (final ReactPlayer player : this.playerRegistry.all()) {
 

@@ -34,6 +34,21 @@ alerts:
     - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Оповещения <color:#ff1111>выключены ✘"
     - "[sound] entity.creeper.hurt;1.0;1.0"
 
+# Действия связанные с оповещениями при любом анализе
+verbose:
+
+  # Действия при включении оповещений
+  on-enable:
+    - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Мониторинг аналитики <color:#11ff11>включен ✔"
+    - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Мониторинг аналитики <color:#11ff11>включен ✔"
+    - "[sound] entity.player.levelup;1.0;1.0"
+
+  # Действия при выключении оповещений
+  on-disable:
+    - "[msg] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Мониторинг аналитики <color:#ff1111>выключен ✘"
+    - "[bar] <b><gradient:#eb2544:#ff3655>⚡ ʀᴇᴀᴄᴛ</gradient></b> <gray>»</gray> <white>Мониторинг аналитики <color:#ff1111>выключен ✘"
+    - "[sound] entity.creeper.hurt;1.0;1.0"
+
 # Действия связанные с перезагрузкой плагина
 reload:
 
