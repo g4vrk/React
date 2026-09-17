@@ -1,29 +1,29 @@
-package com.g4vrk.react.alert.printer;
+package com.g4vrk.react.api.channel.alert;
 
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.react.React;
-import com.g4vrk.react.alert.publish.Publisher;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.player.ReactPlayer;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class AlertPrinter implements ReloadObserver {
 
-    private final Publisher<Component> publisher;
+    private final Consumer<Component> consumer;
 
     private final Function<String, Component> serializer;
 
     private Component alertFormat;
 
     public AlertPrinter(
-            @NotNull Publisher<Component> publisher,
+            @NotNull Consumer<Component> consumer,
             @NotNull Function<String, Component> serializer
     ) {
-        this.publisher = publisher;
+        this.consumer = consumer;
         this.serializer = serializer;
 
         this.reload();
@@ -63,7 +63,7 @@ public final class AlertPrinter implements ReloadObserver {
     ) {
         final Component formatted = formatAlert(alertFormat, player.getName(), checkName, violations, verbose);
 
-        publisher.publish(formatted);
+        consumer.accept(formatted);
     }
 
     private @NotNull Component formatAlert(

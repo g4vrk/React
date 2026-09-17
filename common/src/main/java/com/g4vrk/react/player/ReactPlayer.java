@@ -1,7 +1,7 @@
 package com.g4vrk.react.player;
 
 import com.g4vrk.react.React;
-import com.g4vrk.react.alert.printer.AlertPrinter;
+import com.g4vrk.react.api.channel.alert.AlertPrinter;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.react.check.manager.CheckManager;
 import com.g4vrk.react.history.InferenceHistory;

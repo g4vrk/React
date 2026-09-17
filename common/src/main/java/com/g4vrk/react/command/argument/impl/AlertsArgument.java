@@ -3,31 +3,27 @@ package com.g4vrk.react.command.argument.impl;
 import com.g4vrk.functionalActions.list.ExecutableActionList;
 import com.g4vrk.functionalActions.parser.ActionParser;
 import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.react.Permissions;
 import com.g4vrk.react.React;
-import com.g4vrk.react.alert.manager.AlertManager;
-import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.api.ReloadObserver;
+import com.g4vrk.react.api.channel.ReactChannels;
+import com.g4vrk.react.api.channel.impl.ChatMessageChannel;
 import com.g4vrk.react.command.argument.LocalArgument;
 import com.g4vrk.react.command.builder.CommandBuilderFactory;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.UUID;
 
 public final class AlertsArgument extends LocalArgument implements ReloadObserver {
 
-    private static final UUID CONSOLE_UUID = new UUID(0, 0);
+    private final ChatMessageChannel alertsChannel;
 
     private final CommandBuilderFactory builderFactory;
-
-    private final AlertPublisher alertPublisher;
-    private final AlertManager alertManager;
 
     private final ActionParser<Audience> actionParser;
 
@@ -36,13 +32,11 @@ public final class AlertsArgument extends LocalArgument implements ReloadObserve
 
     public AlertsArgument(
             @NotNull CommandBuilderFactory builderFactory,
-            @NotNull AlertPublisher alertPublisher,
-            @NotNull AlertManager alertManager,
             @NotNull ActionParser<Audience> actionParser
     ) {
+        this.alertsChannel = ReactChannels.ALERTS;
+
         this.builderFactory = builderFactory;
-        this.alertPublisher = alertPublisher;
-        this.alertManager = alertManager;
         this.actionParser = actionParser;
 
         this.reload();
@@ -53,14 +47,14 @@ public final class AlertsArgument extends LocalArgument implements ReloadObserve
         return Objects.requireNonNull(builderFactory)
                 .create()
                 .literal("alerts")
+                .permission(Permissions.ALERTS)
                 .handler(context -> {
 
                     final CommandSender sender = context.sender();
-                    final UUID uuid = this.uniqueId(sender);
 
-                    if (!this.alertManager.remove(uuid)) {
+                    if (!this.alertsChannel.remove(sender)) {
 
-                        this.alertManager.add(uuid);
+                        this.alertsChannel.subscribe(sender);
 
                         if (this.enabledActions != null) this.enabledActions.run(sender);
 
@@ -69,15 +63,7 @@ public final class AlertsArgument extends LocalArgument implements ReloadObserve
                         if (this.disabledActions != null) this.disabledActions.run(sender);
 
                     }
-
-                    this.alertPublisher.flushAsync();
                 });
-    }
-
-    private @NotNull UUID uniqueId(
-            final @NotNull CommandSender target
-    ) {
-        return target instanceof Player player ? player.getUniqueId() : CONSOLE_UUID;
     }
 
     public void reload() {

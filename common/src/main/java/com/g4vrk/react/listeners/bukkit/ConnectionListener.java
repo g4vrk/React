@@ -1,9 +1,6 @@
 package com.g4vrk.react.listeners.bukkit;
 
-import com.g4vrk.react.Permissions;
 import com.g4vrk.react.React;
-import com.g4vrk.react.alert.manager.AlertManager;
-import com.g4vrk.react.alert.publish.impl.AlertPublisher;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
@@ -19,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class ConnectionListener implements Listener {
 
@@ -26,22 +24,23 @@ public class ConnectionListener implements Listener {
 
     private final PlayerRegistry playerRegistry;
     private final PlayerFactory playerFactory;
-    private final AlertPublisher alertPublisher;
-    private final AlertManager alertManager;
     private final StorageManager storageManager;
+
+    private final Consumer<Player> onJoin;
+    private final Consumer<Player> onQuit;
 
     public ConnectionListener(
             @NotNull PlayerRegistry playerRegistry,
             @NotNull PlayerFactory playerFactory,
-            @NotNull AlertPublisher alertPublisher,
-            @NotNull AlertManager alertManager,
-            @NotNull StorageManager storageManager
+            @NotNull StorageManager storageManager,
+            @NotNull Consumer<Player> onJoin,
+            @NotNull Consumer<Player> onQuit
     ) {
         this.playerRegistry = playerRegistry;
         this.playerFactory = playerFactory;
-        this.alertPublisher = alertPublisher;
-        this.alertManager = alertManager;
         this.storageManager = storageManager;
+        this.onJoin = onJoin;
+        this.onQuit = onQuit;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -57,17 +56,19 @@ public class ConnectionListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onUserDisconnect(@NotNull PlayerQuitEvent event) {
         try {
-            final UUID uniqueId = event.getPlayer().getUniqueId();
+
+            final Player bukkitPlayer = event.getPlayer();
+            final UUID uniqueId = bukkitPlayer.getUniqueId();
 
             final ReactPlayer player = playerRegistry.getPlayer(uniqueId);
             if (player != null) {
                 storageManager.saveSnapshot(player);
             }
 
-            alertManager.remove(uniqueId);
             playerRegistry.removePlayer(uniqueId);
 
-            alertPublisher.flushAsync();
+            onQuit.accept(bukkitPlayer);
+
         } catch (final Exception ex) {
             logger.error("Could not handle disconnect of a player", ex);
         }
@@ -94,12 +95,9 @@ public class ConnectionListener implements Listener {
                     entity.markDataReady();
                 }
             });
-        }
 
-        if (bukkitPlayer.hasPermission(Permissions.ALERTS_ENABLE_ON_JOIN)) {
-            alertManager.add(uniqueId);
+            onJoin.accept(bukkitPlayer);
         }
-        alertPublisher.flushAsync();
     }
 
     private void retryHydration(final @NotNull ReactPlayer entity) {

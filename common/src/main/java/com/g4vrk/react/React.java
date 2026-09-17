@@ -7,14 +7,14 @@ import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
 import com.g4vrk.functionalConfiguration.Config;
 import com.g4vrk.functionalConfiguration.loader.YamlConfigLoader;
-import com.g4vrk.react.alert.manager.AlertManager;
-import com.g4vrk.react.alert.printer.AlertPrinter;
-import com.g4vrk.react.alert.publish.impl.AlertPublisher;
+import com.g4vrk.react.api.channel.ReactChannels;
+import com.g4vrk.react.api.channel.alert.AlertPrinter;
 import com.g4vrk.react.api.ReactAPI;
 import com.g4vrk.react.api.addon.JavaAddon;
 import com.g4vrk.react.api.addon.descriptor.impl.SimpleAddonDescriptor;
 import com.g4vrk.react.api.addon.loader.impl.JarAddonLoader;
 import com.g4vrk.react.api.addon.repository.impl.JarAddonRepository;
+import com.g4vrk.react.api.channel.bind.PermissionChannelBinder;
 import com.g4vrk.react.command.argument.impl.AlertsArgument;
 import com.g4vrk.react.command.argument.impl.HistoryArgument;
 import com.g4vrk.react.command.argument.impl.ReloadArgument;
@@ -80,7 +80,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -139,8 +139,6 @@ public class React {
 
     private MLAimProcessor mlAimProcessor;
 
-    private AlertPublisher alertPublisher;
-    private AlertManager alertManager;
     private AlertPrinter alertPrinter;
 
     private PunishmentManager punishmentManager;
@@ -296,21 +294,16 @@ public class React {
 
         this.scheduler = schedulaAPI.createScheduler();
 
-        logger.info("Creating Alerts system...");
-        this.alertManager = new AlertManager();
+        logger.info("Creating Channel system...");
 
-        this.alertPublisher = new AlertPublisher(
-                plugin.getServer(),
-                ForkJoinPool.commonPool(),
-                scheduler,
-                audience -> audience instanceof Player player
-                        && player.hasPermission(Permissions.ALERTS)
-                        && alertManager.receives(player.getUniqueId())
-        );
+        final Set<Consumer<Player>> joinHandlers = new ObjectOpenHashSet<>();
 
-        this.alertPrinter = new AlertPrinter(alertPublisher, serializers.universalSerializer()::serialize);
+        final PermissionChannelBinder alertsBinder =
+                new PermissionChannelBinder(Permissions.ALERTS_ENABLE_ON_JOIN, ReactChannels.ALERTS, false);
 
-        this.alertPublisher.flushListeners();
+        joinHandlers.add(alertsBinder::accept);
+
+        this.alertPrinter = new AlertPrinter(ReactChannels.ALERTS::publish, serializers.universalSerializer()::serialize);
 
         logger.info("Creating Punishment manager...");
         this.punishmentManager = new PunishmentManager(
@@ -332,8 +325,6 @@ public class React {
 
         this.alertsArgument = new AlertsArgument(
                 commandBuilderFactory,
-                alertPublisher,
-                alertManager,
                 actionParser
         );
 
@@ -368,9 +359,9 @@ public class React {
         final ConnectionListener connectionListener = new ConnectionListener(
                 playerRegistry,
                 playerFactory,
-                alertPublisher,
-                alertManager,
-                storageManager
+                storageManager,
+                (joined) -> joinHandlers.forEach(consumer -> consumer.accept(joined)),
+                (quit) -> {}
         );
         pluginManager.registerEvents(connectionListener, plugin);
 
@@ -451,7 +442,6 @@ public class React {
         this.playerFactory.reload();
         this.combatListener.reload();
 
-        this.alertPublisher.reload();
         this.alertPrinter.reload();
 
         for (final ReactPlayer player : this.playerRegistry.all()) {
