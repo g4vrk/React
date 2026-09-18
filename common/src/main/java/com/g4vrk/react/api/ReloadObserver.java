@@ -1,6 +1,6 @@
 package com.g4vrk.react.api;
 
-import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.config.Config;
 import org.jetbrains.annotations.NotNull;
 
 public interface ReloadObserver {

@@ -2,7 +2,7 @@ package com.g4vrk.react.command.argument.impl;
 
 import com.g4vrk.functionalActions.list.ExecutableActionList;
 import com.g4vrk.functionalActions.parser.ActionParser;
-import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.config.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.command.argument.LocalArgument;

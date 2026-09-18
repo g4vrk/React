@@ -21,8 +21,6 @@ tasks.named<ProcessResources>("processResources") {
     enabled = false
 }
 
-val dependenciesDir = file("${rootProject.projectDir}/dependencies")
-
 dependencies {
 
     compileOnly(libs.paper.api)
@@ -65,11 +63,8 @@ dependencies {
     compileOnly(libs.floodgate.api)
 
     implementation(libs.textserializer.legacy)
-
-    implementation(fileTree(dependenciesDir) {
-        include("schedula-common-1.0.0.jar")
-        include("FunctionalActions-2.1.1-d94a91d.jar")
-        include("FunctionalConfiguration-1.0.0.jar")
-    })
+    implementation(libs.actions)
+    implementation(libs.schedula.common)
+    implementation(libs.functionalconfiguration)
 
 }

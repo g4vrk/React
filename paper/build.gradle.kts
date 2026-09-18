@@ -6,19 +6,13 @@ plugins {
 
 val mainClass = "com.g4vrk.react.paper.PaperReactPlugin"
 
-val dependenciesDir = file("${rootProject.projectDir}/dependencies")
-
 dependencies {
 
     implementation(project(":common"))
 
     compileOnly(libs.paper.api)
 
-    implementation(
-        fileTree(dependenciesDir) {
-            include("schedula-bukkit-1.0.0.jar")
-        }
-    )
+    implementation(libs.schedula.bukkit)
 
 }
 

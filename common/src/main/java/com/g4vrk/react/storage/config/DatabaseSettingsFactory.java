@@ -1,6 +1,6 @@
 package com.g4vrk.react.storage.config;
 
-import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.config.Config;
 import com.g4vrk.react.parse.time.TimeParser;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -23,7 +23,7 @@ public final class DatabaseSettingsFactory {
             final @NotNull File pluginDirectory
     ) {
         final Config databaseConfig = requireConfig(configs, DATABASE_CONFIG);
-        final ConfigurationNode root = databaseConfig.getRoot();
+        final ConfigurationNode root = databaseConfig.root();
         final DatabaseType type = DatabaseType.parse(root.node("type").getString("sqlite"));
         final ConfigurationNode async = root.node("async");
         final ConfigurationNode history = root.node("history");
@@ -34,9 +34,9 @@ public final class DatabaseSettingsFactory {
 
         if (type == DatabaseType.MONGODB) {
             jdbcSettings = null;
-            mongoSettings = mongo(requireConfig(configs, type.configName()).getRoot());
+            mongoSettings = mongo(requireConfig(configs, type.configName()).root());
         } else {
-            jdbcSettings = jdbc(type, requireConfig(configs, type.configName()).getRoot(), pluginDirectory);
+            jdbcSettings = jdbc(type, requireConfig(configs, type.configName()).root(), pluginDirectory);
             mongoSettings = null;
         }
 

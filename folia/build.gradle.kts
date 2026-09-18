@@ -6,19 +6,13 @@ plugins {
 
 val mainClass = "com.g4vrk.react.folia.FoliaReactPlugin"
 
-val dependenciesDir = file("${rootProject.projectDir}/dependencies")
-
 dependencies {
 
     implementation(project(":common"))
 
     compileOnly(libs.folia.api)
 
-    implementation(
-        fileTree(dependenciesDir) {
-            include("schedula-folia-1.0.0.jar")
-        }
-    )
+    implementation(libs.schedula.folia)
 
 }
 

@@ -5,8 +5,8 @@ import com.g4vrk.functionalActions.parser.ActionParser;
 import com.g4vrk.functionalActions.parser.impl.SimpleActionParser;
 import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
-import com.g4vrk.functionalConfiguration.Config;
-import com.g4vrk.functionalConfiguration.loader.YamlConfigLoader;
+import com.g4vrk.config.Config;
+import com.g4vrk.config.loader.YamlConfigLoader;
 import com.g4vrk.react.api.channel.ReactChannels;
 import com.g4vrk.react.api.channel.print.impl.AlertPrinter;
 import com.g4vrk.react.api.ReactAPI;
@@ -26,7 +26,6 @@ import com.g4vrk.react.config.check.impl.SimpleCheckConfigRegistry;
 import com.g4vrk.react.check.processor.rotation.RotationFactory;
 import com.g4vrk.react.check.processor.rotation.RotationProcessor;
 import com.g4vrk.react.config.lang.Language;
-import com.g4vrk.react.config.loader.UnloadedYamlConfigLoader;
 import com.g4vrk.react.config.manager.YamlConfigManager;
 import com.g4vrk.react.history.printer.InferenceHistoryPrinter;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
@@ -231,7 +230,7 @@ public class React {
 
         final File configsDir = new File(pluginDir, languageNameLower);
 
-        final UnloadedYamlConfigLoader configLoader = new UnloadedYamlConfigLoader();
+        final YamlConfigLoader configLoader = new YamlConfigLoader(false);
 
         this.yamlConfigManager = new YamlConfigManager(configLoader);
 
@@ -291,7 +290,7 @@ public class React {
         this.playerRegistry = new PlayerRegistry();
 
         this.inferenceSettingsFactory = new InferenceSettingsFactory();
-        final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.getRoot());
+        final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.root());
 
         logger.info("Creating ML server...");
         this.mlServer = new MLServer(logger, inferenceSettings);
@@ -444,7 +443,7 @@ public class React {
         this.verboseArgument.reload();
         this.reloadArgument.reload();
 
-        final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.getRoot());
+        final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.root());
 
         this.mlServer = new MLServer(logger, inferenceSettings);
 

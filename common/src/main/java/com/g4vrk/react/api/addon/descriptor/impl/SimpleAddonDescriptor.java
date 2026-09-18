@@ -1,7 +1,7 @@
 package com.g4vrk.react.api.addon.descriptor.impl;
 
-import com.g4vrk.functionalConfiguration.Config;
-import com.g4vrk.functionalConfiguration.loader.ConfigLoader;
+import com.g4vrk.config.Config;
+import com.g4vrk.config.loader.ConfigLoader;
 import com.g4vrk.react.api.addon.descriptor.AddonDescriptor;
 import com.g4vrk.react.api.addon.meta.AddonMetadata;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;

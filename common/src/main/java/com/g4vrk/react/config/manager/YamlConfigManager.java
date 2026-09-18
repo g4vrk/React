@@ -1,11 +1,11 @@
 package com.g4vrk.react.config.manager;
 
-import com.g4vrk.functionalConfiguration.Config;
-import com.g4vrk.functionalConfiguration.NamedConfigEntry;
-import com.g4vrk.functionalConfiguration.YamlConfig;
-import com.g4vrk.functionalConfiguration.loader.ConfigLoader;
-import com.g4vrk.functionalConfiguration.loader.mapped.MappedConfigLoader;
-import com.g4vrk.functionalConfiguration.loader.mapped.SimpleMappedConfigLoader;
+import com.g4vrk.config.Config;
+import com.g4vrk.config.NamedConfigEntry;
+import com.g4vrk.config.YamlConfig;
+import com.g4vrk.config.loader.ConfigLoader;
+import com.g4vrk.config.loader.mapped.MappedConfigLoader;
+import com.g4vrk.config.loader.mapped.SimpleMappedConfigLoader;
 import com.g4vrk.react.resource.ResourceHolder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;

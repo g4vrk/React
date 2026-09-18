@@ -1,6 +1,6 @@
 package com.g4vrk.react.api.channel.print.impl;
 
-import com.g4vrk.functionalConfiguration.Config;
+import com.g4vrk.config.Config;
 import com.g4vrk.react.React;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
