@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 public class InferenceHistoryPrinter implements ReloadObserver {
@@ -24,10 +25,10 @@ public class InferenceHistoryPrinter implements ReloadObserver {
     private final ValueColorResolver confidenceColorResolver;
     private final ValueColorResolver probabilityColorResolver;
 
-    private String header;
-    private String entryFormat;
-    private String empty;
-    private String footer;
+    private List<String> header;
+    private List<String> entryFormat;
+    private List<String> empty;
+    private List<String> footer;
 
     private int printEntries;
 
@@ -91,20 +92,17 @@ public class InferenceHistoryPrinter implements ReloadObserver {
         );
     }
 
-    private @NotNull String loadFormat(
+    private @NotNull List<String> loadFormat(
             final @NotNull Config config,
             final @NotNull String key
     ) throws SerializationException {
 
-        return String.join(
-                "<newline>",
-                config.node(
-                        "history",
-                        "inference",
-                        "format",
-                        key
-                ).getList(String.class, Collections.emptyList())
-        );
+        return config.node(
+                "history",
+                "inference",
+                "format",
+                key
+        ).getList(String.class, Collections.emptyList());
 
     }
 
@@ -163,33 +161,30 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                 avgConfidence
         );
 
-        receiver.sendMessage(
-                formatCommon(
-                        this.header,
-                        commonProcessor,
-                        avgProbability,
-                        avgConfidence
-                )
+        sendCommon(
+                receiver,
+                this.header,
+                commonProcessor,
+                avgProbability,
+                avgConfidence
         );
 
         if (history.length == 0) {
 
-            receiver.sendMessage(
-                    formatCommon(
-                            this.empty,
-                            commonProcessor,
-                            avgProbability,
-                            avgConfidence
-                    )
+            sendCommon(
+                    receiver,
+                    this.empty,
+                    commonProcessor,
+                    avgProbability,
+                    avgConfidence
             );
 
-            receiver.sendMessage(
-                    formatCommon(
-                            this.footer,
-                            commonProcessor,
-                            avgProbability,
-                            avgConfidence
-                    )
+            sendCommon(
+                    receiver,
+                    this.footer,
+                    commonProcessor,
+                    avgProbability,
+                    avgConfidence
             );
 
             return;
@@ -206,26 +201,70 @@ public class InferenceHistoryPrinter implements ReloadObserver {
 
         for (int i = start; i > end; i--) {
 
+            sendEntry(
+                    receiver,
+                    this.entryFormat,
+                    commonProcessor,
+                    history[i],
+                    avgProbability,
+                    avgConfidence
+            );
+
+        }
+
+        sendCommon(
+                receiver,
+                this.footer,
+                commonProcessor,
+                avgProbability,
+                avgConfidence
+        );
+    }
+
+    private void sendCommon(
+            final @NotNull Audience receiver,
+            final @NotNull List<String> format,
+            final @NotNull Function<String, String> commonProcessor,
+            final double avgProbability,
+            final double avgConfidence
+    ) {
+
+        for (final String line : format) {
+
             receiver.sendMessage(
-                    formatEntry(
-                            this.entryFormat,
+                    formatCommon(
+                            line,
                             commonProcessor,
-                            history[i],
                             avgProbability,
                             avgConfidence
                     )
             );
 
         }
+    }
 
-        receiver.sendMessage(
-                formatCommon(
-                        this.footer,
-                        commonProcessor,
-                        avgProbability,
-                        avgConfidence
-                )
-        );
+    private void sendEntry(
+            final @NotNull Audience receiver,
+            final @NotNull List<String> format,
+            final @NotNull Function<String, String> commonProcessor,
+            final @NotNull InferenceHistoryEntry entry,
+            final double avgProbability,
+            final double avgConfidence
+    ) {
+
+        for (final String line : format) {
+
+            receiver.sendMessage(
+                    formatEntry(
+                            line,
+                            commonProcessor,
+                            entry,
+                            avgProbability,
+                            avgConfidence
+                    )
+            );
+
+        }
     }
 
     private @NotNull Function<String, String> createCommonProcessor(
@@ -331,8 +370,10 @@ public class InferenceHistoryPrinter implements ReloadObserver {
                         entry.getCheck().getName()
                 );
 
-        Component component = this.serializer.apply((
-                commonProcessor.apply(entryProcessor.apply(input)))
+        Component component = this.serializer.apply(
+                commonProcessor.apply(
+                        entryProcessor.apply(input)
+                )
         );
 
         component = replaceColoredCommon(
