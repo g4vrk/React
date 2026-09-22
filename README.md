@@ -62,7 +62,7 @@
 
 ## Сборка исходников
 
-1. `git clone https://github.com/g4vr/React.git`
+1. `git clone https://github.com/g4vrk/React.git`
 2. `cd React`
 3. `./gradlew build`
 4. Готовые файлы плагина будут лежать в папках `<ядро>/build/libs`
