@@ -14,13 +14,14 @@ enabled: true
 # Настройки ИИ сервера
 inference:
 
-  # Endpoint для подключений из плагина,
-  # для нашей модели не изменяйте значения
+  # Endpoint для подключений из плагина
   endpoint:
 
     base-url: 'https://api.react-ac.space'
 
-    path: '/analyze'
+    path: '/api/v2/inference/'
+    model-family: 'flower'
+    model-name: 'baseline'
 
   # Нужно только для своих кастомных моделей
   request:
@@ -31,7 +32,6 @@ inference:
   response:
 
     probability-field: cheat_probability
-    confidence-field: confidence
 
 # Авторизация через токен
 auth:

@@ -15,12 +15,13 @@ enabled: true
 inference:
 
   # Inference endpoint used by the plugin.
-  # Do not change these values when using our model.
   endpoint:
 
     base-url: 'https://api.react-ac.space'
 
-    path: '/analyze'
+    path: '/api/v2/inference/'
+    model-family: 'flower'
+    model-name: 'baseline'
 
   # Only required for custom models
   request:
@@ -31,7 +32,6 @@ inference:
   response:
 
     probability-field: cheat_probability
-    confidence-field: confidence
 
 # Token authentication
 auth:

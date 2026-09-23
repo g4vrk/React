@@ -11,7 +11,8 @@ public final class StorageConstants {
     public static final String DATA_DIRECTORY = ".data";
 
     public static final String VIOLATIONS_TABLE = "react_violations";
-    public static final String INFERENCE_TABLE = "react_inference_history";
+    public static final String INFERENCE_TABLE = "react_inference_scores";
+    public static final String LEGACY_INFERENCE_TABLE = "react_inference_history";
 
     public static final String MONGO_VIOLATIONS_COLLECTION = "violations";
     public static final String MONGO_INFERENCE_COLLECTION = "inference_history";
@@ -22,7 +23,6 @@ public final class StorageConstants {
     public static final String FIELD_VIOLATIONS = "violations";
     public static final String FIELD_TIMESTAMP = "timestamp";
     public static final String FIELD_PROBABILITY = "probability";
-    public static final String FIELD_CONFIDENCE = "confidence";
     public static final String FIELD_UPDATED_AT = "updated_at";
 
     public static final int UUID_LENGTH = 36;

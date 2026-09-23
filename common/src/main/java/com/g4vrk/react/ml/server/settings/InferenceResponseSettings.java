@@ -7,5 +7,4 @@ import org.jetbrains.annotations.NotNull;
 public class InferenceResponseSettings {
 
     @NotNull String probabilityField;
-    @NotNull String confidenceField;
 }

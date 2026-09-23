@@ -65,7 +65,7 @@ public final class MLServer {
             );
         }
 
-        final HttpUrl url = authApplier.applyToUrl(parsedUrl);
+        final HttpUrl url = authApplier.applyToUrl(withModelSelection(parsedUrl));
 
         final Request.Builder requestBuilder = new Request.Builder()
                 .url(url)
@@ -130,6 +130,16 @@ public final class MLServer {
 
             case BODY -> warnIfBlank(logger, "auth.body.field", auth.getBodyField());
         }
+    }
+
+    private @NotNull HttpUrl withModelSelection(final @NotNull HttpUrl url) {
+        if (endpoint.getModelFamily().isEmpty()) {
+            return url;
+        }
+        return url.newBuilder()
+                .setQueryParameter("model-family", endpoint.getModelFamily())
+                .setQueryParameter("model-name", endpoint.getModelName())
+                .build();
     }
 
     private static void warnIfBlank(

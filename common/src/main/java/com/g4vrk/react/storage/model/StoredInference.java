@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 public record StoredInference(
         long timestamp,
         @NotNull String check,
-        double probability,
-        double confidence
+        double probability
 ) {
 }

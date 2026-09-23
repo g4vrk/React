@@ -1,7 +1,6 @@
 package com.g4vrk.react.placeholder;
 
 import com.g4vrk.react.color.resolver.ValueColorResolver;
-import com.g4vrk.react.color.resolver.impl.ConfidenceColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.ReactPlayer;
@@ -20,7 +19,6 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
     private final PlayerRegistry registry;
 
     private final ValueColorResolver probabilityColorResolver = new ProbabilityColorResolver();
-    private final ValueColorResolver confidenceColorResolver = new ConfidenceColorResolver();
 
     public ReactPlaceholderExpansion(
             @NotNull String id,
@@ -122,21 +120,6 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
                             probability;
                 }
 
-                case "confidence" -> {
-                    final double confidence = entry.getConfidence();
-
-                    yield Double.toString(confidence);
-                }
-
-                case "confidence:colored" -> {
-                    final double confidence = entry.getConfidence();
-
-                    yield "<" +
-                            confidenceColorResolver.resolve(confidence).asHexString() +
-                            ">" +
-                            confidence;
-                }
-
                 case "check" -> entry.getCheck().getName();
 
                 default -> null;
@@ -193,55 +176,6 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
 
                 yield "<" +
                         probabilityColorResolver.resolve(average).asHexString() +
-                        ">" +
-                        average;
-            }
-
-            case "avg-confidence" -> {
-
-                final int size = player.inferenceHistory.size();
-
-                if (size == 0) {
-                    yield "0";
-                }
-
-                double sum = 0.0D;
-
-                for (int i = 0; i < size; i++) {
-                    final InferenceHistoryEntry entry =
-                            player.inferenceHistory.get(i);
-
-                    if (entry != null) {
-                        sum += entry.getConfidence();
-                    }
-                }
-
-                yield Double.toString(sum / size);
-            }
-
-            case "avg-confidence:colored" -> {
-
-                final int size = player.inferenceHistory.size();
-
-                if (size == 0) {
-                    yield "0";
-                }
-
-                double sum = 0.0D;
-
-                for (int i = 0; i < size; i++) {
-                    final InferenceHistoryEntry entry =
-                            player.inferenceHistory.get(i);
-
-                    if (entry != null) {
-                        sum += entry.getConfidence();
-                    }
-                }
-
-                final double average = sum / size;
-
-                yield "<" +
-                        confidenceColorResolver.resolve(average).asHexString() +
                         ">" +
                         average;
             }

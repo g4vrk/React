@@ -26,14 +26,13 @@ history:
         - " <gray>➥ Показатели анализа последних сессий"
         - ""
         - " <white>Средняя вероятность читерства: {avg-probability:colored}"
-        - " <white>Средняя уверенность модели: {avg-confidence:colored}"
         - ""
 
       empty:
         - " <gray>- Пусто..."
 
       entry-format:
-        - " <gray>-</gray> <white>Читерство: {probability:colored} <dark_gray>|</dark_gray> <white>Уверенность: {confidence:colored}"
+        - " <gray>-</gray> <white>Читерство: {probability:colored}"
 
       footer:
         - ""

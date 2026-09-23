@@ -173,7 +173,8 @@ public final class MLAimProcessor {
                             responseSettings.getProbabilityField()
                     );
 
-                    if (probability == null || !Double.isFinite(probability)) {
+                    if (probability == null || !Double.isFinite(probability)
+                            || probability < 0.0D || probability > 1.0D) {
                         logger.warn(
                                 "ML response does not contain a valid '{}' field for {}: {}",
                                 responseSettings.getProbabilityField(),
@@ -185,19 +186,9 @@ public final class MLAimProcessor {
                         return;
                     }
 
-                    final Double confidence = readNumber(
-                            result,
-                            responseSettings.getConfidenceField()
-                    );
-
                     complete(
                             resultHandler,
-                            new MLResult(
-                                    clamp01(probability),
-                                    confidence != null && Double.isFinite(confidence)
-                                            ? clamp01(confidence)
-                                            : Double.NaN
-                            )
+                            new MLResult(probability)
                     );
                 } catch (Exception ex) {
                     logger.warn(
@@ -218,10 +209,6 @@ public final class MLAimProcessor {
     ) {
         final Object raw = response.get(field);
         return raw instanceof Number number ? number.doubleValue() : null;
-    }
-
-    private static double clamp01(final double value) {
-        return Math.max(0.0D, Math.min(1.0D, value));
     }
 
     private void complete(

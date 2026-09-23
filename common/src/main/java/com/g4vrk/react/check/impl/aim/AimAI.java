@@ -162,14 +162,9 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
             }
 
             final double probability = result.getProbability();
-            final double confidence = result.getConfidence();
 
             if (debug) {
-                debugHandler.debug(
-                        result.hasConfidence()
-                                ? "Received ML response: " + probability + " (confidence: " + confidence + ")"
-                                : "Received ML response: " + probability
-                );
+                debugHandler.debug("Received ML response: " + probability);
             }
 
             final TextColor color = colorResolver.resolve(probability);
@@ -201,7 +196,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
 
             verbose(verbose);
 
-            final InferenceHistoryEntry entry = new InferenceHistoryEntry(this, probability, confidence);
+            final InferenceHistoryEntry entry = new InferenceHistoryEntry(this, probability);
 
             player.inferenceHistory.add(entry);
 

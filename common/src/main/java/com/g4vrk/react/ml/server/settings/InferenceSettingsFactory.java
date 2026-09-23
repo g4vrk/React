@@ -50,9 +50,17 @@ public class InferenceSettingsFactory {
             final @NotNull ConfigurationNode endpointNode
     ) {
         final String baseUrl = endpointNode.node("base-url").getString("http://localhost:8080");
-        final String path = normalizePath(endpointNode.node("path").getString("/analyze"));
+        final String path = normalizePath(endpointNode.node("path").getString("/api/v1/inference/"));
+        final String modelFamily = endpointNode.node("model-family").getString("").trim();
+        final String modelName = endpointNode.node("model-name").getString("").trim();
 
-        return new InferenceEndpointSettings(baseUrl, path);
+        if (modelFamily.isEmpty() != modelName.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "inference.endpoint.model-family and model-name must be set together"
+            );
+        }
+
+        return new InferenceEndpointSettings(baseUrl, path, modelFamily, modelName);
     }
 
     private @NotNull InferenceRequestSettings parseRequest(
@@ -68,8 +76,7 @@ public class InferenceSettingsFactory {
             final @NotNull ConfigurationNode responseNode
     ) {
         return new InferenceResponseSettings(
-                responseNode.node("probability-field").getString("cheat_probability"),
-                responseNode.node("confidence-field").getString("confidence")
+                responseNode.node("probability-field").getString("cheat_probability")
         );
     }
 
@@ -126,10 +133,6 @@ public class InferenceSettingsFactory {
 
         if (!path.startsWith("/")) {
             path = "/" + path;
-        }
-
-        while (path.length() > 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
         }
 
         return path;

@@ -76,8 +76,7 @@ public final class MongoStorageBackend implements StorageBackend {
             history.add(new StoredInference(
                     document.getLong(FIELD_TIMESTAMP),
                     document.getString(FIELD_CHECK),
-                    number(document, FIELD_PROBABILITY),
-                    number(document, FIELD_CONFIDENCE)
+                    number(document, FIELD_PROBABILITY)
             ));
         }
         return new PlayerStorageData(loadedViolations, history);
@@ -117,8 +116,7 @@ public final class MongoStorageBackend implements StorageBackend {
                         .append(FIELD_PLAYER_UUID, stored.playerUuid().toString())
                         .append(FIELD_CHECK, value.check())
                         .append(FIELD_TIMESTAMP, value.timestamp())
-                        .append(FIELD_PROBABILITY, value.probability())
-                        .append(FIELD_CONFIDENCE, value.confidence());
+                        .append(FIELD_PROBABILITY, value.probability());
                 inferenceWrites.add(new ReplaceOneModel<>(eq(FIELD_ID, stored.id().toString()), document, upsert));
             }
         }

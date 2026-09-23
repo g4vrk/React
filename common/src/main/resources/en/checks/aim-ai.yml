@@ -9,8 +9,9 @@
 #
 
 # Number of rotations required before sending them for analysis.
-# If you use the React model, set this to at least 40.
-required-samples: 150
+buffer:
+  size: 40
+  send-step: 10
 
 # Probability threshold above which a player is considered to be cheating
 alert:

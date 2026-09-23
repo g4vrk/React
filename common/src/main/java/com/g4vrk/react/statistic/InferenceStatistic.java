@@ -9,9 +9,7 @@ public final class InferenceStatistic {
 
     private final InferenceHistory history;
 
-    public InferenceStatistic(
-            @NotNull InferenceHistory history
-    ) {
+    public InferenceStatistic(@NotNull InferenceHistory history) {
         this.history = history;
     }
 
@@ -20,27 +18,15 @@ public final class InferenceStatistic {
     }
 
     public double averageProbability() {
-        return calculate().averageProbability;
-    }
-
-    public double averageConfidence() {
-        return calculate().averageConfidence;
+        return calculate().averageProbability();
     }
 
     public double maxProbability() {
-        return calculate().maxProbability;
+        return calculate().maxProbability();
     }
 
     public double minProbability() {
-        return calculate().minProbability;
-    }
-
-    public double maxConfidence() {
-        return calculate().maxConfidence;
-    }
-
-    public double minConfidence() {
-        return calculate().minConfidence;
+        return calculate().minProbability();
     }
 
     public @Nullable InferenceHistoryEntry latest() {
@@ -48,75 +34,24 @@ public final class InferenceStatistic {
     }
 
     public @NotNull Result calculate() {
-
         final InferenceHistoryEntry[] entries = history.entries();
-
         if (entries.length == 0) {
             return Result.EMPTY;
         }
 
-        double probabilitySum = 0.0D;
-        double confidenceSum = 0.0D;
-
-        double maxProbability = Double.NEGATIVE_INFINITY;
-        double minProbability = Double.POSITIVE_INFINITY;
-
-        double maxConfidence = Double.NEGATIVE_INFINITY;
-        double minConfidence = Double.POSITIVE_INFINITY;
-
+        double sum = 0.0D;
+        double max = Double.NEGATIVE_INFINITY;
+        double min = Double.POSITIVE_INFINITY;
         for (final InferenceHistoryEntry entry : entries) {
             final double probability = entry.getProbability();
-            final double confidence = entry.getConfidence();
-
-            probabilitySum += probability;
-            confidenceSum += confidence;
-
-            if (probability > maxProbability) {
-                maxProbability = probability;
-            }
-
-            if (probability < minProbability) {
-                minProbability = probability;
-            }
-
-            if (confidence > maxConfidence) {
-                maxConfidence = confidence;
-            }
-
-            if (confidence < minConfidence) {
-                minConfidence = confidence;
-            }
+            sum += probability;
+            max = Math.max(max, probability);
+            min = Math.min(min, probability);
         }
-
-        final int size = entries.length;
-
-        return new Result(
-                probabilitySum / size,
-                confidenceSum / size,
-                maxProbability,
-                minProbability,
-                maxConfidence,
-                minConfidence
-        );
-
+        return new Result(sum / entries.length, max, min);
     }
 
-    public record Result(
-            double averageProbability,
-            double averageConfidence,
-            double maxProbability,
-            double minProbability,
-            double maxConfidence,
-            double minConfidence
-    ) {
-
-        private static final Result EMPTY = new Result(
-                0.0D,
-                0.0D,
-                0.0D,
-                0.0D,
-                0.0D,
-                0.0D
-        );
+    public record Result(double averageProbability, double maxProbability, double minProbability) {
+        private static final Result EMPTY = new Result(0.0D, 0.0D, 0.0D);
     }
 }

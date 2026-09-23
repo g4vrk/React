@@ -61,8 +61,7 @@ public final class ReactPlayer {
                         new StoredInference(
                                 entry.getTimestamp(),
                                 entry.getCheck().getConfigId(),
-                                entry.getProbability(),
-                                entry.getConfidence()
+                                entry.getProbability()
                         )
                 )
         );
@@ -115,8 +114,7 @@ public final class ReactPlayer {
                 loadedHistory.add(new InferenceHistoryEntry(
                         stored.timestamp(),
                         check,
-                        stored.probability(),
-                        stored.confidence()
+                        stored.probability()
                 ));
             }
         }

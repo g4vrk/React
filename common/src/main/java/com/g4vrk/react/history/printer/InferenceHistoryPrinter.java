@@ -4,11 +4,9 @@ import com.g4vrk.config.Config;
 import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
-import com.g4vrk.react.color.resolver.impl.ConfidenceColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.ReactPlayer;
-import com.g4vrk.react.statistic.InferenceStatistic;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -21,431 +19,106 @@ import java.util.function.Function;
 public class InferenceHistoryPrinter implements ReloadObserver {
 
     private final Function<String, Component> serializer;
-
-    private final ValueColorResolver confidenceColorResolver;
-    private final ValueColorResolver probabilityColorResolver;
+    private final ValueColorResolver probabilityColorResolver = new ProbabilityColorResolver();
 
     private List<String> header;
     private List<String> entryFormat;
     private List<String> empty;
     private List<String> footer;
-
     private int printEntries;
 
-    public InferenceHistoryPrinter(
-            @NotNull Function<String, Component> serializer
-    ) {
-
+    public InferenceHistoryPrinter(@NotNull Function<String, Component> serializer) {
         this.serializer = serializer;
-        this.confidenceColorResolver = new ConfidenceColorResolver();
-        this.probabilityColorResolver = new ProbabilityColorResolver();
-
-        this.reload();
-
+        reload();
     }
 
     public void reload() {
-
-        final Config config = React.INSTANCE.getHistoryConfig();
-
-        this.onReload(config);
-
+        onReload(React.INSTANCE.getHistoryConfig());
     }
 
     @Override
     public void onReload(@NotNull Config config) {
-
         try {
-
-            this.header = loadFormat(
-                    config,
-                    "header"
-            );
-
-            this.entryFormat = loadFormat(
-                    config,
-                    "entry-format"
-            );
-
-            this.empty = loadFormat(
-                    config,
-                    "empty"
-            );
-
-            this.footer = loadFormat(
-                    config,
-                    "footer"
-            );
-
-        } catch (final SerializationException ex) {
+            header = loadFormat(config, "header");
+            entryFormat = loadFormat(config, "entry-format");
+            empty = loadFormat(config, "empty");
+            footer = loadFormat(config, "footer");
+        } catch (SerializationException ex) {
             throw new RuntimeException(ex);
         }
-
-        this.printEntries = Math.max(
-                1,
-                config.node(
-                        "history",
-                        "inference",
-                        "format",
-                        "print-entries"
-                ).getInt(18)
-        );
+        printEntries = Math.max(1, config.node("history", "inference", "format", "print-entries").getInt(18));
     }
 
-    private @NotNull List<String> loadFormat(
-            final @NotNull Config config,
-            final @NotNull String key
-    ) throws SerializationException {
-
-        return config.node(
-                "history",
-                "inference",
-                "format",
-                key
-        ).getList(String.class, Collections.emptyList());
-
+    private @NotNull List<String> loadFormat(@NotNull Config config, @NotNull String key)
+            throws SerializationException {
+        return config.node("history", "inference", "format", key)
+                .getList(String.class, Collections.emptyList());
     }
 
-    public void print(
-            final @NotNull Audience receiver,
-            final @NotNull ReactPlayer player
-    ) {
-
-        print(
-                receiver,
-                player,
-                1
-        );
-
+    public void print(@NotNull Audience receiver, @NotNull ReactPlayer player) {
+        print(receiver, player, 1);
     }
 
-    public void print(
-            final @NotNull Audience receiver,
-            final @NotNull ReactPlayer player,
-            int page
-    ) {
+    public void print(@NotNull Audience receiver, @NotNull ReactPlayer player, int page) {
+        final InferenceHistoryEntry[] history = player.inferenceHistory.entries();
+        final int totalPages = Math.max(1, (int) Math.ceil((double) history.length / printEntries));
+        page = Math.max(1, Math.min(page, totalPages));
+        final double average = player.inferenceStatistic.averageProbability();
+        final Function<String, String> common = commonProcessor(player, history.length, page, totalPages, average);
 
-        final InferenceHistoryEntry[] history =
-                player.inferenceHistory.entries();
-
-        final int totalPages = Math.max(
-                1,
-                (int) Math.ceil(
-                        (double) history.length / this.printEntries
-                )
-        );
-
-        page = Math.max(
-                1,
-                Math.min(
-                        page,
-                        totalPages
-                )
-        );
-
-        final InferenceStatistic.Result statisticResult =
-                player.inferenceStatistic.calculate();
-
-        final double avgProbability =
-                statisticResult.averageProbability();
-
-        final double avgConfidence =
-                statisticResult.averageConfidence();
-
-        final Function<String, String> commonProcessor = createCommonProcessor(
-                player,
-                history,
-                page,
-                totalPages,
-                avgProbability,
-                avgConfidence
-        );
-
-        sendCommon(
-                receiver,
-                this.header,
-                commonProcessor,
-                avgProbability,
-                avgConfidence
-        );
-
+        send(receiver, header, common, average, null);
         if (history.length == 0) {
-
-            sendCommon(
-                    receiver,
-                    this.empty,
-                    commonProcessor,
-                    avgProbability,
-                    avgConfidence
-            );
-
-            sendCommon(
-                    receiver,
-                    this.footer,
-                    commonProcessor,
-                    avgProbability,
-                    avgConfidence
-            );
-
-            return;
+            send(receiver, empty, common, average, null);
+        } else {
+            final int start = history.length - 1 - (page - 1) * printEntries;
+            final int end = Math.max(-1, start - printEntries);
+            for (int index = start; index > end; index--) {
+                send(receiver, entryFormat, common, average, history[index]);
+            }
         }
-
-        final int start =
-                history.length - 1
-                        - ((page - 1) * this.printEntries);
-
-        final int end = Math.max(
-                -1,
-                start - this.printEntries
-        );
-
-        for (int i = start; i > end; i--) {
-
-            sendEntry(
-                    receiver,
-                    this.entryFormat,
-                    commonProcessor,
-                    history[i],
-                    avgProbability,
-                    avgConfidence
-            );
-
-        }
-
-        sendCommon(
-                receiver,
-                this.footer,
-                commonProcessor,
-                avgProbability,
-                avgConfidence
-        );
+        send(receiver, footer, common, average, null);
     }
 
-    private void sendCommon(
-            final @NotNull Audience receiver,
-            final @NotNull List<String> format,
-            final @NotNull Function<String, String> commonProcessor,
-            final double avgProbability,
-            final double avgConfidence
+    private @NotNull Function<String, String> commonProcessor(
+            @NotNull ReactPlayer player, int size, int page, int totalPages, double average
     ) {
-
-        for (final String line : format) {
-
-            receiver.sendMessage(
-                    formatCommon(
-                            line,
-                            commonProcessor,
-                            avgProbability,
-                            avgConfidence
-                    )
-            );
-
-        }
-    }
-
-    private void sendEntry(
-            final @NotNull Audience receiver,
-            final @NotNull List<String> format,
-            final @NotNull Function<String, String> commonProcessor,
-            final @NotNull InferenceHistoryEntry entry,
-            final double avgProbability,
-            final double avgConfidence
-    ) {
-
-        for (final String line : format) {
-
-            receiver.sendMessage(
-                    formatEntry(
-                            line,
-                            commonProcessor,
-                            entry,
-                            avgProbability,
-                            avgConfidence
-                    )
-            );
-
-        }
-    }
-
-    private @NotNull Function<String, String> createCommonProcessor(
-            final @NotNull ReactPlayer player,
-            final @NotNull InferenceHistoryEntry[] history,
-            final int currentPage,
-            final int maxPage,
-            final double avgProbability,
-            final double avgConfidence
-    ) {
-
         return text -> text
-                .replace(
-                        "{player}",
-                        player.getName()
-                )
-                .replace(
-                        "{size}",
-                        String.valueOf(history.length)
-                )
-                .replace(
-                        "{page:previous}",
-                        String.valueOf(
-                                Math.max(
-                                        1,
-                                        currentPage - 1
-                                )
-                        )
-                )
-                .replace(
-                        "{page:current}",
-                        String.valueOf(currentPage)
-                )
-                .replace(
-                        "{page:next}",
-                        String.valueOf(
-                                Math.min(
-                                        maxPage,
-                                        currentPage + 1
-                                )
-                        )
-                )
-                .replace(
-                        "{page:max}",
-                        String.valueOf(maxPage)
-                )
-                .replace(
-                        "{avg-probability}",
-                        String.valueOf(avgProbability)
-                )
-                .replace(
-                        "{avg-confidence}",
-                        String.valueOf(avgConfidence)
-                );
-
+                .replace("{player}", player.getName())
+                .replace("{size}", String.valueOf(size))
+                .replace("{page:previous}", String.valueOf(Math.max(1, page - 1)))
+                .replace("{page:current}", String.valueOf(page))
+                .replace("{page:next}", String.valueOf(Math.min(totalPages, page + 1)))
+                .replace("{page:max}", String.valueOf(totalPages))
+                .replace("{avg-probability}", String.valueOf(average));
     }
 
-    private @NotNull Component formatCommon(
-            final @NotNull String input,
-            final @NotNull Function<String, String> commonProcessor,
-            final double avgProbability,
-            final double avgConfidence
+    private void send(
+            @NotNull Audience receiver,
+            @NotNull List<String> lines,
+            @NotNull Function<String, String> common,
+            double average,
+            InferenceHistoryEntry entry
     ) {
-
-        Component component = this.serializer.apply(
-                commonProcessor.apply(input)
-        );
-
-        component = replaceColoredCommon(
-                component,
-                avgProbability,
-                avgConfidence
-        );
-
-        return component;
+        for (String line : lines) {
+            String text = common.apply(line);
+            if (entry != null) {
+                text = text.replace("{probability}", String.valueOf(entry.getProbability()))
+                        .replace("{check}", entry.getCheck().getName());
+            }
+            Component component = serializer.apply(text);
+            component = replaceColored(component, "{avg-probability:colored}", average);
+            if (entry != null) {
+                component = replaceColored(component, "{probability:colored}", entry.getProbability());
+            }
+            receiver.sendMessage(component);
+        }
     }
 
-    private @NotNull Component formatEntry(
-            final @NotNull String input,
-            final @NotNull Function<String, String> commonProcessor,
-            final @NotNull InferenceHistoryEntry entry,
-            final double avgProbability,
-            final double avgConfidence
+    private @NotNull Component replaceColored(
+            @NotNull Component component, @NotNull String placeholder, double probability
     ) {
-
-        final double probability =
-                entry.getProbability();
-
-        final double confidence =
-                entry.getConfidence();
-
-        final Function<String, String> entryProcessor = text -> text
-                .replace(
-                        "{probability}",
-                        String.valueOf(probability)
-                )
-                .replace(
-                        "{confidence}",
-                        String.valueOf(confidence)
-                )
-                .replace(
-                        "{check}",
-                        entry.getCheck().getName()
-                );
-
-        Component component = this.serializer.apply(
-                commonProcessor.apply(
-                        entryProcessor.apply(input)
-                )
-        );
-
-        component = replaceColoredCommon(
-                component,
-                avgProbability,
-                avgConfidence
-        );
-
-        component = replace(
-                component,
-                "{probability:colored}",
-                Component.text(probability)
-                        .color(
-                                this.probabilityColorResolver.resolve(
-                                        probability
-                                )
-                        )
-        );
-
-        component = replace(
-                component,
-                "{confidence:colored}",
-                Component.text(confidence)
-                        .color(
-                                this.confidenceColorResolver.resolve(
-                                        confidence
-                                )
-                        )
-        );
-
-        return component;
-    }
-
-    private @NotNull Component replaceColoredCommon(
-            @NotNull Component component,
-            final double avgProbability,
-            final double avgConfidence
-    ) {
-
-        component = replace(
-                component,
-                "{avg-probability:colored}",
-                Component.text(avgProbability)
-                        .color(
-                                this.probabilityColorResolver.resolve(
-                                        avgProbability
-                                )
-                        )
-        );
-
-        component = replace(
-                component,
-                "{avg-confidence:colored}",
-                Component.text(avgConfidence)
-                        .color(
-                                this.confidenceColorResolver.resolve(
-                                        avgConfidence
-                                )
-                        )
-        );
-
-        return component;
-    }
-
-    private @NotNull Component replace(
-            final @NotNull Component component,
-            final @NotNull String placeholder,
-            final @NotNull Component replacement
-    ) {
-        return component.replaceText(builder ->
-                builder.matchLiteral(placeholder)
-                        .replacement(replacement)
-        );
+        final Component colored = Component.text(probability)
+                .color(probabilityColorResolver.resolve(probability));
+        return component.replaceText(builder -> builder.matchLiteral(placeholder).replacement(colored));
     }
 }

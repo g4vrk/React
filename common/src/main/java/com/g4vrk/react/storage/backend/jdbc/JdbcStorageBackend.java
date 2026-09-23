@@ -23,12 +23,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.g4vrk.react.storage.constant.StorageConstants.INFERENCE_TABLE;
+import static com.g4vrk.react.storage.constant.StorageConstants.LEGACY_INFERENCE_TABLE;
 import static com.g4vrk.react.storage.constant.StorageConstants.VIOLATIONS_TABLE;
 
 public final class JdbcStorageBackend implements StorageBackend {
 
     private static final String LOAD_VIOLATIONS = "SELECT check_name, violations, updated_at FROM " + VIOLATIONS_TABLE + " WHERE player_uuid = ?";
-    private static final String LOAD_INFERENCE = "SELECT check_name, recorded_at, probability, confidence FROM " + INFERENCE_TABLE + " WHERE player_uuid = ? AND recorded_at >= ? ORDER BY recorded_at ASC";
+    private static final String LOAD_INFERENCE = "SELECT check_name, recorded_at, probability FROM " + INFERENCE_TABLE + " WHERE player_uuid = ? AND recorded_at >= ? ORDER BY recorded_at ASC";
     private static final String DELETE_OLD_INFERENCE = "DELETE FROM " + INFERENCE_TABLE + " WHERE recorded_at < ?";
 
     private final HikariDataSource dataSource;
@@ -52,8 +53,32 @@ public final class JdbcStorageBackend implements StorageBackend {
                     statement.execute(sql);
                 }
             }
+            migrateLegacyHistory(connection);
             return null;
         });
+    }
+
+    private void migrateLegacyHistory(final @NotNull Connection connection) throws java.sql.SQLException {
+        boolean legacyExists = false;
+        try (final ResultSet tables = connection.getMetaData().getTables(null, null, "%", null)) {
+            while (tables.next()) {
+                if (LEGACY_INFERENCE_TABLE.equalsIgnoreCase(tables.getString("TABLE_NAME"))) {
+                    legacyExists = true;
+                    break;
+                }
+            }
+        }
+        if (!legacyExists) {
+            return;
+        }
+        final String fields = "id, player_uuid, check_name, recorded_at, probability";
+        final String sql = "INSERT INTO " + INFERENCE_TABLE + " (" + fields + ") "
+                + "SELECT " + fields + " FROM " + LEGACY_INFERENCE_TABLE + " legacy_rows "
+                + "WHERE NOT EXISTS (SELECT 1 FROM " + INFERENCE_TABLE
+                + " active_rows WHERE active_rows.id = legacy_rows.id)";
+        try (final Statement statement = connection.createStatement()) {
+            statement.executeUpdate(sql);
+        }
     }
 
     @Override
@@ -150,8 +175,7 @@ public final class JdbcStorageBackend implements StorageBackend {
                     values.add(new StoredInference(
                             result.getLong("recorded_at"),
                             result.getString("check_name"),
-                            result.getDouble("probability"),
-                            result.getDouble("confidence")
+                            result.getDouble("probability")
                     ));
                 }
             }
@@ -179,7 +203,6 @@ public final class JdbcStorageBackend implements StorageBackend {
         statement.setString(3, value.check());
         statement.setLong(4, value.timestamp());
         statement.setDouble(5, value.probability());
-        statement.setDouble(6, value.confidence());
     }
 
     private static @NotNull HikariConfig hikariConfig(

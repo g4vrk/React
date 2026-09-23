@@ -15,26 +15,21 @@ public final class InferenceHistoryEntry {
 
     private final double probability;
 
-    private final double confidence;
-
     public InferenceHistoryEntry(
             @NotNull Check check,
-            double probability,
-            double confidence
+            double probability
     ) {
-        this(currentTimeMillis(), check, probability, confidence);
+        this(currentTimeMillis(), check, probability);
     }
 
     public InferenceHistoryEntry(
             long timestamp,
             @NotNull Check check,
-            double probability,
-            double confidence
+            double probability
     ) {
         this.timestamp = timestamp;
         this.check = check;
         this.probability = probability;
-        this.confidence = confidence;
     }
 
 }

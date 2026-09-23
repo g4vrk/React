@@ -146,13 +146,12 @@ public final class InferenceHistory {
         pruneBefore(System.currentTimeMillis() - retentionMillis);
     }
 
-    private record EntryIdentity(long timestamp, String check, long probability, long confidence) {
+    private record EntryIdentity(long timestamp, String check, long probability) {
         private static @NotNull EntryIdentity of(final @NotNull InferenceHistoryEntry entry) {
             return new EntryIdentity(
                     entry.getTimestamp(),
                     entry.getCheck().getConfigId(),
-                    Double.doubleToLongBits(entry.getProbability()),
-                    Double.doubleToLongBits(entry.getConfidence())
+                    Double.doubleToLongBits(entry.getProbability())
             );
         }
     }
