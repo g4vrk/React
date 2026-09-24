@@ -15,8 +15,8 @@ buffer:
 
 # Probability threshold above which a player is considered to be cheating
 alert:
-  threshold: 0.45
+  threshold: 0.90
 
 # Amount by which VL is reduced when the player is legitimate (after the configured number of rotations)
 decay:
-  amount: 0.25
+  amount: 0.50
