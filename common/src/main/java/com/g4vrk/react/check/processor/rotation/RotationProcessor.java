@@ -19,11 +19,13 @@ public final class RotationProcessor {
 
         final RotationData rotationData = player.rotationData;
 
-        final Rotation previous = rotationData.current();
+        synchronized (rotationData) {
+            final Rotation previous = rotationData.current();
 
-        final Rotation current = this.rotationFactory.create(yaw, pitch, previous);
+            final Rotation current = this.rotationFactory.create(yaw, pitch, previous);
 
-        rotationData.push(current);
+            rotationData.push(current);
+        }
 
         player.checkManager.onRotationChange(rotationData);
 
