@@ -1,7 +1,7 @@
-package com.g4vrk.react.ml.server.settings;
+package com.g4vrk.react.inference.server.settings;
 
-import com.g4vrk.react.ml.auth.AuthSettings;
-import com.g4vrk.react.ml.http.model.HttpClientSettings;
+import com.g4vrk.react.inference.auth.AuthSettings;
+import com.g4vrk.react.inference.http.model.HttpClientSettings;
 import lombok.Getter;
 import okhttp3.ConnectionPool;
 import org.jetbrains.annotations.NotNull;

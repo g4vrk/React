@@ -1,6 +1,6 @@
-package com.g4vrk.react.ml.auth;
+package com.g4vrk.react.inference.auth;
 
-import com.g4vrk.react.ml.auth.type.AuthType;
+import com.g4vrk.react.inference.auth.type.AuthType;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;

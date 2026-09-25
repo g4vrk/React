@@ -1,4 +1,4 @@
-package com.g4vrk.react.ml.http.model;
+package com.g4vrk.react.inference.http.model;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

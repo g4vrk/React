@@ -1,4 +1,4 @@
-package com.g4vrk.react.ml.auth.type;
+package com.g4vrk.react.inference.auth.type;
 
 import org.jetbrains.annotations.NotNull;
 

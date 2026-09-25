@@ -31,10 +31,10 @@ import com.g4vrk.react.history.printer.InferenceHistoryPrinter;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
 import com.g4vrk.react.listeners.bukkit.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
-import com.g4vrk.react.ml.aim.MLAimProcessor;
-import com.g4vrk.react.ml.server.MLServer;
-import com.g4vrk.react.ml.server.settings.InferenceSettingsFactory;
-import com.g4vrk.react.ml.server.settings.InferenceSettings;
+import com.g4vrk.react.inference.aim.InferenceAimProcessor;
+import com.g4vrk.react.inference.server.InferenceServer;
+import com.g4vrk.react.inference.server.settings.InferenceSettingsFactory;
+import com.g4vrk.react.inference.server.settings.InferenceSettings;
 import com.g4vrk.react.placeholder.ReactPlaceholderExpansion;
 import com.g4vrk.react.player.factory.PlayerFactory;
 import com.g4vrk.react.player.ReactPlayer;
@@ -135,11 +135,11 @@ public class React {
 
     private SchedulaAPI schedulaAPI;
 
-    private MLServer mlServer;
+    private InferenceServer inferenceServer;
 
     private InferenceSettingsFactory inferenceSettingsFactory;
 
-    private MLAimProcessor mlAimProcessor;
+    private InferenceAimProcessor inferenceAimProcessor;
 
     private AlertPrinter alertPrinter;
     private VerbosePrinter verbosePrinter;
@@ -293,7 +293,7 @@ public class React {
         final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.root());
 
         logger.info("Creating ML server...");
-        this.mlServer = new MLServer(logger, inferenceSettings);
+        this.inferenceServer = new InferenceServer(logger, inferenceSettings);
 
         this.scheduler = schedulaAPI.createScheduler();
 
@@ -321,8 +321,8 @@ public class React {
                 alertPrinter
         );
 
-        this.mlAimProcessor = new MLAimProcessor(
-                logger, mlServer, scheduler
+        this.inferenceAimProcessor = new InferenceAimProcessor(
+                logger, inferenceServer, scheduler
         );
 
         logger.info("Creating inference history modules...");
@@ -445,10 +445,10 @@ public class React {
 
         final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.root());
 
-        this.mlServer = new MLServer(logger, inferenceSettings);
+        this.inferenceServer = new InferenceServer(logger, inferenceSettings);
 
-        this.mlAimProcessor = new MLAimProcessor(
-                logger, mlServer, scheduler
+        this.inferenceAimProcessor = new InferenceAimProcessor(
+                logger, inferenceServer, scheduler
         );
 
         this.punishmentManager.reload();
@@ -479,9 +479,9 @@ public class React {
             logger.info("Unregistering listeners...");
             this.unregisterPacketListeners();
 
-            if (this.mlServer != null) {
+            if (this.inferenceServer != null) {
                 logger.info("Stopping ML server...");
-                this.mlServer.shutdown();
+                this.inferenceServer.shutdown();
             }
 
             if (this.storageManager != null) {
@@ -499,8 +499,8 @@ public class React {
             this.mainConfig = null;
             this.inferenceConfig = null;
             this.schedulaAPI = null;
-            this.mlServer = null;
-            this.mlAimProcessor = null;
+            this.inferenceServer = null;
+            this.inferenceAimProcessor = null;
             this.punishmentManager = null;
 
         } catch (final Exception ex) {

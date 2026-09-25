@@ -13,8 +13,8 @@ import com.g4vrk.react.check.type.RotationCheck;
 import com.g4vrk.react.color.resolver.ValueColorResolver;
 import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
-import com.g4vrk.react.ml.aim.MLAimProcessor;
-import com.g4vrk.react.ml.aim.MLResult;
+import com.g4vrk.react.inference.aim.InferenceAimProcessor;
+import com.g4vrk.react.inference.aim.InferenceResult;
 import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.player.model.rotation.RotationData;
@@ -34,7 +34,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
 
     private final DebugHandler debugHandler;
 
-    private MLAimProcessor mlAimProcessor;
+    private InferenceAimProcessor inferenceAimProcessor;
 
     private boolean debug;
 
@@ -50,7 +50,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     public AimAI(@NotNull ReactPlayer player) {
         super(player);
 
-        this.mlAimProcessor = React.INSTANCE.getMlAimProcessor();
+        this.inferenceAimProcessor = React.INSTANCE.getInferenceAimProcessor();
         this.colorResolver = new ProbabilityColorResolver();
 
         this.debugHandler = new DebugHandler(this);
@@ -77,7 +77,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
 
         this.decayStrategy = new LinearDecay(decayAmount);
 
-        this.mlAimProcessor = React.INSTANCE.getMlAimProcessor();
+        this.inferenceAimProcessor = React.INSTANCE.getInferenceAimProcessor();
 
     }
 
@@ -128,7 +128,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
         }
 
         try {
-            mlAimProcessor.check(
+            inferenceAimProcessor.check(
                     player.getName(),
                     snapshot,
                     this::onServerResult
@@ -144,7 +144,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     }
 
     private void onServerResult(
-            final @NotNull MLResult result
+            final @NotNull InferenceResult result
     ) {
         try {
 

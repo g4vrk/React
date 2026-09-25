@@ -1,9 +1,9 @@
-package com.g4vrk.react.ml.aim;
+package com.g4vrk.react.inference.aim;
 
-import com.g4vrk.react.ml.http.model.HttpRequest;
-import com.g4vrk.react.ml.server.MLServer;
-import com.g4vrk.react.ml.server.settings.InferenceRequestSettings;
-import com.g4vrk.react.ml.server.settings.InferenceResponseSettings;
+import com.g4vrk.react.inference.http.model.HttpRequest;
+import com.g4vrk.react.inference.server.InferenceServer;
+import com.g4vrk.react.inference.server.settings.InferenceRequestSettings;
+import com.g4vrk.react.inference.server.settings.InferenceResponseSettings;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import com.g4vrk.react.util.moshi.MoshiHolder;
 import com.g4vrk.schedula.task.TickSchedule;
@@ -23,25 +23,25 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public final class MLAimProcessor {
+public final class InferenceAimProcessor {
 
     private static final MediaType JSON =
             MediaType.get("application/json; charset=utf-8");
 
     private final Logger logger;
-    private final MLServer mlServer;
+    private final InferenceServer inferenceServer;
     private final Scheduler scheduler;
 
     private final JsonAdapter<Map<String, Object>> requestAdapter;
     private final JsonAdapter<Map<String, Object>> responseAdapter;
 
-    public MLAimProcessor(
+    public InferenceAimProcessor(
             @NotNull Logger logger,
-            @NotNull MLServer mlServer,
+            @NotNull InferenceServer inferenceServer,
             @NotNull Scheduler scheduler
     ) {
         this.logger = logger;
-        this.mlServer = mlServer;
+        this.inferenceServer = inferenceServer;
         this.scheduler = scheduler;
 
         this.requestAdapter = MoshiHolder.REQUEST_ADAPTER;
@@ -51,10 +51,10 @@ public final class MLAimProcessor {
     public void check(
             final @NotNull String playerName,
             final @NotNull Rotation @NotNull [] snapshot,
-            final @NotNull Consumer<MLResult> resultHandler
+            final @NotNull Consumer<InferenceResult> resultHandler
     ) {
-        if (!mlServer.isEnabled()) {
-            complete(resultHandler, MLResult.unavailable());
+        if (!inferenceServer.isEnabled()) {
+            complete(resultHandler, InferenceResult.unavailable());
             return;
         }
 
@@ -64,17 +64,17 @@ public final class MLAimProcessor {
                     playerName,
                     snapshot.length
             );
-            complete(resultHandler, MLResult.unavailable());
+            complete(resultHandler, InferenceResult.unavailable());
             return;
         }
 
-        final InferenceRequestSettings requestSettings = mlServer.getRequestSettings();
+        final InferenceRequestSettings requestSettings = inferenceServer.getRequestSettings();
 
         final Map<String, Object> payload = new LinkedHashMap<>();
         payload.put(requestSettings.getPlayerNameField(), playerName);
         payload.put(requestSettings.getRotationsField(), snapshot);
 
-        mlServer.augmentPayload(payload);
+        inferenceServer.augmentPayload(payload);
 
         final String json;
 
@@ -82,7 +82,7 @@ public final class MLAimProcessor {
             json = requestAdapter.toJson(payload);
         } catch (final Exception ex) {
             logger.warn("Could not serialize ML request for {}", playerName, ex);
-            complete(resultHandler, MLResult.unavailable());
+            complete(resultHandler, InferenceResult.unavailable());
             return;
         }
 
@@ -95,16 +95,16 @@ public final class MLAimProcessor {
             enqueue(playerName, request, resultHandler);
         } catch (final Throwable th) {
             logger.warn("Could not enqueue ML request for {}", playerName, th);
-            complete(resultHandler, MLResult.unavailable());
+            complete(resultHandler, InferenceResult.unavailable());
         }
     }
 
     private void enqueue(
             final @NotNull String playerName,
             final @NotNull HttpRequest request,
-            final @NotNull Consumer<MLResult> resultHandler
+            final @NotNull Consumer<InferenceResult> resultHandler
     ) {
-        mlServer.callAsync(request, new Callback() {
+        inferenceServer.callAsync(request, new Callback() {
 
             @Override
             public void onFailure(
@@ -117,7 +117,7 @@ public final class MLAimProcessor {
                         ex
                 );
 
-                complete(resultHandler, MLResult.unavailable());
+                complete(resultHandler, InferenceResult.unavailable());
             }
 
             @Override
@@ -137,7 +137,7 @@ public final class MLAimProcessor {
                                 responseText
                         );
 
-                        complete(resultHandler, MLResult.unavailable());
+                        complete(resultHandler, InferenceResult.unavailable());
                         return;
                     }
 
@@ -147,7 +147,7 @@ public final class MLAimProcessor {
                                 playerName
                         );
 
-                        complete(resultHandler, MLResult.unavailable());
+                        complete(resultHandler, InferenceResult.unavailable());
                         return;
                     }
 
@@ -161,12 +161,12 @@ public final class MLAimProcessor {
                                 responseText
                         );
 
-                        complete(resultHandler, MLResult.unavailable());
+                        complete(resultHandler, InferenceResult.unavailable());
                         return;
                     }
 
                     final InferenceResponseSettings responseSettings =
-                            mlServer.getResponseSettings();
+                            inferenceServer.getResponseSettings();
 
                     final Double probability = readNumber(
                             result,
@@ -182,13 +182,13 @@ public final class MLAimProcessor {
                                 responseText
                         );
 
-                        complete(resultHandler, MLResult.unavailable());
+                        complete(resultHandler, InferenceResult.unavailable());
                         return;
                     }
 
                     complete(
                             resultHandler,
-                            new MLResult(probability)
+                            new InferenceResult(probability)
                     );
                 } catch (Exception ex) {
                     logger.warn(
@@ -197,7 +197,7 @@ public final class MLAimProcessor {
                             ex
                     );
 
-                    complete(resultHandler, MLResult.unavailable());
+                    complete(resultHandler, InferenceResult.unavailable());
                 }
             }
         });
@@ -212,8 +212,8 @@ public final class MLAimProcessor {
     }
 
     private void complete(
-            @NotNull Consumer<MLResult> resultHandler,
-            @NotNull MLResult result
+            @NotNull Consumer<InferenceResult> resultHandler,
+            @NotNull InferenceResult result
     ) {
         scheduler.schedule(
                 () -> resultHandler.accept(result),

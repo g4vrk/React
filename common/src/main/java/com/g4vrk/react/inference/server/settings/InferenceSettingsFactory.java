@@ -1,7 +1,7 @@
-package com.g4vrk.react.ml.server.settings;
+package com.g4vrk.react.inference.server.settings;
 
-import com.g4vrk.react.ml.auth.AuthSettings;
-import com.g4vrk.react.ml.auth.type.AuthType;
+import com.g4vrk.react.inference.auth.AuthSettings;
+import com.g4vrk.react.inference.auth.type.AuthType;
 import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.parse.time.TimeValue;
 import okhttp3.ConnectionPool;

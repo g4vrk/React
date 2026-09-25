@@ -1,4 +1,4 @@
-package com.g4vrk.react.ml.server.settings;
+package com.g4vrk.react.inference.server.settings;
 
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;

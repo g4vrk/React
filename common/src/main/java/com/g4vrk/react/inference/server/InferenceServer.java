@@ -1,13 +1,13 @@
-package com.g4vrk.react.ml.server;
+package com.g4vrk.react.inference.server;
 
-import com.g4vrk.react.ml.auth.AuthApplier;
-import com.g4vrk.react.ml.auth.AuthSettings;
-import com.g4vrk.react.ml.auth.type.AuthType;
-import com.g4vrk.react.ml.http.model.HttpRequest;
-import com.g4vrk.react.ml.server.settings.InferenceEndpointSettings;
-import com.g4vrk.react.ml.server.settings.InferenceRequestSettings;
-import com.g4vrk.react.ml.server.settings.InferenceResponseSettings;
-import com.g4vrk.react.ml.server.settings.InferenceSettings;
+import com.g4vrk.react.inference.auth.AuthApplier;
+import com.g4vrk.react.inference.auth.AuthSettings;
+import com.g4vrk.react.inference.auth.type.AuthType;
+import com.g4vrk.react.inference.http.model.HttpRequest;
+import com.g4vrk.react.inference.server.settings.InferenceEndpointSettings;
+import com.g4vrk.react.inference.server.settings.InferenceRequestSettings;
+import com.g4vrk.react.inference.server.settings.InferenceResponseSettings;
+import com.g4vrk.react.inference.server.settings.InferenceSettings;
 import lombok.Getter;
 import okhttp3.Cache;
 import okhttp3.Call;
@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import java.util.Map;
 
 @Getter
-public final class MLServer {
+public final class InferenceServer {
 
     private final OkHttpClient client;
     private final AuthApplier authApplier;
@@ -33,7 +33,7 @@ public final class MLServer {
 
     private final boolean enabled;
 
-    public MLServer(
+    public InferenceServer(
             final @NotNull Logger logger,
             final @NotNull InferenceSettings settings
     ) {
