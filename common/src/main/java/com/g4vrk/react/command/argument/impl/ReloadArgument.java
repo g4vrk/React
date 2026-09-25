@@ -52,8 +52,13 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
 
                     startActions.run(sender);
 
-                    React.INSTANCE.reloadAsync().thenRun(
-                            () -> scheduler.schedule(() -> finishActions.run(sender), TickSchedule.instant())
+                    React.INSTANCE.reloadAsync().whenComplete((ignored, failure) ->
+                            scheduler.schedule(() -> {
+                                if (failure != null) {
+                                    React.INSTANCE.getLogger().error("React reload failed", failure);
+                                }
+                                finishActions.run(sender);
+                            }, TickSchedule.instant())
                     );
 
                 });
@@ -78,7 +83,7 @@ public final class ReloadArgument extends LocalArgument implements ReloadObserve
                     config.node("reload", "on-finish").getList(String.class, Collections.emptyList())
             );
         } catch (final SerializationException ex) {
-            throw new RuntimeException("Failed to load configuration values for alerts argument", ex);
+            throw new RuntimeException("Failed to load configuration values for reload argument", ex);
         }
 
     }
