@@ -45,6 +45,7 @@ public final class StorageManager {
     private final ScheduledThreadPoolExecutor scheduler;
     private final java.util.concurrent.ConcurrentLinkedDeque<StorageMutation> pendingWrites = new java.util.concurrent.ConcurrentLinkedDeque<>();
     private final AtomicInteger pendingWriteCount = new AtomicInteger();
+    private final Object pendingWriteLock = new Object();
     private final AtomicBoolean available = new AtomicBoolean();
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean closing = new AtomicBoolean();
@@ -255,14 +256,16 @@ public final class StorageManager {
             return;
         }
 
-        pendingWrites.addLast(mutation);
-        int buffered = pendingWriteCount.incrementAndGet();
-        while (buffered > settings.pendingWriteCapacity()) {
-            if (pendingWrites.pollFirst() != null) {
+        synchronized (pendingWriteLock) {
+            pendingWrites.addLast(mutation);
+            int buffered = pendingWriteCount.incrementAndGet();
+            while (buffered > settings.pendingWriteCapacity()) {
+                if (pendingWrites.pollFirst() == null) {
+                    break;
+                }
+
                 buffered = pendingWriteCount.decrementAndGet();
                 logFailure("Database write buffer is full; the oldest unsaved operation was discarded", null);
-            } else {
-                break;
             }
         }
     }
@@ -323,13 +326,15 @@ public final class StorageManager {
 
     private @NotNull List<StorageMutation> drainBatch() {
         final List<StorageMutation> batch = new ArrayList<>(settings.batchSize());
-        while (batch.size() < settings.batchSize()) {
-            final StorageMutation mutation = pendingWrites.pollFirst();
-            if (mutation == null) {
-                break;
+        synchronized (pendingWriteLock) {
+            while (batch.size() < settings.batchSize()) {
+                final StorageMutation mutation = pendingWrites.pollFirst();
+                if (mutation == null) {
+                    break;
+                }
+                pendingWriteCount.decrementAndGet();
+                batch.add(mutation);
             }
-            pendingWriteCount.decrementAndGet();
-            batch.add(mutation);
         }
         return batch;
     }
@@ -337,12 +342,25 @@ public final class StorageManager {
     private void requeue(final @NotNull List<StorageMutation> batch) {
         final List<StorageMutation> reversed = new ArrayList<>(batch);
         Collections.reverse(reversed);
-        for (final StorageMutation mutation : reversed) {
-            if (pendingWriteCount.get() >= settings.pendingWriteCapacity()) {
-                break;
+        synchronized (pendingWriteLock) {
+            for (final StorageMutation mutation : reversed) {
+                while (pendingWriteCount.get() >= settings.pendingWriteCapacity()) {
+                    if (pendingWrites.pollFirst() == null) {
+                        break;
+                    }
+
+                    pendingWriteCount.decrementAndGet();
+                    logFailure("Database write buffer was full while requeueing a failed batch; the oldest unsaved operation was discarded", null);
+                }
+
+                if (pendingWriteCount.get() >= settings.pendingWriteCapacity()) {
+                    logFailure("Database write buffer has no room to requeue a failed batch", null);
+                    continue;
+                }
+
+                pendingWrites.addFirst(mutation);
+                pendingWriteCount.incrementAndGet();
             }
-            pendingWrites.addFirst(mutation);
-            pendingWriteCount.incrementAndGet();
         }
     }
 
