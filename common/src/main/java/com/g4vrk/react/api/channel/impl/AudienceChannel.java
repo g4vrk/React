@@ -33,6 +33,10 @@ public abstract class AudienceChannel<I> implements Channel<I> {
 
     }
 
+    public void clear() {
+        this.recipients.clear();
+    }
+
     @Override
     public abstract void publish(final @NotNull I input);
 
