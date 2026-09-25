@@ -47,6 +47,11 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
         return version;
     }
 
+    @Override
+    public boolean persist() {
+        return true;
+    }
+
 
     @Override
     public @Nullable String onRequest(
