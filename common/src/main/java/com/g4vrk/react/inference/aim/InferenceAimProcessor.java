@@ -15,6 +15,7 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.BufferedSource;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -27,6 +28,8 @@ public final class InferenceAimProcessor {
 
     private static final MediaType JSON =
             MediaType.get("application/json; charset=utf-8");
+
+    private static final long MAX_RESPONSE_BYTES = 64L * 1024L;
 
     private final Logger logger;
     private final InferenceServer inferenceServer;
@@ -126,8 +129,22 @@ public final class InferenceAimProcessor {
                     @NotNull Response response
             ) {
                 try (ResponseBody body = response.body()) {
-                    final String responseText =
-                            body == null ? "" : body.string();
+                    final String responseText;
+                    if (body == null) {
+                        responseText = "";
+                    } else {
+                        final BufferedSource source = body.source();
+                        if (source.request(MAX_RESPONSE_BYTES + 1L)) {
+                            logger.warn(
+                                    "ML server response is too large for {}: more than {} bytes",
+                                    playerName,
+                                    MAX_RESPONSE_BYTES
+                            );
+                            complete(resultHandler, InferenceResult.unavailable());
+                            return;
+                        }
+                        responseText = source.readUtf8();
+                    }
 
                     if (!response.isSuccessful()) {
                         logger.warn(
