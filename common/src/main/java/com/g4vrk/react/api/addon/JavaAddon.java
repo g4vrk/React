@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLClassLoader;
 
 public abstract class JavaAddon implements Addon {
 
@@ -124,16 +125,15 @@ public abstract class JavaAddon implements Addon {
             outDir.mkdirs();
         }
 
-        try {
+        try (final InputStream input = in) {
             if (!outFile.exists() || replace) {
-                OutputStream out = new FileOutputStream(outFile);
-                byte[] buf = new byte[1024];
-                int len;
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
+                try (final OutputStream out = new FileOutputStream(outFile)) {
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = input.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
                 }
-                out.close();
-                in.close();
             } else {
                 logger.warn("Could not save {} to {} because {} already exists.", outFile.getName(), outFile, outFile.getName());
             }
@@ -145,6 +145,13 @@ public abstract class JavaAddon implements Addon {
     @Override
     public boolean enabled() {
         return enabled;
+    }
+
+    public final void closeClassLoader() throws IOException {
+        final ClassLoader loader = this.classLoader;
+        if (loader instanceof URLClassLoader urlClassLoader) {
+            urlClassLoader.close();
+        }
     }
 
     public final @NotNull ClassLoader classLoader() {
