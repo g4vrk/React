@@ -35,9 +35,10 @@ public final class CheckManager {
                 .build();
 
         this.rotationChecksValues = new ObjectArrayList<>(this.rotationChecks.values());
-        this.checksValues = this.rotationChecksValues.stream()
-                .map(check -> (Check) check)
-                .toList();
+        this.checksValues = new ObjectArrayList<>(this.rotationChecksValues.size());
+        for (final RotationCheck check : this.rotationChecksValues) {
+            this.checksValues.add((Check) check);
+        }
 
         this.reload();
 
