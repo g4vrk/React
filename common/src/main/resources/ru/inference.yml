@@ -11,6 +11,29 @@
 # Включить ИИ сервер?
 enabled: true
 
+# Авторизация через токен
+auth:
+
+  # Если вы используете наш сайт (https://www.react-ac.space/), то
+  # сюда нужно вставить token нужного сервера
+  value: ВСТАВЬТЕ_ВАШ_КЛЮЧ
+
+  # Включена ли отправка токена через что либо
+  enabled: true
+
+  # Настройки для кастомных ИИ моделей, для нашей модели не изменяйте
+  type: body # none / bearer / header / query / body
+
+  header:
+    name: X-Subscription-Token
+
+  query:
+    parameter: token
+
+  body:
+    field: token
+
+
 # Настройки ИИ сервера
 inference:
 
@@ -32,31 +55,6 @@ inference:
   response:
 
     probability-field: cheat_probability
-
-# Авторизация через токен
-auth:
-
-  # Включена ли отправка токена через что либо
-  enabled: true
-
-  # Настройки для кастомных ИИ моделей, для нашей модели не изменяйте
-  type: body # none / bearer / header / query / body
-
-  bearer:
-    token: YOUR_TOKEN
-
-  header:
-    name: X-Subscription-Token
-    value: YOUR_TOKEN
-
-  query:
-    parameter: token
-    value: YOUR_TOKEN
-
-  body:
-    field: token
-    # Если используете нашу модель (https://www.react-ac.space), то вставьте ваш ключ СЮДА
-    value: YOUR_TOKEN
 
 # Настройки клиента подключений
 client:

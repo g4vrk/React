@@ -10,15 +10,12 @@ public class AuthSettings {
     boolean enabled;
     @NotNull AuthType type;
 
-    @NotNull String bearerToken;
+    @NotNull String value;
 
     @NotNull String headerName;
-    @NotNull String headerValue;
 
     @NotNull String queryParameter;
-    @NotNull String queryValue;
 
     @NotNull String bodyField;
-    @NotNull String bodyValue;
 
 }

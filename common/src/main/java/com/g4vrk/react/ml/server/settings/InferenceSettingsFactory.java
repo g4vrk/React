@@ -89,13 +89,10 @@ public class InferenceSettingsFactory {
         return new AuthSettings(
                 enabled,
                 type,
-                authNode.node("bearer", "token").getString(""),
+                authNode.node("value").getString("null"),
                 authNode.node("header", "name").getString("X-Subscription-Token"),
-                authNode.node("header", "value").getString(""),
                 authNode.node("query", "parameter").getString("token"),
-                authNode.node("query", "value").getString(""),
-                authNode.node("body", "field").getString("token"),
-                authNode.node("body", "value").getString("")
+                authNode.node("body", "field").getString("token")
         );
     }
 

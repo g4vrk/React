@@ -34,7 +34,7 @@ public final class AuthApplier {
             return;
         }
 
-        payload.put(field, settings.getBodyValue());
+        payload.put(field, settings.getValue());
     }
 
     public void applyToHeaders(final @NotNull Request.Builder builder) {
@@ -45,14 +45,14 @@ public final class AuthApplier {
         switch (settings.getType()) {
             case BEARER -> builder.addHeader(
                     "Authorization",
-                    "Bearer " + settings.getBearerToken()
+                    "Bearer " + settings.getValue()
             );
 
             case HEADER -> {
                 final String name = settings.getHeaderName();
 
                 if (!name.isBlank()) {
-                    builder.addHeader(name, settings.getHeaderValue());
+                    builder.addHeader(name, settings.getValue());
                 }
             }
 
@@ -73,7 +73,7 @@ public final class AuthApplier {
         }
 
         return url.newBuilder()
-                .addQueryParameter(parameter, settings.getQueryValue())
+                .addQueryParameter(parameter, settings.getValue())
                 .build();
     }
 }
