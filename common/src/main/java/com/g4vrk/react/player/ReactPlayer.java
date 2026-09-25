@@ -97,9 +97,14 @@ public final class ReactPlayer {
                 if (!merge) {
                     violations = stored.value();
                 } else if (stored.updatedAt() >= sessionStartedAt) {
-                    violations = check.getViolations();
+                    return;
                 } else {
-                    violations = check.getViolations() + stored.value();
+                    check.mergeViolations(
+                            stored.value(),
+                            stored.updatedAt(),
+                            sessionStartedAt
+                    );
+                    return;
                 }
                 check.restoreViolations(violations);
             }
