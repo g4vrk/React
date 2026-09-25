@@ -445,6 +445,8 @@ public class React {
 
         final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.root());
 
+        this.inferenceServer.shutdown();
+
         this.inferenceServer = new InferenceServer(logger, inferenceSettings);
 
         this.inferenceAimProcessor = new InferenceAimProcessor(
