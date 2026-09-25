@@ -146,6 +146,7 @@ public class React {
 
     private PunishmentManager punishmentManager;
     private InferenceHistoryPrinter inferenceHistoryPrinter;
+    private ReactPlaceholderExpansion placeholderExpansion;
 
     private CombatListener combatListener;
 
@@ -387,14 +388,14 @@ public class React {
 
             logger.info("Registering PlaceholderAPI expansion...");
 
-            final ReactPlaceholderExpansion placeholderExpansion = new ReactPlaceholderExpansion(
+            this.placeholderExpansion = new ReactPlaceholderExpansion(
                     plugin.getName(),
                     "g4vrk",
                     plugin.getDescription().getVersion(),
                     playerRegistry
             );
 
-            placeholderExpansion.register();
+            this.placeholderExpansion.register();
 
         }
 
@@ -416,22 +417,25 @@ public class React {
         return CompletableFuture.runAsync(this::reload);
     }
 
-    public void reload() {
+    public synchronized void reload() {
 
         final String languageNameLower = language.name().toLowerCase();
 
         final File configsDir = new File(plugin.getDataFolder(), languageNameLower);
 
-        this.configMap.clear();
+        final Map<String, Config> reloadedConfigs;
         try {
 
             this.yamlConfigManager.prepareExpected(resourceHolder, languageNameLower, configsDir);
 
-            this.configMap.putAll(yamlConfigManager.loadAndSave(configsDir));
+            reloadedConfigs = yamlConfigManager.loadAndSave(configsDir);
 
         } catch (final Exception ex) {
             throw new RuntimeException("An internal error occurred when trying to load configurations", ex);
         }
+
+        this.configMap.clear();
+        this.configMap.putAll(reloadedConfigs);
 
         this.actionsConfig = Objects.requireNonNull(configMap.get("actions.yml"));
         this.mainConfig = Objects.requireNonNull(configMap.get("main-config.yml"));
@@ -477,37 +481,69 @@ public class React {
         try {
             logger.info("Stopping all addons...");
             this.disableAddons();
+        } catch (final Exception ex) {
+            this.logger.error("Could not disable addons", ex);
+        }
 
+        try {
             logger.info("Unregistering listeners...");
             this.unregisterPacketListeners();
+        } catch (final Exception ex) {
+            this.logger.error("Could not unregister packet listeners", ex);
+        }
 
+        try {
             if (this.inferenceServer != null) {
-                logger.info("Stopping ML server...");
+                logger.info("Stopping inference server...");
                 this.inferenceServer.shutdown();
+                this.inferenceServer = null;
             }
+        } catch (final Exception ex) {
+            this.logger.error("Could not stop the inference server", ex);
+        }
 
+        try {
             if (this.storageManager != null) {
                 logger.info("Flushing and closing database storage...");
                 this.storageManager.close(
                         this.playerRegistry == null ? Set.of() : this.playerRegistry.all()
                 );
+                this.storageManager = null;
             }
+        } catch (final Exception ex) {
+            this.logger.error("Could not close database storage", ex);
+        }
 
+        try {
             if (this.playerRegistry != null) {
                 logger.info("Clearing player registry...");
                 this.playerRegistry.clear();
             }
-
-            this.mainConfig = null;
-            this.inferenceConfig = null;
-            this.schedulaAPI = null;
-            this.inferenceServer = null;
-            this.inferenceAimProcessor = null;
-            this.punishmentManager = null;
-
         } catch (final Exception ex) {
-            this.logger.error("An internal error occurred when trying to terminate the plugin", ex);
+            this.logger.error("Could not clear player registry", ex);
         }
+
+        try {
+            if (this.placeholderExpansion != null) {
+                this.placeholderExpansion.unregister();
+                this.placeholderExpansion = null;
+            }
+        } catch (final Exception ex) {
+            this.logger.error("Could not unregister PlaceholderAPI expansion", ex);
+        }
+
+        try {
+            ReactChannels.ALERTS.clear();
+            ReactChannels.VERBOSE.clear();
+        } catch (final Exception ex) {
+            this.logger.error("Could not clear channel recipients", ex);
+        }
+
+        this.mainConfig = null;
+        this.inferenceConfig = null;
+        this.schedulaAPI = null;
+        this.inferenceAimProcessor = null;
+        this.punishmentManager = null;
 
     }
 
@@ -533,8 +569,6 @@ public class React {
             try {
 
                 final JavaAddon addon = addonLoader.load(source);
-
-                addon.onLoad();
 
                 this.addonMap.put(addon.name(), addon);
 
@@ -567,6 +601,10 @@ public class React {
 
     private void disableAddons() {
 
+        if (this.addonMap == null || this.addonMap.isEmpty()) {
+            return;
+        }
+
         for (final JavaAddon addon : this.addonMap.values()) {
             try {
 
@@ -577,6 +615,12 @@ public class React {
                 //noinspection StringConcatenationArgumentToLogCall
                 logger.error("Failed to disable addon " + addon.name(), ex);
 
+            } finally {
+                try {
+                    addon.closeClassLoader();
+                } catch (final Exception ex) {
+                    logger.error("Failed to close addon classloader " + addon.name(), ex);
+                }
             }
 
         }
