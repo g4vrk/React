@@ -111,6 +111,17 @@ public abstract class Check extends AbstractCheck {
         this.persistViolations();
     }
 
+    public final synchronized void mergeViolations(
+            final double storedViolations,
+            final long storedUpdatedAt,
+            final long sessionStartedAt
+    ) {
+        if (storedUpdatedAt >= sessionStartedAt) {
+            return;
+        }
+        this.violations += storedViolations;
+    }
+
     public final synchronized void resetViolations() {
         violations = 0D;
         this.persistViolations();
