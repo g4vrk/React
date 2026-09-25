@@ -5,6 +5,7 @@ import com.g4vrk.react.color.resolver.impl.ProbabilityColorResolver;
 import com.g4vrk.react.history.entry.InferenceHistoryEntry;
 import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
+import com.g4vrk.react.statistic.InferenceStatistic;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -131,53 +132,18 @@ public class ReactPlaceholderExpansion extends PlaceholderExpansion {
             };
         }
 
+        final InferenceStatistic.Result statisticResult = player.inferenceStatistic.calculate();
+
         return switch (path) {
 
             case "size" ->
                     Integer.toString(player.inferenceHistory.size());
 
-            case "avg-probability" -> {
-
-                final int size = player.inferenceHistory.size();
-
-                if (size == 0) {
-                    yield "0";
-                }
-
-                double sum = 0.0D;
-
-                for (int i = 0; i < size; i++) {
-                    final InferenceHistoryEntry entry =
-                            player.inferenceHistory.get(i);
-
-                    if (entry != null) {
-                        sum += entry.getProbability();
-                    }
-                }
-
-                yield Double.toString(sum / size);
-            }
+            case "avg-probability" -> Double.toString(statisticResult.averageProbability());
 
             case "avg-probability:colored" -> {
 
-                final int size = player.inferenceHistory.size();
-
-                if (size == 0) {
-                    yield "0";
-                }
-
-                double sum = 0.0D;
-
-                for (int i = 0; i < size; i++) {
-                    final InferenceHistoryEntry entry =
-                            player.inferenceHistory.get(i);
-
-                    if (entry != null) {
-                        sum += entry.getProbability();
-                    }
-                }
-
-                final double average = sum / size;
+                final double average = statisticResult.averageProbability();
 
                 yield "<" +
                         probabilityColorResolver.resolve(average).asHexString() +
