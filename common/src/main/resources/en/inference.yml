@@ -39,24 +39,20 @@ auth:
   # Whether token authentication is enabled
   enabled: true
 
+  # Single authentication value used by the selected auth type.
+  value: YOUR_TOKEN
+
   # Authentication method for custom AI models; do not change this when using our model
   type: body # none / bearer / header / query / body
 
-  bearer:
-    token: YOUR_TOKEN
-
   header:
     name: X-Subscription-Token
-    value: YOUR_TOKEN
 
   query:
     parameter: token
-    value: YOUR_TOKEN
 
   body:
     field: token
-    # When using our model (https://www.react-ac.space), enter your access key HERE
-    value: YOUR_TOKEN
 
 # HTTP client settings
 client:
