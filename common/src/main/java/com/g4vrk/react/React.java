@@ -619,6 +619,7 @@ public class React {
                 try {
                     addon.closeClassLoader();
                 } catch (final Exception ex) {
+                    //noinspection StringConcatenationArgumentToLogCall
                     logger.error("Failed to close addon classloader " + addon.name(), ex);
                 }
             }
