@@ -43,8 +43,7 @@ inference:
     base-url: 'https://api.react-ac.space'
 
     path: '/api/v2/inference/'
-    model-family: 'flower'
-    model-name: 'baseline'
+    # The server selects the model from the subscription token.
 
   # Нужно только для своих кастомных моделей
   request:

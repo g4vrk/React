@@ -51,16 +51,8 @@ public class InferenceSettingsFactory {
     ) {
         final String baseUrl = endpointNode.node("base-url").getString("http://localhost:8080");
         final String path = normalizePath(endpointNode.node("path").getString("/api/v1/inference/"));
-        final String modelFamily = endpointNode.node("model-family").getString("").trim();
-        final String modelName = endpointNode.node("model-name").getString("").trim();
 
-        if (modelFamily.isEmpty() != modelName.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "inference.endpoint.model-family and model-name must be set together"
-            );
-        }
-
-        return new InferenceEndpointSettings(baseUrl, path, modelFamily, modelName);
+        return new InferenceEndpointSettings(baseUrl, path);
     }
 
     private @NotNull InferenceRequestSettings parseRequest(
