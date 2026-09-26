@@ -8,6 +8,4 @@ public class InferenceEndpointSettings {
 
     @NotNull String baseUrl;
     @NotNull String path;
-    @NotNull String modelFamily;
-    @NotNull String modelName;
 }
