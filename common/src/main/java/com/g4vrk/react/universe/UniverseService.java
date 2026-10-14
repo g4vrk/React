@@ -42,20 +42,16 @@ public final class UniverseService {
 
     public void refresh(UUID uuid) {
         ReactPlayer player = players.getPlayer(uuid);
-        if (player != null && React.INSTANCE.getInferenceServer().getModel() != InferenceModel.UNIVERSE
-                && subscriptions.stream().noneMatch(s -> s.interested.test(player))) {
-            player.universeData.deactivate();
+        if (player != null && React.INSTANCE.getInferenceServer().getModel() != InferenceModel.UNIVERSE) {
+            // Recording start/stop must not reset the continuous SHARD history.
+            player.universeData.clearHistory();
         }
     }
 
     public void onPacket(ReactPlayer player, PacketReceiveEvent event) {
-        boolean inference = React.INSTANCE.getInferenceServer().getModel() == InferenceModel.UNIVERSE;
-        boolean collecting = subscriptions.stream().anyMatch(s -> s.interested.test(player));
         UniverseData data = player.universeData;
-        if (!inference && !collecting) {
-            data.deactivate();
-            return;
-        }
+        // Raveon updates SHARD on every rotation from join, including before a
+        // recording and outside combat. Only writing frames is combat-gated.
         UniverseState state = data.activate();
         if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
             state.onSwing();
@@ -70,7 +66,8 @@ public final class UniverseService {
                 if (!data.combatActivity.isActive()) {
                     data.clearHistory();
                 }
-                data.combatActivity.extend(React.INSTANCE.getCombatListener().combatTicks());
+                data.combatActivity.extend(Math.max(1L,
+                        React.INSTANCE.getInferenceConfig().node("universe", "combat-ticks").getLong(64L)));
             }
         } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);

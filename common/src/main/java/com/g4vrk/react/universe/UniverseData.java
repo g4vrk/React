@@ -1,11 +1,9 @@
 package com.g4vrk.react.universe;
 
-import com.g4vrk.react.player.CombatActivity;
-
 public final class UniverseData {
     private UniverseState state = new UniverseState();
     private UniverseBuffer history = new UniverseBuffer(64);
-    public final CombatActivity combatActivity = new CombatActivity();
+    public final UniverseCombatActivity combatActivity = new UniverseCombatActivity();
     private boolean active;
 
     public synchronized UniverseState activate() {

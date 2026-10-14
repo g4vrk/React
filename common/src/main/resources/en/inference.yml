@@ -18,6 +18,8 @@ model: FLOWER
 universe:
   sequence: 64
   step: 32
+  # SHARD combat/collection window in ticks, independent of FLOWER's combat time.
+  combat-ticks: 64
 
 # GAIQ has no JSON token field; auth.type: body is omitted for UNIVERSE.
 # Header, bearer and query authentication continue to use the settings below.
