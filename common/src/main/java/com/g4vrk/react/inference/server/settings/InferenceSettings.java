@@ -5,13 +5,14 @@ import com.g4vrk.react.inference.http.model.HttpClientSettings;
 import lombok.Getter;
 import okhttp3.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
-
 import java.time.Duration;
+import com.g4vrk.react.inference.InferenceModel;
 
 @Getter
 public final class InferenceSettings extends HttpClientSettings {
 
     private final boolean enabled;
+    private final InferenceModel model;
 
     private final @NotNull InferenceEndpointSettings endpoint;
     private final @NotNull InferenceRequestSettings request;
@@ -31,7 +32,27 @@ public final class InferenceSettings extends HttpClientSettings {
             @NotNull InferenceResponseSettings response,
             @NotNull AuthSettings auth
     ) {
+        this(connectTimeout, readTimeout, writeTimeout, callTimeout, retryOnFailure,
+                connectionPool, enabled, endpoint, request, response, auth,
+                InferenceModel.FLOWER);
+    }
+
+    public InferenceSettings(
+            @NotNull Duration connectTimeout,
+            @NotNull Duration readTimeout,
+            @NotNull Duration writeTimeout,
+            @NotNull Duration callTimeout,
+            boolean retryOnFailure,
+            @NotNull ConnectionPool connectionPool,
+            boolean enabled,
+            @NotNull InferenceEndpointSettings endpoint,
+            @NotNull InferenceRequestSettings request,
+            @NotNull InferenceResponseSettings response,
+            @NotNull AuthSettings auth,
+            @NotNull InferenceModel model
+    ) {
         super(connectTimeout, readTimeout, writeTimeout, callTimeout, retryOnFailure, connectionPool);
+        this.model = model;
         this.enabled = enabled;
         this.endpoint = endpoint;
         this.request = request;

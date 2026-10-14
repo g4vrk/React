@@ -31,6 +31,10 @@ public class CombatListener implements Listener, ReloadObserver {
         this.reload();
     }
 
+    public long combatTicks() {
+        return combatTicks;
+    }
+
     public void reload() {
 
         final Config config = React.INSTANCE.getMainConfig();

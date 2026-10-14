@@ -1,0 +1,213 @@
+# ============================================================
+# ReactDatasetCollector
+# Конфигурация аддона в стиле ReactHologramAddon.
+#
+# Доступные действия в списках ниже обрабатываются самим React:
+#   [msg]   - сообщение в чат
+#   [bar]   - action bar
+#   [sound] - звук;volume;pitch
+#
+# Поддерживается MiniMessage: <white>, <gray>, <gradient:#...:#...>, <b> и т.д.
+# ============================================================
+
+settings:
+
+  collector:
+    # Куда сохранять CSV. Относительный путь считается от папки plugins.
+    output-directory: "React/datasets"
+
+    # true  - записывать rotation только когда ReactPlayer.combatActivity активен.
+    # false - записывать все повороты игрока.
+    combat-only: true
+
+    # Сколько кадров собирать, если последний аргумент команды не указан.
+    default-recording-frames: 2000
+
+    # Максимально допустимая цель одной сессии.
+    max-recording-frames: 1500000
+
+    # Размер внутреннего куска для безопасной периодической записи и отправки.
+    # Пользователь в командах оперирует только общим количеством кадров.
+    flush-chunk-frames: 150
+
+  bossbar:
+    # BossBar видит только игрок, который запустил запись командой.
+    # Игрок, с которого собирается датасет, ничего не видит.
+    # Если записываешь самого себя, BossBar показывается тебе как обычно.
+    enabled: true
+
+    # В Minecraft нет отдельного ORANGE для полосы, поэтому для оранжевого оформления
+    # используется YELLOW, а сам текст заголовка окрашен в оранжевый.
+    # Доступно: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+    color: "YELLOW"
+
+    # SOLID | SEGMENTED_6 | SEGMENTED_10 | SEGMENTED_12 | SEGMENTED_20
+    style: "SOLID"
+
+    # placeholders:
+    # {player} {label} {source} {captured-frames} {target-frames}
+    # {buffered} {flush-chunk-frames} {progress-percent}
+    title: "&#ff6200{player} &8| &f{captured-frames}/{target-frames} кадров &8| &#ff6200{source}"
+
+    # Если игрок, который ЗАПУСТИЛ запись, вышел и снова вошёл,
+    # восстановить ему BossBar и показать recording.on-resume.
+    # На записываемого игрока эта настройка не влияет.
+    restore-on-join: true
+
+  upload:
+    # Автоматически отправлять готовые датасеты на backend /upload.
+    enabled: true
+
+    # Без /upload на конце.
+    base-url: "http://127.0.0.1:8000"
+
+    # Bearer token. Можно оставить пустым, если backend разрешает IP сервера.
+    token: ""
+
+    # move | delete | keep
+    after-upload: "move"
+
+    # Повторная обработка неотправленных CSV.
+    retry-seconds: 120
+
+    # HTTP timeout.
+    timeout-seconds: 30
+
+commands:
+  # Основная команда будет /react collector
+  # Изменение literal/aliases/permissions применяется после полного перезапуска сервера,
+  # остальные параметры и action-списки можно применить через {command} reload.
+  literal: "collector"
+  aliases:
+    - "dataset"
+    - "datasets"
+    - "rdc"
+
+  permissions:
+    use: "react.collector"
+    record-start: "react.collector.record.start"
+    record-stop: "react.collector.record.stop"
+    status: "react.collector.status"
+    upload: "react.collector.upload"
+    reload: "react.collector.reload"
+
+help:
+
+  # placeholders: {command} {aliases}
+  on-show:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Команды датасет коллектора:"
+    - "[msg] <gray>•</gray> <gradient:#ff4000:#ff6200>{command} record start <soft|legit> <ник> <описание> [кадры]</gradient>"
+    - "[msg] <gray>Без [кадры] будет записано 2000 кадров. Пример: {command} record start soft Player nurik_aura_hw 5000</gray>"
+    - "[msg] <gray>•</gray> <gradient:#ff4000:#ff6200>{command} record stop [ник]</gradient>"
+    - "[msg] <gray>•</gray> <gradient:#ff4000:#ff6200>{command} record status</gradient>"
+    - "[msg] <gray>•</gray> <gradient:#ff4000:#ff6200>{command} status</gradient>"
+    - "[msg] <gray>•</gray> <gradient:#ff4000:#ff6200>{command} upload</gradient>"
+    - "[msg] <gray>•</gray> <gradient:#ff4000:#ff6200>{command} reload</gradient>"
+
+recording:
+
+  # placeholders:
+  # {player} {label} {source} {frames} {target-frames} {combat-only} {directory}
+  on-start:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Запись запущена для <gradient:#ff4000:#ff6200>{player}</gradient>. Метка: <gradient:#ff4000:#ff6200>{label}</gradient>, тип: <gradient:#ff4000:#ff6200>{source}</gradient>, цель: <gradient:#ff4000:#ff6200>{target-frames}</gradient> кадров."
+    - "[msg] <gray>Файл: <white>{player}-{source}-ГГГГ-ММ-ДД.csv</white>. Сессия и остаток сохраняются при рестарте. combat-only: <white>{combat-only}</white>."
+    - "[sound] block.note_block.pling;1.0;1.0"
+
+  # placeholders: {player} {label} {source} {captured-frames} {target-frames} {buffered}
+  on-stop:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Запись для <gradient:#ff4000:#ff6200>{player}</gradient> остановлена. Тип: <white>{source}</white>, сохранено: <white>{captured-frames}/{target-frames}</white> кадров."
+    - "[sound] block.note_block.bass;1.0;1.0"
+
+  # placeholders: {player} {label} {source} {file} {captured-frames} {target-frames}
+  on-file:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Сохранено <gradient:#ff4000:#ff6200>{captured-frames}/{target-frames}</gradient> кадров в <gray>{file}</gray> <dark_gray>|</dark_gray> <white>{source}</white>"
+    - "[sound] entity.experience_orb.pickup;0.8;1.4"
+
+  # placeholders: {player} {label} {source} {captured-frames} {target-frames}
+  on-complete:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Запись для <gradient:#ff4000:#ff6200>{player}</gradient> завершена! Сохранено <white>{captured-frames}</white> кадров."
+    - "[bar] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Запись датасетов завершена!"
+    - "[sound] entity.player.levelup;1.0;1.0"
+
+  # placeholders: {player} {label}
+  on-error:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Не удалось записать датасет для {player}. Подробности в консоли."
+    - "[sound] entity.villager.no;1.0;1.0"
+
+  # placeholders: {label}
+  on-invalid-label:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Неизвестная метка <white>{label}</white>. Используй soft/cheater или legit."
+    - "[sound] entity.villager.no;1.0;1.0"
+
+  # placeholders: {player}
+  on-player-not-found:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Игрок <white>{player}</white> не найден."
+    - "[sound] entity.villager.no;1.0;1.0"
+
+  # placeholders: {count} {max-frames}
+  on-invalid-count:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Количество кадров должно быть от <white>1</white> до <white>{max-frames}</white>. Получено: <white>{count}</white>."
+    - "[sound] entity.villager.no;1.0;1.0"
+
+  # placeholders: {player}
+  on-already-recording:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Для игрока <white>{player}</white> уже идёт запись."
+
+  # placeholders: {player}
+  on-not-recording:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Для игрока <white>{player}</white> запись не запущена."
+
+  # Показывается только игроку, который запустил запись, после его повторного входа.
+  # Если он записывает другого игрока, цель этого сообщения и BossBar не увидит.
+  # placeholders: {player} {label} {source} {captured-frames} {target-frames} {buffered}
+  on-resume:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Запись восстановлена после рестарта. Игрок: <gradient:#ff4000:#ff6200>{player}</gradient>, тип: <white>{source}</white>, готово: <white>{captured-frames}/{target-frames}</white> кадров."
+    - "[bar] <gradient:#ff4000:#ff6200>Запись датасета восстановлена</gradient>"
+    - "[sound] block.note_block.chime;1.0;1.2"
+
+status:
+
+  # placeholders: {active}
+  header:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Активных записей: <gradient:#ff4000:#ff6200>{active}</gradient>"
+
+  # placeholders: {player} {label} {source} {captured-frames} {target-frames} {buffered}
+  entry:
+    - "[msg] <gray>•</gray> <white>{player}</white> <dark_gray>—</dark_gray> <gray>{label}</gray> <dark_gray>—</dark_gray> <white>{source}</white> <dark_gray>—</dark_gray> <white>{captured-frames}/{target-frames}</white> кадров <dark_gray>—</dark_gray> <gray>буфер {buffered}</gray>"
+
+  # placeholders: {directory} {flush-chunk-frames} {combat-only}
+  directory:
+    - "[msg] <gray>Папка:</gray> <white>{directory}</white>"
+    - "[msg] <gray>Внутренний кусок:</gray> <white>{flush-chunk-frames}</white> кадров <dark_gray>|</dark_gray> <gray>combat-only:</gray> <white>{combat-only}</white>"
+
+  # placeholders: {enabled} {pending} {target}
+  upload:
+    - "[msg] <gray>Upload:</gray> <white>{enabled}</white> <dark_gray>|</dark_gray> <gray>в очереди:</gray> <white>{pending}</white> <dark_gray>|</dark_gray> <gray>target:</gray> <white>{target}</white>"
+
+upload:
+
+  # placeholders: {pending} {target}
+  on-start:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Очередь отправки запущена. Файлов: <gradient:#ff4000:#ff6200>{pending}</gradient>."
+    - "[sound] block.note_block.pling;1.0;1.0"
+
+  on-disabled:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Автоотправка отключена в main-config.yml."
+    - "[sound] entity.villager.no;1.0;1.0"
+
+reload:
+
+  on-start:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Начата перезагрузка аддона..."
+    - "[bar] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Перезагрузка Dataset Collector..."
+    - "[sound] block.note_block.pling;1.0;1.0"
+
+  on-finish:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Аддон успешно перезагружен!"
+    - "[bar] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <white>Dataset Collector перезагружен!"
+    - "[sound] entity.player.levelup;1.0;1.0"
+
+  # placeholders: {error}
+  on-error:
+    - "[msg] <b><gradient:#ff4000:#ff6200>⭐ ʀᴇᴀᴄᴛ-ᴄᴏʟʟᴇᴄᴛᴏʀ</gradient></b> <gray>»</gray> <red>Ошибка перезагрузки: <white>{error}</white>"
+    - "[sound] entity.villager.no;1.0;1.0"

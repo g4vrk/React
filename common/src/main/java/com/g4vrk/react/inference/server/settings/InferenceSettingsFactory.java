@@ -7,9 +7,9 @@ import com.g4vrk.react.parse.time.TimeValue;
 import okhttp3.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
-
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import com.g4vrk.react.inference.InferenceModel;
 
 public class InferenceSettingsFactory {
 
@@ -42,7 +42,8 @@ public class InferenceSettingsFactory {
                 endpoint,
                 request,
                 response,
-                auth
+                auth,
+                InferenceModel.parse(root.node("model").getString("FLOWER"))
         );
     }
 

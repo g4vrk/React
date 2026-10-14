@@ -17,8 +17,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-
 import java.util.Map;
+import com.g4vrk.react.inference.InferenceModel;
 
 @Getter
 public final class InferenceServer {
@@ -32,6 +32,7 @@ public final class InferenceServer {
     private final InferenceResponseSettings responseSettings;
 
     private final boolean enabled;
+    private final InferenceModel model;
 
     public InferenceServer(
             final @NotNull Logger logger,
@@ -39,6 +40,7 @@ public final class InferenceServer {
     ) {
         this.client = settings.buildClient();
         this.enabled = settings.isEnabled();
+        this.model = settings.getModel();
 
         this.endpoint = settings.getEndpoint();
         this.requestSettings = settings.getRequest();
@@ -71,6 +73,7 @@ public final class InferenceServer {
                 .url(url)
                 .method(httpRequest.getMethod(), httpRequest.getBody());
 
+        httpRequest.getHeaders().forEach(requestBuilder::header);
         authApplier.applyToHeaders(requestBuilder);
 
         return this.client.newCall(requestBuilder.build());

@@ -18,13 +18,19 @@ public final class PlayerRegistry {
             final @NotNull UUID uuid,
             final @NotNull ReactPlayer entity
     ) {
-        players.put(uuid, entity);
+        final ReactPlayer previous = players.put(uuid, entity);
+        if (previous != null) {
+            previous.clearTransientState();
+        }
     }
 
     public void removePlayer(
             final @NotNull UUID uuid
     ) {
-        players.remove(uuid);
+        final ReactPlayer removed = players.remove(uuid);
+        if (removed != null) {
+            removed.clearTransientState();
+        }
     }
 
     public @Nullable ReactPlayer getPlayer(
@@ -35,7 +41,17 @@ public final class PlayerRegistry {
 
     }
 
+    public @Nullable ReactPlayer getByEntityId(final int entityId) {
+        for (final ReactPlayer player : players.values()) {
+            if (player.bukkitPlayer.getEntityId() == entityId) {
+                return player;
+            }
+        }
+        return null;
+    }
+
     public void clear() {
+        players.values().forEach(ReactPlayer::clearTransientState);
         players.clear();
     }
 

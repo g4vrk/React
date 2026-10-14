@@ -14,11 +14,12 @@ import com.g4vrk.react.storage.model.StoredInference;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.g4vrk.react.universe.UniverseData;
+import com.g4vrk.react.check.impl.aim.AimAI;
 
 public final class ReactPlayer {
 
@@ -31,6 +32,7 @@ public final class ReactPlayer {
 
     public final CombatActivity combatActivity;
     public final RotationData rotationData;
+    public final UniverseData universeData = new UniverseData();
 
     public final AlertPrinter alertPrinter;
     public final VerbosePrinter verbosePrinter;
@@ -69,6 +71,18 @@ public final class ReactPlayer {
 
         this.combatActivity = new CombatActivity();
         this.rotationData = new RotationData(rotationHistorySize);
+    }
+
+    public void clearTransientState() {
+        rotationData.clear();
+        universeData.reset();
+        combatActivity.reset();
+        final AimAI aim =
+                (AimAI) checkManager.getRotationCheck(
+                        AimAI.class);
+        if (aim != null) {
+            aim.resetSamples();
+        }
     }
 
     public boolean isDataReady() {

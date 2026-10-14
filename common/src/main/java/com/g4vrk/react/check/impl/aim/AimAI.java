@@ -21,8 +21,11 @@ import com.g4vrk.react.player.model.rotation.RotationData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.g4vrk.react.inference.InferenceModel;
+import com.g4vrk.react.universe.UniverseFrame;
+import com.g4vrk.schedula.task.TickSchedule;
+import java.util.concurrent.atomic.AtomicLong;
 
 @CheckInfo(
         name = "Aim-AI",
@@ -44,6 +47,7 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     private double alertThreshold;
 
     private final AtomicBoolean requesting = new AtomicBoolean();
+    private final AtomicLong requestGeneration = new AtomicLong();
 
     private DecayStrategy decayStrategy;
 
@@ -62,15 +66,16 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
         this.debug = config.node("debug").getBoolean();
         final int legacyRequiredSamples = config.node("required-samples").getInt(40);
 
-        this.sampleWindowSize = Math.max(
-                3,
-                config.node("buffer", "size").getInt(legacyRequiredSamples)
-        );
-        this.requestStep = Math.max(
-                1,
-                config.node("buffer", "send-step").getInt(10)
-        );
-        this.samplesSinceLastRequest = 0;
+        final boolean universe = React.INSTANCE.getInferenceServer().getModel()
+                == InferenceModel.UNIVERSE;
+        this.sampleWindowSize = universe
+                ? Math.max(1, React.INSTANCE.getInferenceConfig().node("universe", "sequence").getInt(64))
+                : Math.max(3, config.node("buffer", "size").getInt(legacyRequiredSamples));
+        this.requestStep = universe
+                ? Math.max(1, React.INSTANCE.getInferenceConfig().node("universe", "step").getInt(32))
+                : Math.max(1, config.node("buffer", "send-step").getInt(10));
+        resetSamples();
+        player.universeData.resize(this.sampleWindowSize);
         this.alertThreshold = config.node("alert", "threshold").getDouble(0.49D);
 
         final double decayAmount = config.node("decay", "amount").getDouble(0.5D);
@@ -89,7 +94,8 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
     @Override
     public void onRotation(@NotNull RotationData currentData) {
 
-        if (!player.combatActivity.isActive() || !shouldCheck()) {
+        if (React.INSTANCE.getInferenceServer().getModel() != InferenceModel.FLOWER
+                || !player.combatActivity.isActive() || !shouldCheck()) {
             return;
         }
 
@@ -127,11 +133,16 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
             debugHandler.debug("Sending ML request (" + snapshot.length + " rotations)");
         }
 
+        final long generation = requestGeneration.get();
         try {
             inferenceAimProcessor.check(
                     player.getName(),
                     snapshot,
-                    this::onServerResult
+                    result -> {
+                        if (requestGeneration.get() == generation) {
+                            onServerResult(result);
+                        }
+                    }
             );
         } catch (final Throwable th) {
             requesting.set(false);
@@ -140,6 +151,36 @@ public final class AimAI extends Check implements RotationCheck, ReloadObserver 
                     player.getName(),
                     th
             );
+        }
+    }
+
+    public void resetSamples() {
+        samplesSinceLastRequest = 0;
+        requestGeneration.incrementAndGet();
+        requesting.set(false);
+    }
+
+    public void onUniverseFrame() {
+        if (React.INSTANCE.getInferenceServer().getModel() != InferenceModel.UNIVERSE
+                || !player.universeData.combatActivity.isActive() || !shouldCheck()) {
+            return;
+        }
+        player.universeData.resize(sampleWindowSize);
+        final UniverseFrame[] snapshot = player.universeData.pollSnapshot(requestStep);
+        if (snapshot == null) {
+            return;
+        }
+        final long generation = requestGeneration.get();
+        try {
+            inferenceAimProcessor.check(player.getName(), snapshot, result ->
+                    React.INSTANCE.getScheduler().scheduleEntity(player.bukkitPlayer, () -> {
+                        if (requestGeneration.get() == generation) {
+                            onServerResult(result);
+                        }
+                    }, TickSchedule.instant()));
+        } catch (Throwable failure) {
+            requesting.set(false);
+            React.INSTANCE.getLogger().warn("Could not start UNIVERSE request for {}", player.getName(), failure);
         }
     }
 

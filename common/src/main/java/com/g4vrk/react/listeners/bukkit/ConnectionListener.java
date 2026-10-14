@@ -15,9 +15,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-
 import java.util.UUID;
 import java.util.function.Consumer;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class ConnectionListener implements Listener {
 
@@ -75,6 +76,23 @@ public class ConnectionListener implements Listener {
 
         } catch (final Exception ex) {
             logger.error("Could not handle disconnect of a player", ex);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        clearTransientState(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onRespawn(PlayerRespawnEvent event) {
+        clearTransientState(event.getPlayer());
+    }
+
+    private void clearTransientState(Player bukkitPlayer) {
+        ReactPlayer player = playerRegistry.getPlayer(bukkitPlayer.getUniqueId());
+        if (player != null) {
+            player.clearTransientState();
         }
     }
 

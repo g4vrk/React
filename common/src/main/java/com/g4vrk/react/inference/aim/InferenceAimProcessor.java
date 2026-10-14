@@ -18,11 +18,13 @@ import okhttp3.ResponseBody;
 import okio.BufferedSource;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import com.g4vrk.react.universe.UniverseFrame;
+import com.g4vrk.react.universe.UniverseProtocol;
+import java.nio.charset.StandardCharsets;
 
 public final class InferenceAimProcessor {
 
@@ -56,16 +58,42 @@ public final class InferenceAimProcessor {
             final @NotNull Rotation @NotNull [] snapshot,
             final @NotNull Consumer<InferenceResult> resultHandler
     ) {
+        checkFrames(playerName, snapshot, snapshot.length, resultHandler);
+    }
+
+    public void check(
+            final @NotNull String playerName,
+            final @NotNull UniverseFrame[] snapshot,
+            final @NotNull Consumer<InferenceResult> resultHandler
+    ) {
+        if (!inferenceServer.isEnabled() || snapshot.length == 0) {
+            complete(resultHandler, InferenceResult.unavailable());
+            return;
+        }
+        try {
+            final byte[] batch = UniverseProtocol.encodeBatch(snapshot);
+            final HttpRequest request = new HttpRequest("POST",
+                    RequestBody.create(batch, MediaType.get("application/x-flatbuffers")),
+                    Map.of("Accept", "application/x-flatbuffers", "X-Batch", "1"));
+            enqueue(playerName, request, resultHandler, true);
+        } catch (RuntimeException failure) {
+            logger.warn("Could not enqueue UNIVERSE request for {}", playerName, failure);
+            complete(resultHandler, InferenceResult.unavailable());
+        }
+    }
+
+    private void checkFrames(String playerName, Object snapshot, int frameCount,
+                             Consumer<InferenceResult> resultHandler) {
         if (!inferenceServer.isEnabled()) {
             complete(resultHandler, InferenceResult.unavailable());
             return;
         }
 
-        if (snapshot.length < 3) {
+        if (frameCount < 3) {
             logger.debug(
                     "Not enough rotation frames for {}: {}",
                     playerName,
-                    snapshot.length
+                    frameCount
             );
             complete(resultHandler, InferenceResult.unavailable());
             return;
@@ -107,6 +135,11 @@ public final class InferenceAimProcessor {
             final @NotNull HttpRequest request,
             final @NotNull Consumer<InferenceResult> resultHandler
     ) {
+        enqueue(playerName, request, resultHandler, false);
+    }
+
+    private void enqueue(String playerName, HttpRequest request,
+                         Consumer<InferenceResult> resultHandler, boolean universe) {
         inferenceServer.callAsync(request, new Callback() {
 
             @Override
@@ -143,7 +176,18 @@ public final class InferenceAimProcessor {
                             complete(resultHandler, InferenceResult.unavailable());
                             return;
                         }
-                        responseText = source.readUtf8();
+                        if (universe && response.isSuccessful()) {
+                            final byte[] bytes = source.readByteArray();
+                            if (bytes.length >= 4 && bytes[0] == 'G' && bytes[1] == 'A'
+                                    && bytes[2] == 'I' && bytes[3] == 'B') {
+                                complete(resultHandler, new InferenceResult(
+                                        UniverseProtocol.decodeResponse(bytes)));
+                                return;
+                            }
+                            responseText = new String(bytes, StandardCharsets.UTF_8);
+                        } else {
+                            responseText = source.readUtf8();
+                        }
                     }
 
                     if (!response.isSuccessful()) {

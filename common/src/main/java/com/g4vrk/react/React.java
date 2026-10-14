@@ -73,7 +73,6 @@ import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -82,6 +81,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import com.g4vrk.react.universe.UniverseService;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -149,6 +149,7 @@ public class React {
     private ReactPlaceholderExpansion placeholderExpansion;
 
     private CombatListener combatListener;
+    private UniverseService universeService;
 
     private final Set<PacketListenerCommon> registeredListeners = new ObjectOpenHashSet<>();
 
@@ -297,6 +298,8 @@ public class React {
         this.inferenceServer = new InferenceServer(logger, inferenceSettings);
 
         this.scheduler = schedulaAPI.createScheduler();
+
+        this.universeService = new UniverseService(playerRegistry, scheduler);
 
         logger.info("Creating Channel system...");
 
@@ -449,6 +452,7 @@ public class React {
 
         final InferenceSettings inferenceSettings = inferenceSettingsFactory.create(inferenceConfig.root());
 
+        final boolean modelChanged = this.inferenceServer.getModel() != inferenceSettings.getModel();
         this.inferenceServer.shutdown();
 
         this.inferenceServer = new InferenceServer(logger, inferenceSettings);
@@ -468,6 +472,10 @@ public class React {
 
         for (final ReactPlayer player : this.playerRegistry.all()) {
 
+            if (modelChanged) {
+                player.rotationData.clear();
+                player.universeData.clearHistory();
+            }
             player.rotationData.resizeHistory(playerFactory.getRotationsBufferSize());
             player.checkManager.reload();
 
