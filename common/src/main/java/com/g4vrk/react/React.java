@@ -31,6 +31,7 @@ import com.g4vrk.react.history.printer.InferenceHistoryPrinter;
 import com.g4vrk.react.listeners.bukkit.CombatListener;
 import com.g4vrk.react.listeners.bukkit.ConnectionListener;
 import com.g4vrk.react.listeners.packet.RotationListener;
+import com.g4vrk.react.listeners.packet.UniverseListener;
 import com.g4vrk.react.inference.aim.InferenceAimProcessor;
 import com.g4vrk.react.inference.server.InferenceServer;
 import com.g4vrk.react.inference.server.settings.InferenceSettingsFactory;
@@ -360,6 +361,7 @@ public class React {
 
         logger.info("Registering packet listeners...");
         this.registerPacketListeners(
+                new UniverseListener(playerRegistry, universeService),
                 new RotationListener(playerRegistry, new RotationProcessor(new RotationFactory()))
         );
 

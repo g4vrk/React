@@ -24,15 +24,6 @@ public final class RotationListener extends PacketListenerAbstract {
 
         if (event.getConnectionState() != ConnectionState.PLAY) return;
 
-        final ReactPlayer universePlayer = this.playerRegistry.getPlayer(event.getUser().getUUID());
-        if (universePlayer == null) return;
-
-        try {
-            React.INSTANCE.getUniverseService().onPacket(universePlayer, event);
-        } catch (RuntimeException exception) {
-            React.INSTANCE.getLogger().debug("Could not process UNIVERSE packet", exception);
-        }
-
         if (React.INSTANCE.getInferenceServer().getModel()
                 != InferenceModel.FLOWER
                 || !WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) return;

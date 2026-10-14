@@ -5,7 +5,6 @@ import com.g4vrk.react.check.impl.aim.AimAI;
 import com.g4vrk.react.inference.InferenceModel;
 import com.g4vrk.react.player.ReactPlayer;
 import com.g4vrk.react.player.registry.PlayerRegistry;
-import com.g4vrk.schedula.task.TickSchedule;
 import com.g4vrk.schedula.task.scheduler.Scheduler;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -15,17 +14,38 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import java.util.UUID;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** One SHARD stream per player, shared by inference and addon subscribers. */
 public final class UniverseService {
     private final PlayerRegistry players;
-    private final Scheduler scheduler;
+    private final UniverseEntityRunner entityRunner;
+    private final Map<UUID, UniverseData> playerData = new ConcurrentHashMap<>();
     private final CopyOnWriteArrayList<Subscription> subscriptions = new CopyOnWriteArrayList<>();
 
     public UniverseService(PlayerRegistry players, Scheduler scheduler) {
         this.players = players;
-        this.scheduler = scheduler;
+        this.entityRunner = new UniverseEntityRunner(React.INSTANCE.getPlugin(), scheduler);
+    }
+
+    public UniverseData claimPlayerData(UUID uuid) {
+        // Keep one object through the Netty/Bukkit join handoff; packets can
+        // arrive while ReactPlayer is being constructed but not yet published.
+        return playerData.computeIfAbsent(uuid, ignored -> new UniverseData());
+    }
+
+    public void removePlayerData(UUID uuid) {
+        UniverseData removed = playerData.remove(uuid);
+        if (removed != null) {
+            removed.reset();
+        }
+    }
+
+    public void onPacketBeforeJoin(UUID uuid, Player bukkitPlayer, PacketReceiveEvent event) {
+        onPacket(uuid, bukkitPlayer, claimPlayerData(uuid), event);
     }
 
     public AutoCloseable subscribe(Predicate<ReactPlayer> interested,
@@ -49,7 +69,10 @@ public final class UniverseService {
     }
 
     public void onPacket(ReactPlayer player, PacketReceiveEvent event) {
-        UniverseData data = player.universeData;
+        onPacket(player.getUniqueId(), player.bukkitPlayer, player.universeData, event);
+    }
+
+    private void onPacket(UUID uuid, Player bukkitPlayer, UniverseData data, PacketReceiveEvent event) {
         // Raveon updates SHARD on every rotation from join, including before a
         // recording and outside combat. Only writing frames is combat-gated.
         UniverseState state = data.activate();
@@ -72,27 +95,31 @@ public final class UniverseService {
         } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
             state.onFlying(flying.hasRotationChanged());
-            if (!flying.hasRotationChanged()) {
+            if (!flying.hasRotationChanged() || bukkitPlayer == null) {
                 return;
             }
             float yaw = flying.getLocation().getYaw();
             float pitch = flying.getLocation().getPitch();
-            scheduler.scheduleEntity(player.bukkitPlayer, () -> capture(player, state, yaw, pitch),
-                    TickSchedule.instant());
+            entityRunner.run(bukkitPlayer, () -> capture(uuid, bukkitPlayer, data, state, yaw, pitch));
         }
     }
 
-    private void capture(ReactPlayer player, UniverseState state, float yaw, float pitch) {
-        UniverseData data = player.universeData;
+    private void capture(UUID uuid, Player bukkitPlayer, UniverseData data,
+                         UniverseState state, float yaw, float pitch) {
         synchronized (data) {
-            if (!player.bukkitPlayer.isOnline() || players.getPlayer(player.getUniqueId()) != player
+            ReactPlayer player = players.getPlayer(uuid);
+            if (!bukkitPlayer.isOnline()
+                    || (player == null ? playerData.get(uuid) != data : player.universeData != data)
                     || !data.isCurrent(state)) {
                 return;
             }
             ReactPlayer targetPlayer = state.targetId() == null ? null : players.getPlayer(state.targetId());
             Entity target = data.combatActivity.isActive() && targetPlayer != null
                     ? targetPlayer.bukkitPlayer : null;
-            UniverseFrame frame = state.capture(player.bukkitPlayer, target, yaw, pitch);
+            UniverseFrame frame = state.capture(bukkitPlayer, target, yaw, pitch);
+            if (player == null) {
+                return;
+            }
             if (React.INSTANCE.getInferenceServer().getModel() == InferenceModel.UNIVERSE) {
                 if (data.combatActivity.isActive()) {
                     data.push(frame);
