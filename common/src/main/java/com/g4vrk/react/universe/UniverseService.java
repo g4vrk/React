@@ -73,6 +73,14 @@ public final class UniverseService {
     }
 
     private void onPacket(UUID uuid, Player bukkitPlayer, UniverseData data, PacketReceiveEvent event) {
+        // Packet flags, target selection and the combat deadline must move together.
+        // Capture uses this same monitor before resolving the target and reading SHARD.
+        synchronized (data) {
+            processPacket(uuid, bukkitPlayer, data, event);
+        }
+    }
+
+    private void processPacket(UUID uuid, Player bukkitPlayer, UniverseData data, PacketReceiveEvent event) {
         // Raveon updates SHARD on every rotation from join, including before a
         // recording and outside combat. Only writing frames is combat-gated.
         UniverseState state = data.activate();
@@ -106,17 +114,20 @@ public final class UniverseService {
 
     private void capture(UUID uuid, Player bukkitPlayer, UniverseData data,
                          UniverseState state, float yaw, float pitch) {
+        ReactPlayer player;
+        UniverseFrame frame;
         synchronized (data) {
-            ReactPlayer player = players.getPlayer(uuid);
+            player = players.getPlayer(uuid);
             if (!bukkitPlayer.isOnline()
                     || (player == null ? playerData.get(uuid) != data : player.universeData != data)
                     || !data.isCurrent(state)) {
                 return;
             }
-            ReactPlayer targetPlayer = state.targetId() == null ? null : players.getPlayer(state.targetId());
+            UUID targetId = state.targetId();
+            ReactPlayer targetPlayer = targetId == null ? null : players.getPlayer(targetId);
             Entity target = data.combatActivity.isActive() && targetPlayer != null
                     ? targetPlayer.bukkitPlayer : null;
-            UniverseFrame frame = state.capture(bukkitPlayer, target, yaw, pitch);
+            frame = state.capture(bukkitPlayer, target, yaw, pitch);
             if (player == null) {
                 return;
             }
@@ -131,10 +142,14 @@ public final class UniverseService {
                     data.clearHistory();
                 }
             }
-            for (Subscription subscription : subscriptions) {
-                if (subscription.interested.test(player)) {
-                    subscription.consumer.accept(player, frame);
-                }
+        }
+        // Dataset checkpoints and UI callbacks must not hold up packet state updates.
+        if (!data.isCurrent(state)) {
+            return;
+        }
+        for (Subscription subscription : subscriptions) {
+            if (subscription.interested.test(player)) {
+                subscription.consumer.accept(player, frame);
             }
         }
     }
