@@ -40,6 +40,8 @@ public final class CsvDatasetStorage {
     private final Path directory;
     private final int framesPerFile;
     private final java.util.Map<Path, Long> universeCommittedSizes = new java.util.HashMap<>();
+    private final java.util.Map<UUID, Path> universeRecordingPaths = new java.util.HashMap<>();
+    private final java.util.Map<String, Integer> universePendingNumbers = new java.util.HashMap<>();
 
     public CsvDatasetStorage(Logger logger, Path path, int n) {
         this.logger = logger;
@@ -150,9 +152,58 @@ public final class CsvDatasetStorage {
         return commitUniverseBatch(journal).pending();
     }
 
-    public Path pathForRecording(String player, String source, LocalDate date, UUID recordingId) {
-        return modeDirectory(InferenceModel.UNIVERSE).resolve(safePlayerName(player) + "-"
-                + safeSource(source) + "-" + date + "-" + recordingId + ".csv");
+    public synchronized Path pathForRecording(String player, String source, LocalDate date, UUID recordingId) {
+        Path reserved = universeRecordingPaths.get(recordingId);
+        if (reserved != null) return reserved;
+        String base = safePlayerName(player) + "-" + safeSource(source) + "-" + date;
+        Path folder = modeDirectory(InferenceModel.UNIVERSE);
+        Path reservations = folder.resolve(".recording-names");
+        try {
+            Files.createDirectories(reservations);
+            java.util.Set<String> recovering = new java.util.HashSet<>();
+            for (Path journal : universeRecovery()) {
+                Properties data = new Properties();
+                try (var reader = Files.newBufferedReader(journal, StandardCharsets.UTF_8)) { data.load(reader); }
+                recovering.add(data.getProperty("csv"));
+            }
+            for (int suffix = 1; ; suffix++) {
+                String name = base + (suffix == 1 ? "" : "-" + suffix) + ".csv";
+                Path candidate = folder.resolve(name);
+                if (Files.exists(candidate) || recovering.contains(name)) continue;
+                try {
+                    // Reserve names without creating an empty CSV; safe across addon reloads and writers.
+                    Files.writeString(reservations.resolve(name + ".reserve"), recordingId.toString(),
+                            StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                    universeRecordingPaths.put(recordingId, candidate);
+                    return candidate;
+                } catch (java.nio.file.FileAlreadyExistsException taken) {
+                    // Another recording reserved this readable name before its first batch was saved.
+                }
+            }
+        } catch (IOException failure) {
+            throw new java.io.UncheckedIOException("Cannot reserve UNIVERSE dataset name", failure);
+        }
+    }
+
+    synchronized String reserveUniversePendingName(String player, RecordLabel label) throws IOException {
+        String key = (safePlayerName(player) + "-" + label.fileLabel()).toLowerCase(Locale.ROOT);
+        Integer previous = universePendingNumbers.get(key);
+        int number = previous == null ? nextFreeNumber(safePlayerName(player), label, InferenceModel.UNIVERSE) - 1 : previous;
+        if (previous == null) {
+            for (Path journal : universeRecovery()) {
+                Properties data = new Properties();
+                try (var reader = Files.newBufferedReader(journal, StandardCharsets.UTF_8)) { data.load(reader); }
+                Matcher matcher = PENDING.matcher(data.getProperty("pending", ""));
+                if (matcher.matches() && matcher.group(1).equalsIgnoreCase(safePlayerName(player))
+                        && matcher.group(3).equalsIgnoreCase(label.fileLabel())) {
+                    try { number = Math.max(number, Integer.parseInt(matcher.group(2))); }
+                    catch (NumberFormatException previousVersion) { /* Older jobs used larger identifiers. */ }
+                }
+            }
+        }
+        number = Math.incrementExact(number);
+        universePendingNumbers.put(key, number);
+        return safePlayerName(player) + "-" + number + "-" + label.fileLabel() + ".csv";
     }
 
     private Path universeRecoveryDirectory() {

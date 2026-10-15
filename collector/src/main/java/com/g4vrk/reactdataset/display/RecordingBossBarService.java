@@ -35,7 +35,7 @@ public final class RecordingBossBarService {
 
     public void show(Player player, SessionSnapshot snapshot) {
         if (snapshot != null && snapshot.mode() == InferenceModel.UNIVERSE) {
-            if (player != null) showUniverse(player, snapshot);
+            if (player != null && player.getUniqueId().equals(snapshot.recorderUuid())) showUniverse(player, snapshot);
             return;
         }
         if (!this.settings.enabled() || player == null || snapshot == null) {
@@ -58,10 +58,6 @@ public final class RecordingBossBarService {
         if (snapshot != null && snapshot.mode() == InferenceModel.UNIVERSE) {
             UniverseBar entry = universeBars.get(snapshot.uniqueId());
             if (entry == null || !java.util.Objects.equals(entry.latest.recordingId(), snapshot.recordingId())) return;
-            if (snapshot.capturedFrames() >= snapshot.targetFrames()) {
-                hide(snapshot);
-                return;
-            }
             synchronized (entry) {
                 if (snapshot.capturedFrames() < entry.latest.capturedFrames()
                         || snapshot.savedFrames() < entry.latest.savedFrames()) return;
@@ -154,8 +150,9 @@ public final class RecordingBossBarService {
     private void paintUniverse(UUID uuid, UniverseBar entry) {
         if (universeBars.get(uuid) != entry) return;
         SessionSnapshot snapshot = entry.latest;
-        String title = "UNIVERSE | Буфер: " + snapshot.buffered() + "/64 | Пачек: "
-                + snapshot.completedBatches() + " | Кадров: " + snapshot.savedFrames();
+        String title = "UNIVERSE | " + snapshot.savedBatches() + "/" + snapshot.targetBatches()
+                + " пачек | Буфер: " + snapshot.buffered() + "/64 | Кадров: "
+                + snapshot.savedFrames() + " | " + snapshot.playerName();
         if (entry.bar == null) {
             entry.bar = Bukkit.createBossBar(title, BarColor.PURPLE, BarStyle.SOLID);
             entry.bar.addPlayer(entry.viewer);

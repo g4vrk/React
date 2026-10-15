@@ -33,6 +33,8 @@ public final class CollectorActionService {
         this.load(config, "recording", "on-invalid-label");
         this.load(config, "recording", "on-player-not-found");
         this.load(config, "recording", "on-invalid-count");
+        this.load(config, "recording", "on-invalid-batch-count", List.of(
+                "[msg] <red>Количество пачек UNIVERSE должно быть от 1 до {max-batches}. Получено: {count}.</red>"));
         this.load(config, "recording", "on-already-recording");
         this.load(config, "recording", "on-not-recording");
         this.loadWithFallback(config, "recording", "on-resume", "player-on-resume");
@@ -62,9 +64,13 @@ public final class CollectorActionService {
     }
 
     private void load(Config config, String section, String key) {
+        load(config, section, key, Collections.emptyList());
+    }
+
+    private void load(Config config, String section, String key, List<String> defaults) {
         String id = section + "." + key;
         try {
-            this.actions.put(id, (ExecutableActionList<? super Audience>)this.parser.parseAll(config.node(new Object[]{section, key}).getList(String.class, Collections.emptyList())));
+            this.actions.put(id, (ExecutableActionList<? super Audience>)this.parser.parseAll(config.node(new Object[]{section, key}).getList(String.class, defaults)));
         }
         catch (SerializationException ex) {
             throw new IllegalStateException("Failed to load action list: " + id, ex);

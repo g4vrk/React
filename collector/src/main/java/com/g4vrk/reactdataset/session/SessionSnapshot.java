@@ -16,6 +16,14 @@ public record SessionSnapshot(UUID uniqueId, String playerName, RecordLabel labe
         return mode == InferenceModel.UNIVERSE ? captured / RecordingSession.UNIVERSE_BATCH_SIZE : 0;
     }
 
+    public int savedBatches() {
+        return mode == InferenceModel.UNIVERSE ? savedFrames / RecordingSession.UNIVERSE_BATCH_SIZE : 0;
+    }
+
+    public int targetBatches() {
+        return mode == InferenceModel.UNIVERSE ? targetFrames() / RecordingSession.UNIVERSE_BATCH_SIZE : 0;
+    }
+
     public SessionSnapshot withBuffered(int count) {
         return new SessionSnapshot(uniqueId, playerName, label, captured, targetFiles, count,
                 recorderUuid, source, mode, savedFrames, recordingId);

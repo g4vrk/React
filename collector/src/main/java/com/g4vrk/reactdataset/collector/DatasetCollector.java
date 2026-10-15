@@ -183,7 +183,7 @@ public final class DatasetCollector {
                 universeWriter.enqueue(session, captured, (csv, pending) -> {
                     session.batchSaved();
                     SessionSnapshot saved = session.snapshot();
-                    if (sessions.get(player.getUniqueId()) == session && !session.finished()) {
+                    if (sessions.get(player.getUniqueId()) == session) {
                         progressUniverse(saved);
                     }
                     // Upload and action callbacks run after the CSV and recovery state are committed.
@@ -195,9 +195,6 @@ public final class DatasetCollector {
             }
             progressUniverse(snapshot);
             if (session.finished()) {
-                sessions.complete(player.getUniqueId(), session);
-                React.INSTANCE.getUniverseService().refresh(player.getUniqueId());
-                endUniverse(snapshot);
                 notifyUniverseComplete(session);
             }
         }
@@ -214,10 +211,17 @@ public final class DatasetCollector {
     }
 
     private void notifyUniverseComplete(RecordingSession session) {
-        if (session.claimCompletion()) {
-            SessionSnapshot snapshot = session.snapshot();
-            session.notifier().onComplete(snapshot.savedFrames(), snapshot.targetFrames());
+        SessionSnapshot snapshot;
+        synchronized (session) {
+            if (!session.claimCompletion()) return;
+            snapshot = session.snapshot();
+            if (sessions.get(snapshot.uniqueId()) == session) {
+                sessions.complete(snapshot.uniqueId(), session);
+                React.INSTANCE.getUniverseService().refresh(snapshot.uniqueId());
+                endUniverse(snapshot);
+            }
         }
+        session.notifier().onComplete(snapshot.savedFrames(), snapshot.targetFrames());
     }
 
     private void afterCapture(UUID uuid, RecordingSession session, RecordingSession.CapturedFile captured) {

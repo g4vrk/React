@@ -21,6 +21,7 @@ import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
 import com.g4vrk.react.inference.InferenceModel;
+import com.g4vrk.reactdataset.session.RecordingSession;
 
 public final class RecordStartArgument
 extends LocalArgument {
@@ -53,10 +54,12 @@ extends LocalArgument {
         } else {
             builder = builder.optional("frames", IntegerParser.integerParser());
         }
-        return builder.permission(this.addon.settings().command().permissions().start()).handler(context -> this.execute((CommandSender)context.sender(), (SinglePlayerSelector)context.get("player"), (String)context.get("source"), (Integer)context.getOrDefault("frames", this.addon.settings().collector().defaultRecordingFrames()), universe));
+        return builder.permission(this.addon.settings().command().permissions().start()).handler(context -> this.execute((CommandSender)context.sender(), (SinglePlayerSelector)context.get("player"), (String)context.get("source"), (Integer)context.getOrDefault("frames", universe
+                ? Math.max(1, this.addon.settings().collector().defaultRecordingFrames() / RecordingSession.UNIVERSE_BATCH_SIZE)
+                : this.addon.settings().collector().defaultRecordingFrames()), universe));
     }
 
-    private void execute(CommandSender sender, SinglePlayerSelector selector, String source, int frames, boolean universe) {
+    private void execute(CommandSender sender, SinglePlayerSelector selector, String source, int count, boolean universe) {
         UUID uUID;
         Player player;
         final DatasetCollector collector = this.addon.collector();
@@ -68,10 +71,13 @@ extends LocalArgument {
             this.addon.actions().run("recording.on-player-not-found", sender, Placeholders.of("player", "?"));
             return;
         }
-        if (frames < 1 || frames > collector.maxFramesPerRecording()) {
-            this.addon.actions().run("recording.on-invalid-count", sender, Placeholders.of("count", frames, "max-files", collector.maxFramesPerRecording(), "max-frames", collector.maxFramesPerRecording()));
+        final int maximum = universe ? collector.maxFramesPerRecording() / RecordingSession.UNIVERSE_BATCH_SIZE : collector.maxFramesPerRecording();
+        if (count < 1 || count > maximum) {
+            this.addon.actions().run(universe ? "recording.on-invalid-batch-count" : "recording.on-invalid-count", sender,
+                    Placeholders.of("count", count, "max-files", maximum, "max-frames", maximum, "max-batches", maximum));
             return;
         }
+        final int frames = universe ? Math.multiplyExact(count, RecordingSession.UNIVERSE_BATCH_SIZE) : count;
         final UUID targetUuid = player.getUniqueId();
         if (sender instanceof Player) {
             Player senderPlayer = (Player)sender;
@@ -83,8 +89,8 @@ extends LocalArgument {
         final CommandSender fallbackSender = sender;
         final String targetName = player.getName();
         final String safeSource = source;
-        final int chunkFrames = universe ? com.g4vrk.reactdataset.session.RecordingSession.UNIVERSE_BATCH_SIZE : collector.framesPerFile();
-        Map<String, String> base = Placeholders.of("player", targetName, "label", this.label.fileLabel(), "source", safeSource, "frames", frames, "target-frames", frames, "file-count", universe ? frames / chunkFrames : (frames + chunkFrames - 1) / chunkFrames, "frames-per-file", chunkFrames, "combat-only", collector.combatOnly(), "directory", collector.datasetsDirectory().toString());
+        final int chunkFrames = universe ? RecordingSession.UNIVERSE_BATCH_SIZE : collector.framesPerFile();
+        Map<String, String> base = Placeholders.of("player", targetName, "label", this.label.fileLabel(), "source", safeSource, "frames", frames, "target-frames", frames, "batches", universe ? count : 0, "file-count", universe ? count : (frames + chunkFrames - 1) / chunkFrames, "frames-per-file", chunkFrames, "combat-only", collector.combatOnly(), "directory", collector.datasetsDirectory().toString());
         RecordingNotifier notifier = new RecordingNotifier(){
 
             @Override
@@ -108,9 +114,7 @@ extends LocalArgument {
             return;
         }
         SessionSnapshot snapshot = collector.snapshot(targetUuid);
-        if (snapshot != null && universe) {
-            this.addon.recordingBossBars().show(player, snapshot);
-        } else if (snapshot != null && sender instanceof Player) {
+        if (snapshot != null && sender instanceof Player) {
             Player recorder = (Player)sender;
             this.addon.recordingBossBars().show(recorder, snapshot);
         }

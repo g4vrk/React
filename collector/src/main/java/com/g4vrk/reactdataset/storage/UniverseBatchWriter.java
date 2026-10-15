@@ -48,11 +48,7 @@ public final class UniverseBatchWriter implements AutoCloseable {
         String order = String.format(java.util.Locale.ROOT, "%019d", ++sequence);
         UUID key = UUID.randomUUID();
         String id = order + "-" + key;
-        Path csv = storage.pathForRecording(session.safePlayerName(), session.source(),
-                session.recordingDate(), session.recordingId());
-        writes.add(new Write(session, batch, id, csv,
-                session.safePlayerName() + "-" + new java.math.BigInteger(key.toString().replace("-", ""), 16)
-                        + "-" + session.label().fileLabel() + ".csv", saved, failed));
+        writes.add(new Write(session, batch, id, null, null, saved, failed));
         worker.execute(this::drain);
     }
 
@@ -63,6 +59,13 @@ public final class UniverseBatchWriter implements AutoCloseable {
         for (Write write : pending) {
             if (write.journal != null) continue;
             try {
+                if (write.csv == null) {
+                    write.csv = storage.pathForRecording(write.session.safePlayerName(), write.session.source(),
+                            write.session.recordingDate(), write.session.recordingId());
+                }
+                if (write.pendingName == null) {
+                    write.pendingName = storage.reserveUniversePendingName(write.session.safePlayerName(), write.session.label());
+                }
                 write.journal = storage.stageUniverseBatch(write.id, write.csv, write.pendingName,
                         write.session.label(), write.batch.frames());
             } catch (Exception failure) { report(write, failure); }

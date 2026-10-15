@@ -24,10 +24,11 @@ implements Listener {
 
     @EventHandler(priority=EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        if (!this.bossBars.restoreOnJoin() || this.addon.collector() == null) {
+        if (this.addon.collector() == null) {
             return;
         }
         for (SessionSnapshot snapshot : this.addon.collector().active()) {
+            if (snapshot.mode() == InferenceModel.FLOWER && !bossBars.restoreOnJoin()) continue;
             if (snapshot.recorderUuid() == null || !snapshot.recorderUuid().equals(event.getPlayer().getUniqueId())) continue;
             this.bossBars.show(event.getPlayer(), snapshot);
             this.addon.actions().run("recording.on-resume", (CommandSender)event.getPlayer(), Placeholders.of("player", snapshot.playerName(), "label", snapshot.label().fileLabel(), "source", snapshot.source(), "captured", snapshot.capturedFrames(), "target", snapshot.targetFrames(), "captured-frames", snapshot.capturedFrames(), "target-frames", snapshot.targetFrames(), "buffered", snapshot.buffered(), "frames-per-file", this.addon.collector().framesPerFile()));
