@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.ConnectionState;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 
-/** SHARD receives attacks and rotations at Raveon's LOW priority. */
+/** UNIVERSE receives attacks and rotations at LOW packet priority. */
 public final class UniverseListener extends PacketListenerAbstract {
     private final PlayerRegistry players;
     private final UniverseService service;

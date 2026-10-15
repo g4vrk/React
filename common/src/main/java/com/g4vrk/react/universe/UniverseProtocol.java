@@ -4,7 +4,7 @@ import com.google.flatbuffers.FlatBufferBuilder;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-/** Raveon's extended (model id 2) GAIQ request and single-item batch framing. */
+/** UNIVERSE (model id 2) GAIQ request and single-item batch framing. */
 public final class UniverseProtocol {
     private UniverseProtocol() {
     }
@@ -47,7 +47,7 @@ public final class UniverseProtocol {
             throw new IllegalArgumentException("UNIVERSE response item count must be 1");
         }
         double probability = buffer.getDouble();
-        // Preserve the original Raveon binary-response handling.
+        // Normalize non-finite values in UNIVERSE binary responses.
         if (!Double.isFinite(probability)) {
             probability = 0.0;
         }

@@ -44,17 +44,17 @@ public final class UniverseFrame {
     public static final int TICKS_SINCE_DAMAGE = 34;
     public static final int HELD_ITEM_CLASS = 35;
     public static final int PLAYER_PING = 36;
-    public static final String[] SHARD_FEATURE_NAMES = new String[]{"rotation_present", "pitch", "mode_yaw", "mode_pitch", "mode_yaw_valid", "mode_pitch_valid", "delta_dots_yaw", "delta_dots_pitch", "target_valid", "target_aim_angle", "target_rel_x", "target_rel_y", "target_rel_z", "same_target_as_prev_attack", "targets_in_range_count", "attack_this_tick", "swung_this_tick", "ticks_since_attack", "ticks_to_attack", "attack_cooldown_progress", "attack_speed", "raytrace_hit", "raytrace_dirs_hit_count", "aim_error_yaw", "aim_error_pitch", "hit_point_rel_x", "hit_point_rel_y", "hit_point_rel_z", "air_200", "hits_200", "air_600", "hits_600", "miss_share", "damage_taken_this_tick", "ticks_since_damage", "held_item_class", "player_ping"};
-    public static final int SHARD_FEATURE_COUNT = SHARD_FEATURE_NAMES.length;
+    public static final String[] UNIVERSE_FEATURE_NAMES = new String[]{"rotation_present", "pitch", "mode_yaw", "mode_pitch", "mode_yaw_valid", "mode_pitch_valid", "delta_dots_yaw", "delta_dots_pitch", "target_valid", "target_aim_angle", "target_rel_x", "target_rel_y", "target_rel_z", "same_target_as_prev_attack", "targets_in_range_count", "attack_this_tick", "swung_this_tick", "ticks_since_attack", "ticks_to_attack", "attack_cooldown_progress", "attack_speed", "raytrace_hit", "raytrace_dirs_hit_count", "aim_error_yaw", "aim_error_pitch", "hit_point_rel_x", "hit_point_rel_y", "hit_point_rel_z", "air_200", "hits_200", "air_600", "hits_600", "miss_share", "damage_taken_this_tick", "ticks_since_damage", "held_item_class", "player_ping"};
+    public static final int UNIVERSE_FEATURE_COUNT = UNIVERSE_FEATURE_NAMES.length;
 
 
     private final float[] features;
 
     public UniverseFrame(float deltaYaw, float deltaPitch, float accelYaw, float accelPitch,
                          float jerkYaw, float jerkPitch, float gcdErrorYaw, float gcdErrorPitch,
-                         float[] shard) {
-        if (shard != null && shard.length != SHARD_FEATURE_COUNT) {
-            throw new IllegalArgumentException("Expected 37 SHARD features");
+                         float[] universe) {
+        if (universe != null && universe.length != UNIVERSE_FEATURE_COUNT) {
+            throw new IllegalArgumentException("Expected 37 UNIVERSE features");
         }
         features = new float[DATASET_FEATURE_COUNT];
         features[0] = deltaYaw;
@@ -65,10 +65,10 @@ public final class UniverseFrame {
         features[5] = jerkPitch;
         features[6] = gcdErrorYaw;
         features[7] = gcdErrorPitch;
-        if (shard == null) {
+        if (universe == null) {
             features[8 + TICKS_TO_ATTACK] = -255.0f;
         } else {
-            System.arraycopy(shard, 0, features, 8, SHARD_FEATURE_COUNT);
+            System.arraycopy(universe, 0, features, 8, UNIVERSE_FEATURE_COUNT);
         }
     }
 
@@ -85,12 +85,12 @@ public final class UniverseFrame {
     }
 
     public float[] inferenceFeatures() {
-        // Raveon omits only the last SHARD field (PLAYER_PING).
+        // UNIVERSE inference omits only the last feature (PLAYER_PING).
         return Arrays.copyOf(features, INFERENCE_FEATURE_COUNT);
     }
 
     public static String csvHeader() {
-        return "is_cheating," + BASE_HEADER + "," + String.join(",", SHARD_FEATURE_NAMES);
+        return "is_cheating," + BASE_HEADER + "," + String.join(",", UNIVERSE_FEATURE_NAMES);
     }
 
     public String toCsvRow(boolean cheater) {

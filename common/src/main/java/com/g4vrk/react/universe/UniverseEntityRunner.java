@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
-/** Uses the same entity tick phase as Raveon, including modern Paper. */
+/** Captures UNIVERSE features in the entity tick phase, including modern Paper. */
 public final class UniverseEntityRunner {
     private final Plugin plugin;
     private final Scheduler fallback;

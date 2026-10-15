@@ -24,7 +24,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-// SHARD calculations ported from the supplied Raveon 1.0.3-v2.
+/** UNIVERSE rotation and combat feature calculations. */
 public final class UniverseState {
     private float lastYaw = 0.0f;
     private float lastPitch = 0.0f;
@@ -34,30 +34,30 @@ public final class UniverseState {
     private float lastAccelPitch = 0.0f;
     private float lastYawToTargetDiff = 0.0f;
     private float lastPitchToTargetDiff = 0.0f;
-    private static final double SHARD_MS_PER_TICK = 50.0;
-    private static final int SHARD_MAX_TICKS = 255;
-    private static final float SHARD_TICKS_PER_SECOND = 20.0f;
-    private static final double SHARD_RAYTRACE_RANGE_MARGIN = 3.0;
-    private static final double SHARD_RAYTRACE_MIN_RANGE = 6.0;
-    private static final double SHARD_DEFAULT_INTERACTION_RANGE = 3.0;
-    private static final double SHARD_TARGETS_IN_RANGE_RADIUS = 6.0;
-    private static final double SHARD_TARGETS_IN_RANGE_RADIUS_SQ = 36.0;
-    private static final double[] SHARD_POSSIBLE_EYE_HEIGHTS = new double[]{1.62, 1.27, 0.4};
-    private static final double SHARD_STAND_EYE_HEIGHT = 1.62;
-    private static final double SHARD_SNEAK_EYE_HEIGHT = 1.27;
-    private static final double SHARD_SWIM_EYE_HEIGHT = 0.4;
-    private static final double SHARD_MIN_AIM_DISTANCE = 0.001;
-    private static final double SHARD_MIN_ANGULAR_EXTENT = 1.0E-6;
-    private static final float SHARD_DEFAULT_ATTACK_SPEED = 4.0f;
-    private static final int SHARD_ANCHOR_TIMEOUT_TICKS = 100;
-    private static final float SHARD_NO_TICKS_TO_ATTACK = -255.0f;
-    private static final int SHARD_SIGNIFICANT_SAMPLES_THRESHOLD = 15;
-    private static final int SHARD_TOTAL_SAMPLES_THRESHOLD = 80;
-    private static final double SHARD_MAX_SAMPLE_DELTA = 5.0;
-    private static final double SHARD_YAW_ULP_DIVISOR_FRACTION = 0.0625;
-    private static final double SHARD_YAW_BUCKET_ULP_FACTOR = 2.0;
-    private static final double SHARD_MODE_THRESHOLD = 0.001;
-    private static final double SHARD_MINIMUM_DIVISOR = (double)((float)Math.pow(0.2f, 3.0)) * 8.0 * 0.15 - 0.001;
+    private static final double UNIVERSE_MS_PER_TICK = 50.0;
+    private static final int UNIVERSE_MAX_TICKS = 255;
+    private static final float UNIVERSE_TICKS_PER_SECOND = 20.0f;
+    private static final double UNIVERSE_RAYTRACE_RANGE_MARGIN = 3.0;
+    private static final double UNIVERSE_RAYTRACE_MIN_RANGE = 6.0;
+    private static final double UNIVERSE_DEFAULT_INTERACTION_RANGE = 3.0;
+    private static final double UNIVERSE_TARGETS_IN_RANGE_RADIUS = 6.0;
+    private static final double UNIVERSE_TARGETS_IN_RANGE_RADIUS_SQ = 36.0;
+    private static final double[] UNIVERSE_POSSIBLE_EYE_HEIGHTS = new double[]{1.62, 1.27, 0.4};
+    private static final double UNIVERSE_STAND_EYE_HEIGHT = 1.62;
+    private static final double UNIVERSE_SNEAK_EYE_HEIGHT = 1.27;
+    private static final double UNIVERSE_SWIM_EYE_HEIGHT = 0.4;
+    private static final double UNIVERSE_MIN_AIM_DISTANCE = 0.001;
+    private static final double UNIVERSE_MIN_ANGULAR_EXTENT = 1.0E-6;
+    private static final float UNIVERSE_DEFAULT_ATTACK_SPEED = 4.0f;
+    private static final int UNIVERSE_ANCHOR_TIMEOUT_TICKS = 100;
+    private static final float UNIVERSE_NO_TICKS_TO_ATTACK = -255.0f;
+    private static final int UNIVERSE_SIGNIFICANT_SAMPLES_THRESHOLD = 15;
+    private static final int UNIVERSE_TOTAL_SAMPLES_THRESHOLD = 80;
+    private static final double UNIVERSE_MAX_SAMPLE_DELTA = 5.0;
+    private static final double UNIVERSE_YAW_ULP_DIVISOR_FRACTION = 0.0625;
+    private static final double UNIVERSE_YAW_BUCKET_ULP_FACTOR = 2.0;
+    private static final double UNIVERSE_MODE_THRESHOLD = 0.001;
+    private static final double UNIVERSE_MINIMUM_DIVISOR = (double)((float)Math.pow(0.2f, 3.0)) * 8.0 * 0.15 - 0.001;
     private static final int ITEM_UNKNOWN = 0;
     private static final int ITEM_EMPTY = 1;
     private static final int ITEM_MELEE_WEAPON = 2;
@@ -76,7 +76,7 @@ public final class UniverseState {
     private static final Attribute ATTACK_SPEED_ATTRIBUTE = UniverseState.resolveAttribute("GENERIC_ATTACK_SPEED", "ATTACK_SPEED");
     private static final Attribute INTERACTION_RANGE_ATTRIBUTE = UniverseState.resolveAttribute("PLAYER_ENTITY_INTERACTION_RANGE", "ENTITY_INTERACTION_RANGE");
     private static volatile Boolean modernCombatServer;
-    private final Object shardLock = new Object();
+    private final Object universeLock = new Object();
     private final ArrayDeque<Double> xRotModeList = new ArrayDeque<>(80);
     private final Map<Double, Integer> xRotModePopularity = new HashMap<Double, Integer>();
     private final ArrayDeque<Double> yRotModeList = new ArrayDeque<>(80);
@@ -85,25 +85,25 @@ public final class UniverseState {
     private int xRotModeCount;
     private double yRotModeValue;
     private int yRotModeCount;
-    private double shardLastXRot;
-    private double shardLastYRot;
-    private double shardModeX;
-    private double shardModeY;
-    private double shardDeltaDotsX;
-    private double shardDeltaDotsY;
-    private boolean shardAttackThisTick;
-    private boolean shardSwungThisTick;
-    private boolean shardRotationOnPreviousFlying = true;
-    private boolean shardIdleFlyingSinceLastFrame;
-    private UUID shardTargetId;
-    private UUID shardLastTargetId;
-    private long shardLastAttackMillis = -1L;
-    private long shardCooldownResetMillis = -1L;
-    private long shardLastDamageMillis = -1L;
-    private long shardAnchorAttackMillis = -1L;
-    private float shardPreAttackCooldown = 1.0f;
-    private float shardAttackSpeed = 4.0f;
-    private double shardLastHealth = Double.NaN;
+    private double universeLastXRot;
+    private double universeLastYRot;
+    private double universeModeX;
+    private double universeModeY;
+    private double universeDeltaDotsX;
+    private double universeDeltaDotsY;
+    private boolean universeAttackThisTick;
+    private boolean universeSwungThisTick;
+    private boolean universeRotationOnPreviousFlying = true;
+    private boolean universeIdleFlyingSinceLastFrame;
+    private UUID universeTargetId;
+    private UUID universeLastTargetId;
+    private long universeLastAttackMillis = -1L;
+    private long universeCooldownResetMillis = -1L;
+    private long universeLastDamageMillis = -1L;
+    private long universeAnchorAttackMillis = -1L;
+    private float universePreAttackCooldown = 1.0f;
+    private float universeAttackSpeed = 4.0f;
+    private double universeLastHealth = Double.NaN;
     private final int[] memoryAir = new int[600];
     private final int[] memoryHits = new int[600];
     private int memoryIndex;
@@ -111,13 +111,13 @@ public final class UniverseState {
 
 
     public UUID targetId() {
-        synchronized (shardLock) {
-            return shardTargetId;
+        synchronized (universeLock) {
+            return universeTargetId;
         }
     }
 
     public UniverseFrame capture(Player bukkitPlayer, Entity target, float rawYaw, float rawPitch) {
-        synchronized (shardLock) {
+        synchronized (universeLock) {
             float currentYaw = UniverseMouseMath.normalizeAngle(rawYaw);
             float currentPitch = Math.max(-90.0f, Math.min(90.0f, rawPitch));
             float deltaYaw = UniverseMouseMath.normalizeAngle(currentYaw - lastYaw);
@@ -128,7 +128,7 @@ public final class UniverseState {
             float jerkPitch = UniverseMouseMath.calculateJerk(accelPitch, lastAccelPitch);
             float gcdErrorYaw = UniverseMouseMath.calculateGCDError(deltaYaw, lastDeltaYaw);
             float gcdErrorPitch = UniverseMouseMath.calculateGCDError(deltaPitch, lastDeltaPitch);
-            float[] shard = captureShardFeatures(bukkitPlayer, target, lastYaw, lastPitch,
+            float[] universe = captureUniverseFeatures(bukkitPlayer, target, lastYaw, lastPitch,
                     currentYaw, currentPitch, deltaYaw, deltaPitch);
             lastYaw = currentYaw;
             lastPitch = currentPitch;
@@ -137,54 +137,54 @@ public final class UniverseState {
             lastAccelYaw = accelYaw;
             lastAccelPitch = accelPitch;
             return new UniverseFrame(deltaYaw, deltaPitch, accelYaw, accelPitch,
-                    jerkYaw, jerkPitch, gcdErrorYaw, gcdErrorPitch, shard);
+                    jerkYaw, jerkPitch, gcdErrorYaw, gcdErrorPitch, universe);
         }
     }
     public void onFlying(boolean hasRotation) {
-        Object object = this.shardLock;
+        Object object = this.universeLock;
         synchronized (object) {
             if (!hasRotation) {
-                this.shardIdleFlyingSinceLastFrame = true;
+                this.universeIdleFlyingSinceLastFrame = true;
             }
         }
     }
 
     public void onAttack(UUID targetUuid) {
-        Object object = this.shardLock;
+        Object object = this.universeLock;
         synchronized (object) {
             boolean anchorAlive;
             long now = System.currentTimeMillis();
-            this.shardAttackThisTick = true;
-            this.shardLastTargetId = this.shardTargetId;
-            this.shardTargetId = targetUuid;
-            float cooldownPeriod = 20.0f / this.shardAttackSpeed;
-            this.shardPreAttackCooldown = UniverseState.clamp01((UniverseState.ticksSince(this.shardCooldownResetMillis, now) + 0.5f) / cooldownPeriod);
-            boolean bl = anchorAlive = this.shardAnchorAttackMillis >= 0L && this.shardLastAttackMillis >= 0L && (double)(now - this.shardLastAttackMillis) / 50.0 < 100.0;
+            this.universeAttackThisTick = true;
+            this.universeLastTargetId = this.universeTargetId;
+            this.universeTargetId = targetUuid;
+            float cooldownPeriod = 20.0f / this.universeAttackSpeed;
+            this.universePreAttackCooldown = UniverseState.clamp01((UniverseState.ticksSince(this.universeCooldownResetMillis, now) + 0.5f) / cooldownPeriod);
+            boolean bl = anchorAlive = this.universeAnchorAttackMillis >= 0L && this.universeLastAttackMillis >= 0L && (double)(now - this.universeLastAttackMillis) / 50.0 < 100.0;
             if (!anchorAlive) {
-                this.shardAnchorAttackMillis = now;
+                this.universeAnchorAttackMillis = now;
             }
-            this.shardLastAttackMillis = now;
-            this.shardCooldownResetMillis = now;
+            this.universeLastAttackMillis = now;
+            this.universeCooldownResetMillis = now;
         }
     }
 
     public void onSwing() {
-        Object object = this.shardLock;
+        Object object = this.universeLock;
         synchronized (object) {
-            this.shardSwungThisTick = true;
-            this.shardCooldownResetMillis = System.currentTimeMillis();
+            this.universeSwungThisTick = true;
+            this.universeCooldownResetMillis = System.currentTimeMillis();
         }
     }
 
     public void onSlotChange() {
-        Object object = this.shardLock;
+        Object object = this.universeLock;
         synchronized (object) {
-            this.shardCooldownResetMillis = System.currentTimeMillis();
+            this.universeCooldownResetMillis = System.currentTimeMillis();
         }
     }
 
-    public void resetShard() {
-        Object object = this.shardLock;
+    public void resetUniverse() {
+        Object object = this.universeLock;
         synchronized (object) {
             this.xRotModeList.clear();
             this.xRotModePopularity.clear();
@@ -194,55 +194,55 @@ public final class UniverseState {
             this.xRotModeCount = 0;
             this.yRotModeValue = 0.0;
             this.yRotModeCount = 0;
-            this.shardLastXRot = 0.0;
-            this.shardLastYRot = 0.0;
-            this.shardModeX = 0.0;
-            this.shardModeY = 0.0;
-            this.shardDeltaDotsX = 0.0;
-            this.shardDeltaDotsY = 0.0;
-            this.shardAttackThisTick = false;
-            this.shardSwungThisTick = false;
-            this.shardTargetId = null;
-            this.shardLastTargetId = null;
-            this.shardAnchorAttackMillis = -1L;
-            this.shardLastHealth = Double.NaN;
+            this.universeLastXRot = 0.0;
+            this.universeLastYRot = 0.0;
+            this.universeModeX = 0.0;
+            this.universeModeY = 0.0;
+            this.universeDeltaDotsX = 0.0;
+            this.universeDeltaDotsY = 0.0;
+            this.universeAttackThisTick = false;
+            this.universeSwungThisTick = false;
+            this.universeTargetId = null;
+            this.universeLastTargetId = null;
+            this.universeAnchorAttackMillis = -1L;
+            this.universeLastHealth = Double.NaN;
         }
     }
 
-    private float[] captureShardFeatures(Player bukkitPlayer, Entity target, float fromYaw, float fromPitch, float yaw, float pitch, float deltaYaw, float deltaPitch) {
-        Object object = this.shardLock;
+    private float[] captureUniverseFeatures(Player bukkitPlayer, Entity target, float fromYaw, float fromPitch, float yaw, float pitch, float deltaYaw, float deltaPitch) {
+        Object object = this.universeLock;
         synchronized (object) {
             long now = System.currentTimeMillis();
-            float[] f = new float[UniverseFrame.SHARD_FEATURE_COUNT];
-            boolean attackThisTick = this.shardAttackThisTick;
-            boolean swungThisTick = this.shardSwungThisTick;
-            this.shardAttackThisTick = false;
-            this.shardSwungThisTick = false;
-            f[0] = UniverseState.bool(this.shardRotationOnPreviousFlying && !this.shardIdleFlyingSinceLastFrame);
-            this.shardRotationOnPreviousFlying = !this.shardIdleFlyingSinceLastFrame;
-            this.shardIdleFlyingSinceLastFrame = false;
+            float[] f = new float[UniverseFrame.UNIVERSE_FEATURE_COUNT];
+            boolean attackThisTick = this.universeAttackThisTick;
+            boolean swungThisTick = this.universeSwungThisTick;
+            this.universeAttackThisTick = false;
+            this.universeSwungThisTick = false;
+            f[0] = UniverseState.bool(this.universeRotationOnPreviousFlying && !this.universeIdleFlyingSinceLastFrame);
+            this.universeRotationOnPreviousFlying = !this.universeIdleFlyingSinceLastFrame;
+            this.universeIdleFlyingSinceLastFrame = false;
             f[1] = pitch;
-            this.processShardAim(fromYaw, yaw, deltaYaw, deltaPitch);
+            this.processUniverseAim(fromYaw, yaw, deltaYaw, deltaPitch);
             boolean modeYawValid = this.xRotModeCount > 15;
             boolean modePitchValid = this.yRotModeCount > 15;
-            f[2] = (float)this.shardModeX;
-            f[3] = (float)this.shardModeY;
+            f[2] = (float)this.universeModeX;
+            f[3] = (float)this.universeModeY;
             f[4] = UniverseState.bool(modeYawValid);
             f[5] = UniverseState.bool(modePitchValid);
-            f[6] = modeYawValid ? (float)this.shardDeltaDotsX : 0.0f;
-            f[7] = modePitchValid ? (float)this.shardDeltaDotsY : 0.0f;
+            f[6] = modeYawValid ? (float)this.universeDeltaDotsX : 0.0f;
+            f[7] = modePitchValid ? (float)this.universeDeltaDotsY : 0.0f;
             f[15] = UniverseState.bool(attackThisTick);
             f[16] = UniverseState.bool(swungThisTick);
-            f[17] = UniverseState.ticksSince(this.shardLastAttackMillis, now);
-            f[20] = this.shardAttackSpeed = UniverseState.readAttackSpeed(bukkitPlayer);
-            float cooldown = attackThisTick ? this.shardPreAttackCooldown : UniverseState.clamp01((UniverseState.ticksSince(this.shardCooldownResetMillis, now) + 0.5f) / (20.0f / this.shardAttackSpeed));
+            f[17] = UniverseState.ticksSince(this.universeLastAttackMillis, now);
+            f[20] = this.universeAttackSpeed = UniverseState.readAttackSpeed(bukkitPlayer);
+            float cooldown = attackThisTick ? this.universePreAttackCooldown : UniverseState.clamp01((UniverseState.ticksSince(this.universeCooldownResetMillis, now) + 0.5f) / (20.0f / this.universeAttackSpeed));
             f[19] = UniverseState.isLegacyCombat(bukkitPlayer) ? 0.0f : cooldown;
-            boolean anchorAlive = this.shardAnchorAttackMillis >= 0L && this.shardLastAttackMillis >= 0L && (double)(now - this.shardLastAttackMillis) / 50.0 < 100.0;
-            f[18] = anchorAlive ? (float)Math.min(255.0, Math.floor((double)(now - this.shardAnchorAttackMillis) / 50.0)) : -255.0f;
+            boolean anchorAlive = this.universeAnchorAttackMillis >= 0L && this.universeLastAttackMillis >= 0L && (double)(now - this.universeLastAttackMillis) / 50.0 < 100.0;
+            f[18] = anchorAlive ? (float)Math.min(255.0, Math.floor((double)(now - this.universeAnchorAttackMillis) / 50.0)) : -255.0f;
             boolean targetValid = target != null && target.isValid() && !target.isDead() && target.getWorld().equals((Object)bukkitPlayer.getWorld());
             f[8] = UniverseState.bool(targetValid);
             if (targetValid) {
-                this.captureShardTarget(f, bukkitPlayer, target, fromYaw, fromPitch, yaw, pitch, attackThisTick);
+                this.captureUniverseTarget(f, bukkitPlayer, target, fromYaw, fromPitch, yaw, pitch, attackThisTick);
             }
             this.memoryAir[this.memoryIndex] = swungThisTick && !attackThisTick ? 1 : 0;
             this.memoryHits[this.memoryIndex] = attackThisTick ? 1 : 0;
@@ -258,44 +258,44 @@ public final class UniverseState {
             f[31] = hits600;
             f[32] = air600 + hits600 == 0 ? 0.0f : (float)air600 / (float)(air600 + hits600);
             double health = bukkitPlayer.getHealth();
-            float lost = Double.isNaN(this.shardLastHealth) ? 0.0f : (float)(this.shardLastHealth - health);
-            this.shardLastHealth = health;
+            float lost = Double.isNaN(this.universeLastHealth) ? 0.0f : (float)(this.universeLastHealth - health);
+            this.universeLastHealth = health;
             if (lost > 0.0f) {
                 f[33] = lost;
-                this.shardLastDamageMillis = now;
+                this.universeLastDamageMillis = now;
             }
-            f[34] = UniverseState.ticksSince(this.shardLastDamageMillis, now);
+            f[34] = UniverseState.ticksSince(this.universeLastDamageMillis, now);
             f[35] = UniverseState.classifyItem(bukkitPlayer.getInventory().getItemInMainHand());
             f[36] = UniverseState.readPing(bukkitPlayer);
             return f;
         }
     }
 
-    private void processShardAim(float fromYaw, float toYaw, float deltaYaw, float deltaPitch) {
+    private void processUniverseAim(float fromYaw, float toYaw, float deltaYaw, float deltaPitch) {
         double[] mode;
         double yawUlp;
         double deltaYawAbs = Math.abs(deltaYaw);
         double deltaPitchAbs = Math.abs(deltaPitch);
-        double divisorX = UniverseState.shardGcd(deltaYawAbs, this.shardLastXRot);
-        if (deltaYawAbs > 0.0 && deltaYawAbs < 5.0 && divisorX > SHARD_MINIMUM_DIVISOR && (yawUlp = (double)Math.ulp(Math.max(Math.abs(fromYaw), Math.abs(toYaw)))) < divisorX * 0.0625) {
-            if (this.shardLastXRot != 0.0) {
+        double divisorX = UniverseState.universeGcd(deltaYawAbs, this.universeLastXRot);
+        if (deltaYawAbs > 0.0 && deltaYawAbs < 5.0 && divisorX > UNIVERSE_MINIMUM_DIVISOR && (yawUlp = (double)Math.ulp(Math.max(Math.abs(fromYaw), Math.abs(toYaw)))) < divisorX * 0.0625) {
+            if (this.universeLastXRot != 0.0) {
                 UniverseState.runningModeAdd(this.xRotModeList, this.xRotModePopularity, divisorX, Math.max(0.001, yawUlp * 2.0));
             }
-            this.shardLastXRot = deltaYawAbs;
+            this.universeLastXRot = deltaYawAbs;
         }
-        double divisorY = UniverseState.shardGcd(deltaPitchAbs, this.shardLastYRot);
-        if (deltaPitchAbs > 0.0 && deltaPitchAbs < 5.0 && divisorY > SHARD_MINIMUM_DIVISOR) {
-            if (this.shardLastYRot != 0.0) {
+        double divisorY = UniverseState.universeGcd(deltaPitchAbs, this.universeLastYRot);
+        if (deltaPitchAbs > 0.0 && deltaPitchAbs < 5.0 && divisorY > UNIVERSE_MINIMUM_DIVISOR) {
+            if (this.universeLastYRot != 0.0) {
                 UniverseState.runningModeAdd(this.yRotModeList, this.yRotModePopularity, divisorY, 0.001);
             }
-            this.shardLastYRot = deltaPitchAbs;
+            this.universeLastYRot = deltaPitchAbs;
         }
         if (this.xRotModeList.size() > 15) {
             mode = UniverseState.runningModeUpdate(this.xRotModePopularity);
             this.xRotModeValue = mode[0];
             this.xRotModeCount = (int)mode[1];
             if (this.xRotModeCount > 15) {
-                this.shardModeX = this.xRotModeValue;
+                this.universeModeX = this.xRotModeValue;
             }
         }
         if (this.yRotModeList.size() > 15) {
@@ -303,14 +303,14 @@ public final class UniverseState {
             this.yRotModeValue = mode[0];
             this.yRotModeCount = (int)mode[1];
             if (this.yRotModeCount > 15) {
-                this.shardModeY = this.yRotModeValue;
+                this.universeModeY = this.yRotModeValue;
             }
         }
-        if (this.shardModeX > 0.0) {
-            this.shardDeltaDotsX = deltaYawAbs / this.shardModeX;
+        if (this.universeModeX > 0.0) {
+            this.universeDeltaDotsX = deltaYawAbs / this.universeModeX;
         }
-        if (this.shardModeY > 0.0) {
-            this.shardDeltaDotsY = deltaPitchAbs / this.shardModeY;
+        if (this.universeModeY > 0.0) {
+            this.universeDeltaDotsY = deltaPitchAbs / this.universeModeY;
         }
     }
 
@@ -345,7 +345,7 @@ public final class UniverseState {
         return new double[]{mostPopular, max};
     }
 
-    private static double shardGcd(double aInput, double bInput) {
+    private static double universeGcd(double aInput, double bInput) {
         double temp;
         if (aInput == 0.0) {
             return 0.0;
@@ -357,7 +357,7 @@ public final class UniverseState {
             a = b;
             b = temp;
         }
-        while (b > SHARD_MINIMUM_DIVISOR) {
+        while (b > UNIVERSE_MINIMUM_DIVISOR) {
             temp = a - Math.floor(a / b) * b;
             a = b;
             b = temp;
@@ -365,12 +365,12 @@ public final class UniverseState {
         return a;
     }
 
-    private void captureShardTarget(float[] f, Player bukkitPlayer, Entity target, float fromYaw, float fromPitch, float yaw, float pitch, boolean attackThisTick) {
+    private void captureUniverseTarget(float[] f, Player bukkitPlayer, Entity target, float fromYaw, float fromPitch, float yaw, float pitch, boolean attackThisTick) {
         Location feet = bukkitPlayer.getLocation();
         double px = feet.getX();
         double py = feet.getY();
         double pz = feet.getZ();
-        f[13] = UniverseState.bool(this.shardTargetId != null && Objects.equals(this.shardTargetId, this.shardLastTargetId));
+        f[13] = UniverseState.bool(this.universeTargetId != null && Objects.equals(this.universeTargetId, this.universeLastTargetId));
         BoundingBox box = target.getBoundingBox();
         List<Vector> lookDirs = UniverseState.possibleLookDirs(bukkitPlayer, fromYaw, fromPitch, yaw, pitch);
         f[9] = (float)UniverseState.minAngleToBox(px, py, pz, lookDirs, box);
@@ -422,7 +422,7 @@ public final class UniverseState {
         double[][] points = new double[][]{{box.getCenterX(), box.getCenterY(), box.getCenterZ()}, {box.getMinX(), box.getMinY(), box.getMinZ()}, {box.getMaxX(), box.getMinY(), box.getMinZ()}, {box.getMinX(), box.getMaxY(), box.getMinZ()}, {box.getMaxX(), box.getMaxY(), box.getMinZ()}, {box.getMinX(), box.getMinY(), box.getMaxZ()}, {box.getMaxX(), box.getMinY(), box.getMaxZ()}, {box.getMinX(), box.getMaxY(), box.getMaxZ()}, {box.getMaxX(), box.getMaxY(), box.getMaxZ()}};
         double minAngle = Double.MAX_VALUE;
         for (Vector lookVec : lookDirs) {
-            for (double eye : SHARD_POSSIBLE_EYE_HEIGHTS) {
+            for (double eye : UNIVERSE_POSSIBLE_EYE_HEIGHTS) {
                 double ey = py + eye;
                 for (double[] point : points) {
                     double dx = point[0] - px;
@@ -442,7 +442,7 @@ public final class UniverseState {
 
     private static Vector raytraceHitPoint(double px, double py, double pz, List<Vector> lookDirs, BoundingBox box, double maxDistance) {
         for (Vector lookVec : lookDirs) {
-            for (double eye : SHARD_POSSIBLE_EYE_HEIGHTS) {
+            for (double eye : UNIVERSE_POSSIBLE_EYE_HEIGHTS) {
                 Vector origin = new Vector(px, py + eye, pz);
                 if (UniverseState.isVecInside(box, origin)) {
                     return origin;
@@ -458,7 +458,7 @@ public final class UniverseState {
     private static int countRaytraceHits(double px, double py, double pz, List<Vector> lookDirs, BoundingBox box, double maxDistance) {
         int hits = 0;
         for (Vector lookVec : lookDirs) {
-            for (double eye : SHARD_POSSIBLE_EYE_HEIGHTS) {
+            for (double eye : UNIVERSE_POSSIBLE_EYE_HEIGHTS) {
                 Vector origin = new Vector(px, py + eye, pz);
                 if (!UniverseState.isVecInside(box, origin) && box.rayTrace(origin, lookVec, maxDistance) == null) continue;
                 ++hits;

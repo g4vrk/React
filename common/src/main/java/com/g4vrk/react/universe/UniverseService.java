@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** One SHARD stream per player, shared by inference and addon subscribers. */
+/** One UNIVERSE stream per player, shared by inference and addon subscribers. */
 public final class UniverseService {
     private final PlayerRegistry players;
     private final UniverseEntityRunner entityRunner;
@@ -63,7 +63,7 @@ public final class UniverseService {
     public void refresh(UUID uuid) {
         ReactPlayer player = players.getPlayer(uuid);
         if (player != null && React.INSTANCE.getInferenceServer().getModel() != InferenceModel.UNIVERSE) {
-            // Recording start/stop must not reset the continuous SHARD history.
+            // Recording start/stop must not reset the continuous UNIVERSE history.
             player.universeData.clearHistory();
         }
     }
@@ -74,14 +74,14 @@ public final class UniverseService {
 
     private void onPacket(UUID uuid, Player bukkitPlayer, UniverseData data, PacketReceiveEvent event) {
         // Packet flags, target selection and the combat deadline must move together.
-        // Capture uses this same monitor before resolving the target and reading SHARD.
+        // Capture uses this same monitor before resolving the target and reading UNIVERSE.
         synchronized (data) {
             processPacket(uuid, bukkitPlayer, data, event);
         }
     }
 
     private void processPacket(UUID uuid, Player bukkitPlayer, UniverseData data, PacketReceiveEvent event) {
-        // Raveon updates SHARD on every rotation from join, including before a
+        // UNIVERSE updates features on every rotation from join, including before a
         // recording and outside combat. Only writing frames is combat-gated.
         UniverseState state = data.activate();
         if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
@@ -91,7 +91,7 @@ public final class UniverseService {
         } else if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                // Raveon resolves attacks only against indexed players; unknown targets remain null.
+                // UNIVERSE resolves attacks only against indexed players; unknown targets remain null.
                 ReactPlayer target = players.getByEntityId(interact.getEntityId());
                 state.onAttack(target == null ? null : target.getUniqueId());
                 if (!data.combatActivity.isActive()) {

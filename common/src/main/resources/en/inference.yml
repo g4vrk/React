@@ -12,13 +12,13 @@
 enabled: true
 
 # FLOWER keeps its existing JSON protocol and checks/aim-ai.yml buffer settings.
-# UNIVERSE uses Raveon's GAIQ/GAIB protocol: 44 inputs, excluding dataset PING.
+# UNIVERSE uses the GAIQ/GAIB binary protocol: 44 inputs, excluding dataset PING.
 model: FLOWER
 
 universe:
   sequence: 64
   step: 32
-  # SHARD combat/collection window in ticks, independent of FLOWER's combat time.
+  # UNIVERSE combat/collection window in ticks, independent of FLOWER's combat time.
   combat-ticks: 64
 
 # GAIQ has no JSON token field; auth.type: body is omitted for UNIVERSE.

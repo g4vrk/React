@@ -1,6 +1,6 @@
 package com.g4vrk.react.universe;
 
-/** Raveon's millisecond combat deadline; the deadline itself is still active. */
+/** UNIVERSE combat deadline in milliseconds; the deadline itself is still active. */
 public final class UniverseCombatActivity {
     private volatile long activityUntil;
     private volatile boolean active;
