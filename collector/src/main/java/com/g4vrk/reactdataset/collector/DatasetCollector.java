@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import com.g4vrk.react.inference.InferenceModel;
 import com.g4vrk.react.universe.UniverseFrame;
 import com.g4vrk.react.React;
+import com.g4vrk.reactdataset.storage.UniverseBatchWriter;
 
 public final class DatasetCollector {
     private final Logger logger;
@@ -33,6 +34,9 @@ public final class DatasetCollector {
     private final int configuredMaximum;
     private volatile Consumer<Path> onFileWritten = path -> {};
     private volatile BiConsumer<UUID, SessionSnapshot> onProgress = (uuid, snapshot) -> {};
+    private volatile Consumer<SessionSnapshot> onEnd = snapshot -> {};
+    private final UniverseBatchWriter universeWriter;
+    private volatile boolean closing;
 
     public DatasetCollector(Logger logger, PlayerRegistry playerRegistry, RotationFactory rotationFactory, SessionManager sessions, CsvDatasetStorage storage, Scheduler scheduler, boolean combatOnly, int configuredMaximum) {
         this.logger = logger;
@@ -43,6 +47,7 @@ public final class DatasetCollector {
         this.scheduler = scheduler;
         this.combatOnly = combatOnly;
         this.configuredMaximum = configuredMaximum;
+        this.universeWriter = new UniverseBatchWriter(storage);
     }
 
     public boolean start(Player player, RecordLabel label, int targetFrames, String source, UUID recorderUuid, RecordingNotifier notifier) {
@@ -68,6 +73,18 @@ public final class DatasetCollector {
     }
 
     public SessionSnapshot stop(UUID uuid) {
+        RecordingSession current = sessions.get(uuid);
+        if (current != null && current.mode() == InferenceModel.UNIVERSE) {
+            synchronized (current) {
+                if (sessions.get(uuid) != current) return null;
+                sessions.remove(uuid);
+                current.finishAndDrain();
+                React.INSTANCE.getUniverseService().refresh(uuid);
+                SessionSnapshot snapshot = current.snapshot();
+                endUniverse(snapshot);
+                return snapshot;
+            }
+        }
         RecordingSession session = this.sessions.remove(uuid);
         if (session == null) {
             return null;
@@ -124,6 +141,10 @@ public final class DatasetCollector {
         this.onProgress = consumer == null ? (uuid, snapshot) -> {} : consumer;
     }
 
+    public void onEnd(Consumer<SessionSnapshot> consumer) {
+        onEnd = consumer == null ? snapshot -> {} : consumer;
+    }
+
     public void onRotation(UUID uuid, float yaw, float pitch) {
         RecordingSession session = this.sessions.get(uuid);
         if (session == null || session.finished()
@@ -154,8 +175,49 @@ public final class DatasetCollector {
                 || (combatOnly && !player.universeData.combatActivity.isActive())) {
             return;
         }
-        RecordingSession.CapturedFile captured = session.capture(frame);
-        afterCapture(player.getUniqueId(), session, captured);
+        synchronized (session) {
+            if (closing || sessions.get(player.getUniqueId()) != session || session.finished()) return;
+            RecordingSession.CapturedFile captured = session.capture(frame);
+            SessionSnapshot snapshot = session.snapshot();
+            if (captured != null) {
+                universeWriter.enqueue(session, captured, (csv, pending) -> {
+                    session.batchSaved();
+                    SessionSnapshot saved = session.snapshot();
+                    if (sessions.get(player.getUniqueId()) == session && !session.finished()) {
+                        progressUniverse(saved);
+                    }
+                    // Upload and action callbacks run after the CSV and recovery state are committed.
+                    session.notifier().onFile(csv, saved.savedFrames(), saved.targetFrames());
+                    notifyUniverseComplete(session);
+                    scheduler.scheduleAsync(() -> onFileWritten.accept(pending), TickSchedule.instant());
+                }, failure -> session.notifier().onError());
+                progressUniverse(snapshot.withBuffered(RecordingSession.UNIVERSE_BATCH_SIZE));
+            }
+            progressUniverse(snapshot);
+            if (session.finished()) {
+                sessions.complete(player.getUniqueId(), session);
+                React.INSTANCE.getUniverseService().refresh(player.getUniqueId());
+                endUniverse(snapshot);
+                notifyUniverseComplete(session);
+            }
+        }
+    }
+
+    private void progressUniverse(SessionSnapshot snapshot) {
+        try { onProgress.accept(snapshot.uniqueId(), snapshot); }
+        catch (RuntimeException failure) { logger.warn("Could not update UNIVERSE recording progress", failure); }
+    }
+
+    private void endUniverse(SessionSnapshot snapshot) {
+        try { onEnd.accept(snapshot); }
+        catch (RuntimeException failure) { logger.warn("Could not remove UNIVERSE recording progress", failure); }
+    }
+
+    private void notifyUniverseComplete(RecordingSession session) {
+        if (session.claimCompletion()) {
+            SessionSnapshot snapshot = session.snapshot();
+            session.notifier().onComplete(snapshot.savedFrames(), snapshot.targetFrames());
+        }
     }
 
     private void afterCapture(UUID uuid, RecordingSession session, RecordingSession.CapturedFile captured) {
@@ -206,6 +268,11 @@ public final class DatasetCollector {
     }
 
     public void stopAll() {
+        closing = true;
+        for (SessionSnapshot snapshot : sessions.active()) {
+            if (snapshot.mode() == InferenceModel.UNIVERSE) stop(snapshot.uniqueId());
+        }
         this.sessions.stopAll();
+        universeWriter.close();
     }
 }

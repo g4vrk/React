@@ -22,7 +22,6 @@ import com.g4vrk.reactdataset.display.RecordingBossBarService;
 import com.g4vrk.reactdataset.listeners.bukkit.RecordingConnectionListener;
 import com.g4vrk.reactdataset.listeners.packet.RotationListener;
 import com.g4vrk.reactdataset.model.RecordLabel;
-import com.g4vrk.reactdataset.session.SessionSnapshot;
 import com.g4vrk.reactdataset.session.manager.SessionManager;
 import com.g4vrk.reactdataset.storage.CsvDatasetStorage;
 import com.g4vrk.reactdataset.upload.UploadClient;
@@ -131,7 +130,9 @@ implements DatasetCollectorAPI {
             this.uploadQueue = null;
         }
         this.recordingBossBars = new RecordingBossBarService(this.scheduler, this.settings.bossBar(), this.settings.collector().framesPerFile());
-        this.collector.onProgress((uuid, snapshot) -> this.recordingBossBars.update((SessionSnapshot)snapshot));
+        final RecordingBossBarService activeBossBars = this.recordingBossBars;
+        this.collector.onProgress((uuid, snapshot) -> activeBossBars.update(snapshot));
+        this.collector.onEnd(activeBossBars::hide);
         this.connectionListener = new RecordingConnectionListener(this, this.recordingBossBars);
         Bukkit.getPluginManager().registerEvents((Listener)this.connectionListener, react.getPlugin());
         final DatasetCollector activeCollector = this.collector;

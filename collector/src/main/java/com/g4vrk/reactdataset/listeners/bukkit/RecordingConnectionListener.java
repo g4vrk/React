@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import com.g4vrk.react.inference.InferenceModel;
 
 public final class RecordingConnectionListener
 implements Listener {
@@ -35,6 +36,13 @@ implements Listener {
 
     @EventHandler(priority=EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
+        if (addon.collector() != null) {
+            SessionSnapshot snapshot = addon.collector().snapshot(event.getPlayer().getUniqueId());
+            if (snapshot != null && snapshot.mode() == InferenceModel.UNIVERSE) {
+                addon.collector().stop(snapshot.uniqueId());
+                bossBars.hide(snapshot);
+            }
+        }
         this.bossBars.detach(event.getPlayer());
     }
 }

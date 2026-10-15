@@ -16,6 +16,8 @@ import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
+import com.g4vrk.react.inference.InferenceModel;
+import com.g4vrk.reactdataset.session.RecordingSession;
 
 public final class RecordingBossBarService {
     private static final Pattern HEX = Pattern.compile("&#([A-Fa-f0-9]{6})");
@@ -23,6 +25,7 @@ public final class RecordingBossBarService {
     private final DatasetSettings.BossBarSettings settings;
     private final int framesPerChunk;
     private final Map<UUID, BossBar> bars = new ConcurrentHashMap<UUID, BossBar>();
+    private final Map<UUID, UniverseBar> universeBars = new ConcurrentHashMap<>();
 
     public RecordingBossBarService(Scheduler scheduler, DatasetSettings.BossBarSettings settings, int framesPerChunk) {
         this.scheduler = scheduler;
@@ -31,6 +34,10 @@ public final class RecordingBossBarService {
     }
 
     public void show(Player player, SessionSnapshot snapshot) {
+        if (snapshot != null && snapshot.mode() == InferenceModel.UNIVERSE) {
+            if (player != null) showUniverse(player, snapshot);
+            return;
+        }
         if (!this.settings.enabled() || player == null || snapshot == null) {
             return;
         }
@@ -48,6 +55,21 @@ public final class RecordingBossBarService {
     }
 
     public void update(SessionSnapshot snapshot) {
+        if (snapshot != null && snapshot.mode() == InferenceModel.UNIVERSE) {
+            UniverseBar entry = universeBars.get(snapshot.uniqueId());
+            if (entry == null || !java.util.Objects.equals(entry.latest.recordingId(), snapshot.recordingId())) return;
+            if (snapshot.capturedFrames() >= snapshot.targetFrames()) {
+                hide(snapshot);
+                return;
+            }
+            synchronized (entry) {
+                if (snapshot.capturedFrames() < entry.latest.capturedFrames()
+                        || snapshot.savedFrames() < entry.latest.savedFrames()) return;
+                entry.latest = snapshot;
+            }
+            runOnViewer(entry.viewer, () -> paintUniverse(snapshot.uniqueId(), entry));
+            return;
+        }
         if (!this.settings.enabled() || snapshot == null) {
             return;
         }
@@ -67,6 +89,9 @@ public final class RecordingBossBarService {
 
     public void detach(Player player) {
         if (player != null) {
+            universeBars.forEach((uuid, entry) -> {
+                if (entry.viewer.getUniqueId().equals(player.getUniqueId())) removeUniverse(uuid, entry);
+            });
             this.runSync(() -> this.bars.values().forEach(bar -> bar.removePlayer(player)));
         }
     }
@@ -75,6 +100,8 @@ public final class RecordingBossBarService {
         if (uuid == null) {
             return;
         }
+        UniverseBar entry = universeBars.get(uuid);
+        if (entry != null) removeUniverse(uuid, entry);
         this.runSync(() -> {
             BossBar bar = this.bars.remove(uuid);
             if (bar != null) {
@@ -85,6 +112,7 @@ public final class RecordingBossBarService {
     }
 
     public void clear() {
+        universeBars.forEach(this::removeUniverse);
         this.runSync(() -> {
             this.bars.values().forEach(bar -> {
                 bar.removeAll();
@@ -96,6 +124,84 @@ public final class RecordingBossBarService {
 
     public boolean restoreOnJoin() {
         return this.settings.restoreOnJoin();
+    }
+
+    public void hide(SessionSnapshot snapshot) {
+        if (snapshot.mode() != InferenceModel.UNIVERSE) {
+            hide(snapshot.uniqueId());
+            return;
+        }
+        UniverseBar entry = universeBars.get(snapshot.uniqueId());
+        if (entry != null && java.util.Objects.equals(entry.latest.recordingId(), snapshot.recordingId())) {
+            removeUniverse(snapshot.uniqueId(), entry);
+        }
+    }
+
+    private void showUniverse(Player viewer, SessionSnapshot snapshot) {
+        UniverseBar entry = new UniverseBar(viewer, snapshot);
+        UniverseBar previous = universeBars.put(snapshot.uniqueId(), entry);
+        if (previous != null) {
+            if (java.util.Objects.equals(previous.latest.recordingId(), snapshot.recordingId())) {
+                universeBars.replace(snapshot.uniqueId(), entry, previous);
+                update(snapshot);
+                return;
+            }
+            disposeUniverse(previous);
+        }
+        runOnViewer(viewer, () -> paintUniverse(snapshot.uniqueId(), entry));
+    }
+
+    private void paintUniverse(UUID uuid, UniverseBar entry) {
+        if (universeBars.get(uuid) != entry) return;
+        SessionSnapshot snapshot = entry.latest;
+        String title = "UNIVERSE | Буфер: " + snapshot.buffered() + "/64 | Пачек: "
+                + snapshot.completedBatches() + " | Кадров: " + snapshot.savedFrames();
+        if (entry.bar == null) {
+            entry.bar = Bukkit.createBossBar(title, BarColor.PURPLE, BarStyle.SOLID);
+            entry.bar.addPlayer(entry.viewer);
+            entry.bar.setVisible(true);
+        }
+        entry.bar.setTitle(title);
+        entry.bar.setProgress(Math.max(0.0, Math.min(1.0,
+                (double)snapshot.buffered() / RecordingSession.UNIVERSE_BATCH_SIZE)));
+    }
+
+    private void removeUniverse(UUID uuid, UniverseBar entry) {
+        if (universeBars.remove(uuid, entry)) disposeUniverse(entry);
+    }
+
+    private void disposeUniverse(UniverseBar entry) {
+        runOnViewer(entry.viewer, () -> {
+            if (entry.bar != null) {
+                entry.bar.removeAll();
+                entry.bar.setVisible(false);
+            }
+        });
+    }
+
+    private void runOnViewer(Player viewer, Runnable task) {
+        boolean owned = Bukkit.isPrimaryThread();
+        if (!owned) {
+            try {
+                owned = (boolean)Bukkit.class.getMethod("isOwnedByCurrentRegion", org.bukkit.entity.Entity.class)
+                        .invoke(null, viewer);
+            } catch (ReflectiveOperationException unavailable) {
+                // Older Paper uses the main-thread path above.
+            }
+        }
+        if (owned) task.run();
+        else scheduler.scheduleEntity(viewer, task, TickSchedule.instant());
+    }
+
+    private static final class UniverseBar {
+        final Player viewer;
+        volatile SessionSnapshot latest;
+        BossBar bar;
+
+        UniverseBar(Player viewer, SessionSnapshot latest) {
+            this.viewer = viewer;
+            this.latest = latest;
+        }
     }
 
     private double progress(SessionSnapshot snapshot) {

@@ -50,7 +50,7 @@ extends LocalArgument {
             this.addon.actions().run("recording.on-not-recording", sender, Placeholders.of("player", player.getName()));
             return;
         }
-        this.addon.recordingBossBars().hide(uuid);
+        this.addon.recordingBossBars().hide(snapshot);
         this.addon.actions().run("recording.on-stop", sender, Placeholders.of("player", snapshot.playerName(), "label", snapshot.label().fileLabel(), "source", snapshot.source(), "captured", snapshot.capturedFrames(), "target", snapshot.targetFrames(), "captured-frames", snapshot.capturedFrames(), "target-frames", snapshot.targetFrames(), "buffered", snapshot.buffered(), "frames-per-file", this.addon.collector().framesPerFile()));
     }
 }

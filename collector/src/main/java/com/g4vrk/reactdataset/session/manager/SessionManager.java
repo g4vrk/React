@@ -24,6 +24,10 @@ public final class SessionManager {
         this.storage = storage;
         this.store = new SessionStore(storage.logger(), storage.directory().resolve(".recording-sessions"));
         for (RecordingSession session : this.store.load()) {
+            if (session.mode() == InferenceModel.UNIVERSE) {
+                this.store.delete(session.uniqueId());
+                continue;
+            }
             if (session.finished()) continue;
             this.sessions.put(session.uniqueId(), session);
         }
@@ -42,7 +46,7 @@ public final class SessionManager {
         if (this.sessions.putIfAbsent(player.getUniqueId(), session) != null) {
             return false;
         }
-        this.store.save(session);
+        if (mode == InferenceModel.FLOWER) this.store.save(session);
         return true;
     }
 
@@ -59,6 +63,7 @@ public final class SessionManager {
     }
 
     public void checkpoint(RecordingSession session) {
+        if (session.mode() == InferenceModel.UNIVERSE) return;
         if (this.sessions.get(session.uniqueId()) == session) {
             this.store.save(session);
         }
@@ -77,7 +82,8 @@ public final class SessionManager {
     }
 
     public void stopAll() {
-        this.sessions.values().forEach(this.store::save);
+        this.sessions.values().stream().filter(session -> session.mode() == InferenceModel.FLOWER)
+                .forEach(this.store::save);
         this.sessions.values().forEach(RecordingSession::finish);
         this.sessions.clear();
     }

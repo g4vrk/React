@@ -14,6 +14,11 @@ import java.util.ArrayDeque;
 import java.util.Objects;
 
 public final class RecordingSession {
+    public static final int UNIVERSE_BATCH_SIZE = 64;
+    private final UUID recordingId = UUID.randomUUID();
+    private final java.time.LocalDate recordingDate = java.time.LocalDate.now();
+    private int savedFrames;
+    private boolean completionNotified;
     private final UUID uniqueId;
     private final String playerName;
     private final String safePlayerName;
@@ -60,7 +65,7 @@ public final class RecordingSession {
         this.source = source;
         this.targetFrames = targetFrames;
         this.firstNumber = firstNumber;
-        this.framesPerChunk = framesPerChunk;
+        this.framesPerChunk = mode == InferenceModel.UNIVERSE ? UNIVERSE_BATCH_SIZE : framesPerChunk;
         this.recorderUuid = recorderUuid;
         this.notifier = notifier;
         this.capturedFrames = capturedFrames;
@@ -77,7 +82,17 @@ public final class RecordingSession {
         if (finished || mode != InferenceModel.UNIVERSE) {
             return null;
         }
-        return captureFrame(DatasetFrame.from(frame));
+        buffer.add(DatasetFrame.from(frame));
+        ++capturedFrames;
+        boolean completed = capturedFrames >= targetFrames;
+        if (buffer.size() == UNIVERSE_BATCH_SIZE) {
+            return drain(completed);
+        }
+        if (completed) {
+            buffer.clear();
+            finished = true;
+        }
+        return null;
     }
 
     public synchronized CapturedFile capture(RotationFactory factory, float yaw, float pitch) {
@@ -113,6 +128,11 @@ public final class RecordingSession {
     }
 
     public synchronized CapturedFile finishAndDrain() {
+        if (mode == InferenceModel.UNIVERSE) {
+            finished = true;
+            buffer.clear();
+            return null;
+        }
         if (this.finished && this.buffer.isEmpty()) {
             return null;
         }
@@ -131,7 +151,28 @@ public final class RecordingSession {
     }
 
     public synchronized SessionSnapshot snapshot() {
-        return new SessionSnapshot(this.uniqueId, this.playerName, this.label, this.capturedFrames, this.targetFrames, this.buffer.size(), this.recorderUuid, this.source, this.mode);
+        return new SessionSnapshot(this.uniqueId, this.playerName, this.label, this.capturedFrames, this.targetFrames, this.buffer.size(), this.recorderUuid, this.source, this.mode,
+                mode == InferenceModel.UNIVERSE ? savedFrames : capturedFrames,
+                mode == InferenceModel.UNIVERSE ? recordingId : null);
+    }
+
+    public synchronized void batchSaved() {
+        savedFrames += UNIVERSE_BATCH_SIZE;
+    }
+
+    public synchronized boolean claimCompletion() {
+        if (completionNotified || !finished || capturedFrames < targetFrames
+                || savedFrames != capturedFrames / UNIVERSE_BATCH_SIZE * UNIVERSE_BATCH_SIZE) return false;
+        completionNotified = true;
+        return true;
+    }
+
+    public UUID recordingId() {
+        return recordingId;
+    }
+
+    public java.time.LocalDate recordingDate() {
+        return recordingDate;
     }
 
     public synchronized List<DatasetFrame> bufferedFrames() {
@@ -152,6 +193,9 @@ public final class RecordingSession {
 
     public synchronized void finish() {
         this.finished = true;
+        if (mode == InferenceModel.UNIVERSE) {
+            buffer.clear();
+        }
     }
 
     public UUID uniqueId() {

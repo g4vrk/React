@@ -83,18 +83,19 @@ extends LocalArgument {
         final CommandSender fallbackSender = sender;
         final String targetName = player.getName();
         final String safeSource = source;
-        Map<String, String> base = Placeholders.of("player", targetName, "label", this.label.fileLabel(), "source", safeSource, "frames", frames, "target-frames", frames, "file-count", (frames + collector.framesPerFile() - 1) / collector.framesPerFile(), "frames-per-file", collector.framesPerFile(), "combat-only", collector.combatOnly(), "directory", collector.datasetsDirectory().toString());
+        final int chunkFrames = universe ? com.g4vrk.reactdataset.session.RecordingSession.UNIVERSE_BATCH_SIZE : collector.framesPerFile();
+        Map<String, String> base = Placeholders.of("player", targetName, "label", this.label.fileLabel(), "source", safeSource, "frames", frames, "target-frames", frames, "file-count", universe ? frames / chunkFrames : (frames + chunkFrames - 1) / chunkFrames, "frames-per-file", chunkFrames, "combat-only", collector.combatOnly(), "directory", collector.datasetsDirectory().toString());
         RecordingNotifier notifier = new RecordingNotifier(){
 
             @Override
             public void onFile(Path path, int capturedFrames, int targetFrames) {
-                RecordStartArgument.this.addon.actions().run("recording.on-file", RecordStartArgument.this.resolveSender(fallbackSender, senderUuid), Placeholders.of("player", targetName, "label", RecordStartArgument.this.label.fileLabel(), "source", safeSource, "file", path.getFileName(), "captured", capturedFrames, "target", targetFrames, "captured-frames", capturedFrames, "target-frames", targetFrames, "frames-per-file", collector.framesPerFile()));
+                RecordStartArgument.this.addon.actions().run("recording.on-file", RecordStartArgument.this.resolveSender(fallbackSender, senderUuid), Placeholders.of("player", targetName, "label", RecordStartArgument.this.label.fileLabel(), "source", safeSource, "file", path.getFileName(), "captured", capturedFrames, "target", targetFrames, "captured-frames", capturedFrames, "target-frames", targetFrames, "frames-per-file", chunkFrames));
             }
 
             @Override
             public void onComplete(int capturedFrames, int targetFrames) {
-                RecordStartArgument.this.addon.recordingBossBars().hide(targetUuid);
-                RecordStartArgument.this.addon.actions().run("recording.on-complete", RecordStartArgument.this.resolveSender(fallbackSender, senderUuid), Placeholders.of("player", targetName, "label", RecordStartArgument.this.label.fileLabel(), "source", safeSource, "captured", capturedFrames, "target", targetFrames, "captured-frames", capturedFrames, "target-frames", targetFrames, "buffered", 0, "frames-per-file", collector.framesPerFile()));
+                if (!universe) RecordStartArgument.this.addon.recordingBossBars().hide(targetUuid);
+                RecordStartArgument.this.addon.actions().run("recording.on-complete", RecordStartArgument.this.resolveSender(fallbackSender, senderUuid), Placeholders.of("player", targetName, "label", RecordStartArgument.this.label.fileLabel(), "source", safeSource, "captured", capturedFrames, "target", targetFrames, "captured-frames", capturedFrames, "target-frames", targetFrames, "buffered", 0, "frames-per-file", chunkFrames));
             }
 
             @Override
@@ -107,7 +108,9 @@ extends LocalArgument {
             return;
         }
         SessionSnapshot snapshot = collector.snapshot(targetUuid);
-        if (snapshot != null && sender instanceof Player) {
+        if (snapshot != null && universe) {
+            this.addon.recordingBossBars().show(player, snapshot);
+        } else if (snapshot != null && sender instanceof Player) {
             Player recorder = (Player)sender;
             this.addon.recordingBossBars().show(recorder, snapshot);
         }

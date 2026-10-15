@@ -21,6 +21,11 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import com.g4vrk.react.inference.InferenceModel;
 import com.g4vrk.react.universe.UniverseFrame;
+import com.g4vrk.reactdataset.session.RecordingSession;
+import java.util.Properties;
+import java.util.UUID;
+import java.nio.channels.FileChannel;
+import java.nio.ByteBuffer;
 
 public final class CsvDatasetStorage {
     public static final String HEADER = "label,x,y,deltaX,deltaY,jerkX,jerkY,gcdErrorX,gcdErrorY";
@@ -34,6 +39,7 @@ public final class CsvDatasetStorage {
     private final Logger logger;
     private final Path directory;
     private final int framesPerFile;
+    private final java.util.Map<Path, Long> universeCommittedSizes = new java.util.HashMap<>();
 
     public CsvDatasetStorage(Logger logger, Path path, int n) {
         this.logger = logger;
@@ -138,34 +144,164 @@ public final class CsvDatasetStorage {
 
     private Path writeUniverse(String player, int number, RecordLabel label, String source,
                                List<DatasetFrame> frames) throws IOException {
-        if (frames.stream().anyMatch(frame -> frame.universe() == null)) {
-            throw new IOException("Mixed dataset schemas");
-        }
-        Path path = pathFor(player, source, InferenceModel.UNIVERSE);
-        Files.createDirectories(path.getParent());
-        String existing = "";
-        if (Files.exists(path)) {
-            existing = Files.readString(path, StandardCharsets.UTF_8);
-            if (!existing.isEmpty() && !existing.lines().findFirst().orElse("").equals(UNIVERSE_HEADER)) {
-                throw new IOException("Unsupported UNIVERSE dataset header in " + path);
-            }
-        }
-        StringBuilder chunk = new StringBuilder(UNIVERSE_HEADER).append('\n');
-        StringBuilder rows = new StringBuilder();
-        for (DatasetFrame frame : frames) {
-            rows.append(frame.universe().toCsvRow(label.cheater())).append('\n');
-        }
-        String consolidated = existing.isEmpty() ? UNIVERSE_HEADER + "\n"
-                : existing + (existing.endsWith("\n") || existing.endsWith("\r") ? "" : "\n");
-        Path temporary = path.resolveSibling("." + path.getFileName() + ".tmp");
-        Files.writeString(temporary, consolidated + rows, StandardCharsets.UTF_8);
-        moveReplacing(temporary, path);
-        Path pendingDir = pendingDirectory(InferenceModel.UNIVERSE);
-        Files.createDirectories(pendingDir);
-        Path pending = pendingDir.resolve(player + "-" + number + "-" + label.fileLabel() + ".csv");
-        Files.writeString(pending, chunk.append(rows), StandardCharsets.UTF_8);
-        return pending;
+        Path journal = stageUniverseBatch(UUID.randomUUID().toString(),
+                pathFor(player, source, InferenceModel.UNIVERSE),
+                player + "-" + number + "-" + label.fileLabel() + ".csv", label, frames);
+        return commitUniverseBatch(journal).pending();
     }
+
+    public Path pathForRecording(String player, String source, LocalDate date, UUID recordingId) {
+        return modeDirectory(InferenceModel.UNIVERSE).resolve(safePlayerName(player) + "-"
+                + safeSource(source) + "-" + date + "-" + recordingId + ".csv");
+    }
+
+    private Path universeRecoveryDirectory() {
+        return modeDirectory(InferenceModel.UNIVERSE).resolve(".batch-recovery");
+    }
+
+    synchronized List<Path> universeRecovery() throws IOException {
+        Path recovery = universeRecoveryDirectory();
+        if (!Files.isDirectory(recovery)) return List.of();
+        try (var files = Files.list(recovery)) {
+            return files.filter(file -> file.getFileName().toString().endsWith(".properties"))
+                    .sorted().toList();
+        }
+    }
+
+    synchronized Path stageUniverseBatch(String id, Path target, String pendingName,
+                                         RecordLabel label, List<DatasetFrame> frames) throws IOException {
+        if (frames.size() != RecordingSession.UNIVERSE_BATCH_SIZE
+                || frames.stream().anyMatch(frame -> frame.universe() == null)) {
+            throw new IOException("UNIVERSE requires exactly 64 frames per batch");
+        }
+        Files.createDirectories(universeRecoveryDirectory());
+        Path journal = universeRecoveryDirectory().resolve(id + ".properties");
+        if (Files.exists(journal)) return journal;
+        Properties data = new Properties();
+        data.setProperty("csv", target.getFileName().toString());
+        data.setProperty("pending", pendingName);
+        StringBuilder rows = new StringBuilder();
+        for (DatasetFrame frame : frames) rows.append(frame.universe().toCsvRow(label.cheater())).append('\n');
+        data.setProperty("rows", rows.toString());
+        storeUniverseJournal(journal, data);
+        return journal;
+    }
+
+    synchronized SavedBatch commitUniverseBatch(Path journal) throws IOException {
+        Properties data = new Properties();
+        try (var reader = Files.newBufferedReader(journal, StandardCharsets.UTF_8)) {
+            data.load(reader);
+        }
+        Path csv = safeChild(modeDirectory(InferenceModel.UNIVERSE), data.getProperty("csv"));
+        Path pending = safeChild(pendingDirectory(InferenceModel.UNIVERSE), data.getProperty("pending"));
+        String rows = data.getProperty("rows", "");
+        if (rows.lines().count() != RecordingSession.UNIVERSE_BATCH_SIZE) {
+            throw new IOException("Invalid UNIVERSE recovery batch: " + journal);
+        }
+        if (Files.exists(csv) && !Files.isRegularFile(csv)) {
+            throw new IOException("UNIVERSE destination is not a file: " + csv);
+        }
+        long size = Files.exists(csv) ? Files.size(csv) : 0L;
+        long offset;
+        try {
+            offset = Long.parseLong(data.getProperty("offset", Long.toString(size)));
+        } catch (NumberFormatException invalid) {
+            throw new IOException("Invalid UNIVERSE recovery offset", invalid);
+        }
+        if (!data.containsKey("offset")) {
+            if (size > 0L && !java.util.Objects.equals(universeCommittedSizes.get(csv), size)) {
+                try (var lines = Files.lines(csv, StandardCharsets.UTF_8)) {
+                    var iterator = lines.iterator();
+                    if (!iterator.hasNext() || !UNIVERSE_HEADER.equals(iterator.next())) {
+                        throw new IOException("Unsupported UNIVERSE CSV header: " + csv);
+                    }
+                    long count = 0;
+                    while (iterator.hasNext()) { iterator.next(); count++; }
+                    if (count % RecordingSession.UNIVERSE_BATCH_SIZE != 0) {
+                        throw new IOException("UNIVERSE destination has an incomplete batch: " + csv);
+                    }
+                }
+            }
+            data.setProperty("offset", Long.toString(offset));
+            storeUniverseJournal(journal, data);
+        }
+        byte[] payload = ((offset == 0L ? UNIVERSE_HEADER + "\n" : "") + rows).getBytes(StandardCharsets.UTF_8);
+        appendUniverseBatch(csv, offset, payload);
+        universeCommittedSizes.put(csv, Files.size(csv));
+        writeUniverseAtomic(pending, UNIVERSE_HEADER + "\n" + rows);
+        Files.delete(journal);
+        return new SavedBatch(csv, pending);
+    }
+
+    private static void appendUniverseBatch(Path csv, long offset, byte[] payload) throws IOException {
+        try (FileChannel channel = FileChannel.open(csv, StandardOpenOption.CREATE,
+                StandardOpenOption.READ, StandardOpenOption.WRITE)) {
+            long size = channel.size();
+            if (offset < 0L || size < offset) throw new IOException("UNIVERSE recovery conflicts with " + csv);
+            int present = (int)Math.min(payload.length, size - offset);
+            ByteBuffer existing = ByteBuffer.allocate(present);
+            channel.position(offset);
+            while (existing.hasRemaining()) {
+                if (channel.read(existing) < 0) throw new IOException("Truncated UNIVERSE CSV: " + csv);
+            }
+            for (int index = 0; index < present; index++) {
+                if (existing.array()[index] != payload[index]) {
+                    throw new IOException("UNIVERSE recovery conflicts with " + csv);
+                }
+            }
+            if (present == payload.length) {
+                channel.force(true);
+                return; // This batch was already committed before a failed retry.
+            }
+            // Only a partial tail belonging to this journal may be rolled back; prior batches stay intact.
+            channel.truncate(offset);
+            channel.position(offset);
+            try {
+                ByteBuffer bytes = ByteBuffer.wrap(payload);
+                while (bytes.hasRemaining()) channel.write(bytes);
+                channel.force(true);
+            } catch (IOException failure) {
+                try { channel.truncate(offset); channel.force(true); }
+                catch (IOException rollback) { failure.addSuppressed(rollback); }
+                throw failure;
+            }
+        } catch (IOException failure) {
+            if (offset == 0L) {
+                try { if (Files.isRegularFile(csv) && Files.size(csv) == 0L) Files.delete(csv); }
+                catch (IOException cleanup) { failure.addSuppressed(cleanup); }
+            }
+            throw failure;
+        }
+    }
+
+    private static Path safeChild(Path parent, String name) throws IOException {
+        if (name == null || name.equals(".") || name.equals("..")
+                || !Path.of(name).getFileName().toString().equals(name)) {
+            throw new IOException("Invalid UNIVERSE recovery path");
+        }
+        return parent.resolve(name);
+    }
+
+    private static void storeUniverseJournal(Path path, Properties data) throws IOException {
+        var text = new java.io.StringWriter();
+        data.store(text, "Completed UNIVERSE batch");
+        writeUniverseAtomic(path, text.toString());
+    }
+
+    private static void writeUniverseAtomic(Path path, String text) throws IOException {
+        Files.createDirectories(path.getParent());
+        Path temporary = path.resolveSibling("." + path.getFileName() + ".tmp");
+        try (FileChannel channel = FileChannel.open(temporary, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+            ByteBuffer bytes = StandardCharsets.UTF_8.encode(text);
+            while (bytes.hasRemaining()) channel.write(bytes);
+            channel.force(true);
+        }
+        // If replacement is unsupported, retain the journal and previous CSV for retry.
+        Files.move(temporary, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    record SavedBatch(Path csv, Path pending) {}
 
     public Path write(String string, int n, RecordLabel recordLabel, List<DatasetFrame> list) throws IOException {
         return this.write(string, n, recordLabel, "unknown", list);
