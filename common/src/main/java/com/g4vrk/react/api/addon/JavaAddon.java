@@ -8,8 +8,8 @@ import org.slf4j.Logger;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLClassLoader;
+import java.net.URLConnection;
 
 public abstract class JavaAddon implements Addon {
 

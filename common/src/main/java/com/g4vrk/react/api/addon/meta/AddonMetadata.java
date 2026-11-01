@@ -1,5 +1,6 @@
 package com.g4vrk.react.api.addon.meta;
 
+import com.g4vrk.react.api.Metadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,4 +13,4 @@ public record AddonMetadata(
         @Nullable String description,
         @Nullable Collection<String> authors,
         @Nullable Collection<String> contributors
-) {}
+) implements Metadata {}
