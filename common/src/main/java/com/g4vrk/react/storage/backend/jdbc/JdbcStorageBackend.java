@@ -16,15 +16,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import static com.g4vrk.react.storage.constant.StorageConstants.INFERENCE_TABLE;
-import static com.g4vrk.react.storage.constant.StorageConstants.LEGACY_INFERENCE_TABLE;
-import static com.g4vrk.react.storage.constant.StorageConstants.VIOLATIONS_TABLE;
+import static com.g4vrk.react.storage.constant.StorageConstants.*;
 
 public final class JdbcStorageBackend implements StorageBackend {
 

@@ -5,14 +5,14 @@ import com.g4vrk.react.React;
 import com.g4vrk.react.api.ReloadObserver;
 import com.g4vrk.react.parse.time.TimeParser;
 import com.g4vrk.react.parse.time.TimeValue;
+import com.g4vrk.react.player.CombatActivity;
 import com.g4vrk.react.player.ReactPlayer;
+import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import com.g4vrk.react.player.CombatActivity;
-import com.g4vrk.react.player.registry.PlayerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;

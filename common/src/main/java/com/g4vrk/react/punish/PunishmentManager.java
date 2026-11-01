@@ -1,15 +1,15 @@
 package com.g4vrk.react.punish;
 
+import com.g4vrk.config.Config;
 import com.g4vrk.functionalActions.ExecutableAction;
 import com.g4vrk.functionalActions.list.ExecutableActionList;
 import com.g4vrk.functionalActions.parser.ActionParser;
 import com.g4vrk.functionalActions.parser.impl.SimpleActionParser;
 import com.g4vrk.functionalActions.registry.ActionRegistry;
 import com.g4vrk.functionalActions.registry.impl.SimpleActionRegistry;
-import com.g4vrk.config.Config;
 import com.g4vrk.react.React;
-import com.g4vrk.react.api.channel.print.impl.AlertPrinter;
 import com.g4vrk.react.api.ReloadObserver;
+import com.g4vrk.react.api.channel.print.impl.AlertPrinter;
 import com.g4vrk.react.check.Check;
 import com.g4vrk.schedula.task.TickSchedule;
 import com.g4vrk.schedula.task.scheduler.Scheduler;
