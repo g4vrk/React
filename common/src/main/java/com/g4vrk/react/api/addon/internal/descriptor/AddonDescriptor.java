@@ -1,8 +1,8 @@
-package com.g4vrk.react.api.addon.descriptor.impl;
+package com.g4vrk.react.api.addon.internal.descriptor;
 
 import com.g4vrk.config.Config;
 import com.g4vrk.config.loader.ConfigLoader;
-import com.g4vrk.react.api.addon.descriptor.AddonDescriptor;
+import com.g4vrk.react.api.Descriptor;
 import com.g4vrk.react.api.addon.meta.AddonMetadata;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -14,12 +14,12 @@ import java.util.Collections;
 
 import static java.util.Objects.requireNonNull;
 
-public class SimpleAddonDescriptor implements AddonDescriptor<Path> {
+public class AddonDescriptor implements Descriptor<AddonMetadata, Path> {
 
     private final ConfigLoader<?> loader;
 
-    public SimpleAddonDescriptor(
-            @NotNull ConfigLoader<?> loader
+    public AddonDescriptor(
+            final @NotNull ConfigLoader<?> loader
     ) {
         this.loader = loader;
     }

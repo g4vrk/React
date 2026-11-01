@@ -9,12 +9,7 @@ import com.g4vrk.react.inference.server.settings.InferenceRequestSettings;
 import com.g4vrk.react.inference.server.settings.InferenceResponseSettings;
 import com.g4vrk.react.inference.server.settings.InferenceSettings;
 import lombok.Getter;
-import okhttp3.Cache;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 

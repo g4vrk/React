@@ -1,9 +1,9 @@
-package com.g4vrk.react.api.addon.loader.impl;
+package com.g4vrk.react.api.addon.internal.loader;
 
-import com.g4vrk.react.api.addon.internal.JavaAddonClassLoader;
+import com.g4vrk.react.api.Loader;
 import com.g4vrk.react.api.addon.JavaAddon;
-import com.g4vrk.react.api.addon.descriptor.AddonDescriptor;
-import com.g4vrk.react.api.addon.loader.AddonLoader;
+import com.g4vrk.react.api.addon.internal.JavaAddonClassLoader;
+import com.g4vrk.react.api.addon.internal.descriptor.AddonDescriptor;
 import com.g4vrk.react.api.addon.meta.AddonMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -15,18 +15,18 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.function.Function;
 
-public class JarAddonLoader implements AddonLoader<Path> {
+public class JarAddonLoader implements Loader<JavaAddon, Path> {
 
     private final File directory;
 
-    private final AddonDescriptor<Path> descriptor;
+    private final AddonDescriptor descriptor;
 
     private final Function<AddonMetadata, Logger> loggerFactory;
     private final String addonMetadataFile;
 
     public JarAddonLoader(
             @NotNull File directory,
-            @NotNull AddonDescriptor<Path> descriptor,
+            @NotNull AddonDescriptor descriptor,
             @NotNull Function<AddonMetadata, Logger> loggerFactory,
             @NotNull String addonMetadataFile
     ) {
@@ -37,7 +37,7 @@ public class JarAddonLoader implements AddonLoader<Path> {
     }
 
     @Override
-    public @NotNull JavaAddon load(@NotNull Path source) throws Exception {
+    public @NotNull JavaAddon load(final @NotNull Path source) throws Exception {
 
         final File sourceFile = source.toFile();
 
@@ -73,4 +73,5 @@ public class JarAddonLoader implements AddonLoader<Path> {
             return addon;
         }
     }
+
 }
