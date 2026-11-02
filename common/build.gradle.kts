@@ -7,14 +7,6 @@ repositories {
     maven {
         url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     }
-
-    maven {
-        url = uri("https://repo.opencollab.dev/main/")
-    }
-
-    maven {
-        url = uri("https://repo.opencollab.dev/snapshots/")
-    }
 }
 
 tasks.named<ProcessResources>("processResources") {
@@ -27,9 +19,6 @@ dependencies {
 
     compileOnly(libs.placeholderapi)
     compileOnly(libs.packetevents)
-
-    compileOnly(libs.moshi)
-    compileOnly(libs.moshi.adapters)
 
     implementation(libs.hikari) {
         exclude(group = "org.slf4j", module = "slf4j-api")
@@ -49,16 +38,9 @@ dependencies {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
 
-    compileOnly(libs.ejml.core)
-    compileOnly(libs.ejml.ddense)
-    compileOnly(libs.ejml.simple)
-
     compileOnly(libs.configurate.yaml)
 
     compileOnly(libs.cloud.paper)
-
-    compileOnly(libs.geyser.api)
-    compileOnly(libs.floodgate.api)
 
     implementation(libs.textserializer.legacy)
     implementation(libs.actions)

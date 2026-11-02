@@ -1,14 +1,13 @@
 package com.g4vrk.react.inference.aim;
 
 import com.g4vrk.react.inference.http.model.HttpRequest;
+import com.g4vrk.react.inference.json.InferenceJsonCodec;
 import com.g4vrk.react.inference.server.InferenceServer;
 import com.g4vrk.react.inference.server.settings.InferenceRequestSettings;
 import com.g4vrk.react.inference.server.settings.InferenceResponseSettings;
 import com.g4vrk.react.player.model.rotation.Rotation;
-import com.g4vrk.react.util.moshi.MoshiHolder;
 import com.g4vrk.schedula.task.TickSchedule;
 import com.g4vrk.schedula.task.scheduler.Scheduler;
-import com.squareup.moshi.JsonAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
@@ -33,9 +32,6 @@ public final class InferenceAimProcessor {
     private final InferenceServer inferenceServer;
     private final Scheduler scheduler;
 
-    private final JsonAdapter<Map<String, Object>> requestAdapter;
-    private final JsonAdapter<Map<String, Object>> responseAdapter;
-
     public InferenceAimProcessor(
             @NotNull Logger logger,
             @NotNull InferenceServer inferenceServer,
@@ -44,9 +40,6 @@ public final class InferenceAimProcessor {
         this.logger = logger;
         this.inferenceServer = inferenceServer;
         this.scheduler = scheduler;
-
-        this.requestAdapter = MoshiHolder.REQUEST_ADAPTER;
-        this.responseAdapter = MoshiHolder.RESPONSE_ADAPTER;
     }
 
     public void check(
@@ -80,7 +73,7 @@ public final class InferenceAimProcessor {
         final String json;
 
         try {
-            json = requestAdapter.toJson(payload);
+            json = InferenceJsonCodec.writeObject(payload);
         } catch (final Exception ex) {
             logger.warn("Could not serialize ML request for {}", playerName, ex);
             complete(resultHandler, InferenceResult.unavailable());
@@ -148,24 +141,11 @@ public final class InferenceAimProcessor {
                             return;
                         }
 
-                        final Map<String, Object> result = responseAdapter.fromJson(responseText);
-
-                        if (result == null) {
-                            logger.warn(
-                                    "Could not parse ML response for {}: {}",
-                                    playerName,
-                                    responseText
-                            );
-
-                            complete(resultHandler, InferenceResult.unavailable());
-                            return;
-                        }
-
                         final InferenceResponseSettings responseSettings =
                                 inferenceServer.getResponseSettings();
 
-                        final Double probability = readNumber(
-                                result,
+                        final Double probability = InferenceJsonCodec.readNumberField(
+                                responseText,
                                 responseSettings.getProbabilityField()
                         );
 
@@ -215,14 +195,6 @@ public final class InferenceAimProcessor {
         }
 
         return false;
-    }
-
-    private static Double readNumber(
-            final @NotNull Map<String, Object> response,
-            final @NotNull String field
-    ) {
-        final Object raw = response.get(field);
-        return raw instanceof Number number ? number.doubleValue() : null;
     }
 
     private void complete(

@@ -1,31 +1,139 @@
 package com.g4vrk.react.util.platform;
 
-import lombok.experimental.UtilityClass;
-import org.geysermc.api.Geyser;
-import org.geysermc.floodgate.api.FloodgateApi;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Method;
 import java.util.UUID;
 
-@UtilityClass
-public class PlayerPlatformUtil {
+public final class PlayerPlatformUtil {
 
-    private final boolean HAS_FLOODGATE = hasClass("org.geysermc.floodgate.api.FloodgateApi");
-    private final boolean HAS_GEYSER = hasClass("org.geysermc.api.Geyser");
+    private static volatile PlayerDetector floodgateDetector;
+    private static volatile PlayerDetector geyserDetector;
 
-    public boolean bedrockPlayer(
-            final @NotNull UUID uuid
-    ) {
-        return HAS_FLOODGATE && FloodgateApi.getInstance().isFloodgatePlayer(uuid)
-                || HAS_GEYSER && Geyser.api().isBedrockPlayer(uuid);
+    private PlayerPlatformUtil() {
     }
 
-    private boolean hasClass(final @NotNull String className) {
-        try {
-            Class.forName(className);
+    public static boolean bedrockPlayer(final @NotNull UUID uuid) {
+        final PlayerDetector floodgate = floodgateDetector();
+        if (floodgate != null && floodgate.isBedrockPlayer(uuid)) {
             return true;
-        } catch (final ClassNotFoundException ignored) {
-            return false;
+        }
+
+        final PlayerDetector geyser = geyserDetector();
+        return geyser != null && geyser.isBedrockPlayer(uuid);
+    }
+
+    private static PlayerDetector floodgateDetector() {
+        PlayerDetector detector = floodgateDetector;
+
+        if (detector == null) {
+            synchronized (PlayerPlatformUtil.class) {
+                detector = floodgateDetector;
+
+                if (detector == null) {
+                    detector = findDetector(
+                            "org.geysermc.floodgate.api.FloodgateApi",
+                            "getInstance",
+                            "isFloodgatePlayer"
+                    );
+
+                    if (detector != null) {
+                        floodgateDetector = detector;
+                    }
+                }
+            }
+        }
+
+        return detector;
+    }
+
+    private static PlayerDetector geyserDetector() {
+        PlayerDetector detector = geyserDetector;
+
+        if (detector == null) {
+            synchronized (PlayerPlatformUtil.class) {
+                detector = geyserDetector;
+
+                if (detector == null) {
+                    detector = findDetector(
+                            "org.geysermc.api.Geyser",
+                            "api",
+                            "isBedrockPlayer"
+                    );
+
+                    if (detector != null) {
+                        geyserDetector = detector;
+                    }
+                }
+            }
+        }
+
+        return detector;
+    }
+
+    private static PlayerDetector findDetector(
+            final @NotNull String apiClassName,
+            final @NotNull String factoryMethodName,
+            final @NotNull String detectorMethodName
+    ) {
+        final Plugin[] plugins = Bukkit.getPluginManager().getPlugins();
+
+        for (final Plugin plugin : plugins) {
+            final PlayerDetector detector = findDetector(
+                    plugin.getClass().getClassLoader(),
+                    apiClassName,
+                    factoryMethodName,
+                    detectorMethodName
+            );
+
+            if (detector != null) {
+                return detector;
+            }
+        }
+
+        return findDetector(
+                PlayerPlatformUtil.class.getClassLoader(),
+                apiClassName,
+                factoryMethodName,
+                detectorMethodName
+        );
+    }
+
+    private static PlayerDetector findDetector(
+            final @NotNull ClassLoader classLoader,
+            final @NotNull String apiClassName,
+            final @NotNull String factoryMethodName,
+            final @NotNull String detectorMethodName
+    ) {
+        try {
+            final Class<?> apiClass = Class.forName(apiClassName, false, classLoader);
+            final Method factory = apiClass.getMethod(factoryMethodName);
+            final Object instance = factory.invoke(null);
+
+            if (instance == null) {
+                return null;
+            }
+
+            final Method detector = apiClass.getMethod(detectorMethodName, UUID.class);
+            return new PlayerDetector(instance, detector);
+        } catch (final ReflectiveOperationException | LinkageError | RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private record PlayerDetector(
+            @NotNull Object instance,
+            @NotNull Method method
+    ) {
+
+        private boolean isBedrockPlayer(final @NotNull UUID uuid) {
+            try {
+                return Boolean.TRUE.equals(method.invoke(instance, uuid));
+            } catch (final ReflectiveOperationException | RuntimeException ignored) {
+                return false;
+            }
         }
     }
 }
