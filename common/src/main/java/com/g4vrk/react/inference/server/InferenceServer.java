@@ -12,6 +12,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
@@ -22,6 +24,8 @@ import java.util.concurrent.CompletableFuture;
 
 @Getter
 public final class InferenceServer {
+
+    private static final Method HTTP_CLIENT_SHUTDOWN_NOW = findShutdownMethod();
 
     private final HttpClient client;
     private final AuthApplier authApplier;
@@ -86,7 +90,23 @@ public final class InferenceServer {
     }
 
     public void shutdown() {
-        // HttpClient owns its connection pool and has no shutdown API on the Java 17 baseline.
+        if (HTTP_CLIENT_SHUTDOWN_NOW == null) {
+            return;
+        }
+
+        try {
+            HTTP_CLIENT_SHUTDOWN_NOW.invoke(client);
+        } catch (final IllegalAccessException | InvocationTargetException ex) {
+            throw new IllegalStateException("Could not shut down the inference HTTP client", ex);
+        }
+    }
+
+    private static Method findShutdownMethod() {
+        try {
+            return HttpClient.class.getMethod("shutdownNow");
+        } catch (final NoSuchMethodException ignored) {
+            return null;
+        }
     }
 
     private void validate(
