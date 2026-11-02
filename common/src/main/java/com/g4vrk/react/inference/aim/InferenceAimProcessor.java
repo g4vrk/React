@@ -141,13 +141,11 @@ public final class InferenceAimProcessor {
                             return;
                         }
 
-                        final Map<String, Object> result = InferenceJsonCodec.readObject(responseText);
-
                         final InferenceResponseSettings responseSettings =
                                 inferenceServer.getResponseSettings();
 
-                        final Double probability = readNumber(
-                                result,
+                        final Double probability = InferenceJsonCodec.readNumberField(
+                                responseText,
                                 responseSettings.getProbabilityField()
                         );
 
@@ -197,14 +195,6 @@ public final class InferenceAimProcessor {
         }
 
         return false;
-    }
-
-    private static Double readNumber(
-            final @NotNull Map<String, Object> response,
-            final @NotNull String field
-    ) {
-        final Object raw = response.get(field);
-        return raw instanceof Number number ? number.doubleValue() : null;
     }
 
     private void complete(
