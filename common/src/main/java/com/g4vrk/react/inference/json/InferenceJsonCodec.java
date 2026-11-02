@@ -231,8 +231,8 @@ public final class InferenceJsonCodec {
             final @NotNull StringBuilder output,
             final @NotNull Number number
     ) {
-        if (number instanceof Double value && !Double.isFinite(value)
-                || number instanceof Float value && !Float.isFinite(value)) {
+        if ((number instanceof Double doubleValue && !Double.isFinite(doubleValue))
+                || (number instanceof Float floatValue && !Float.isFinite(floatValue))) {
             throw new IllegalArgumentException("JSON numbers must be finite");
         }
 
