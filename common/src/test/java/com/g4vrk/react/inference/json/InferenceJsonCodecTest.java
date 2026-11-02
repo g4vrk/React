@@ -4,10 +4,10 @@ import com.g4vrk.react.player.model.rotation.Rotation;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,46 +38,44 @@ class InferenceJsonCodecTest {
     }
 
     @Test
-    void writesEscapedStringsAndNestedValues() {
-        final Map<String, Object> request = Map.of(
-                "name", "Steve \"The Brave\"\\\n",
-                "enabled", true,
-                "frames", List.of(1, 2, 3)
+    void escapesRequestStrings() {
+        final String json = InferenceJsonCodec.writeObject(
+                Map.of("name", "Steve \"The Brave\"\\\n")
         );
-
-        final String json = InferenceJsonCodec.writeObject(request);
 
         assertTrue(json.contains("Steve \\\"The Brave\\\"\\\\\\n"));
-        assertTrue(json.contains("\"enabled\":true"));
-        assertTrue(json.contains("\"frames\":[1,2,3]"));
     }
 
     @Test
-    void readsInferenceResponseAndNestedJson() {
-        final Map<String, Object> response = InferenceJsonCodec.readObject(
-                "{\"cheat_probability\":0.875,\"metadata\":{\"model\":\"aim\"},\"accepted\":true}"
-        );
+    void readsConfiguredNumberFieldAndSkipsOtherValues() {
+        final String response =
+                "{\"metadata\":{\"model\":\"aim\",\"labels\":[1,true,null]},"
+                        + "\"cheat_probability\":0.875,\"accepted\":true}";
 
-        assertEquals(0.875D, ((Number) response.get("cheat_probability")).doubleValue());
-        assertEquals(true, response.get("accepted"));
-        assertEquals("aim", ((Map<?, ?>) response.get("metadata")).get("model"));
+        assertEquals(0.875D, InferenceJsonCodec.readNumberField(response, "cheat_probability"));
     }
 
     @Test
-    void rejectsMalformedOrNonObjectJson() {
+    void returnsNullWhenConfiguredFieldIsNotNumericOrMissing() {
+        assertNull(InferenceJsonCodec.readNumberField("{\"cheat_probability\":\"0.5\"}", "cheat_probability"));
+        assertNull(InferenceJsonCodec.readNumberField("{\"accepted\":true}", "cheat_probability"));
+    }
+
+    @Test
+    void rejectsMalformedJsonAndTrailingContent() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> InferenceJsonCodec.readObject("{\"probability\":}")
+                () -> InferenceJsonCodec.readNumberField("{\"probability\":}", "probability")
         );
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> InferenceJsonCodec.readObject("[1,2,3]")
+                () -> InferenceJsonCodec.readNumberField("[1,2,3]", "probability")
         );
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> InferenceJsonCodec.readObject("{\"probability\":0.5} trailing")
+                () -> InferenceJsonCodec.readNumberField("{\"probability\":0.5} trailing", "probability")
         );
     }
 
