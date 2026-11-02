@@ -1,4 +1,4 @@
-
+ 
 #
 # React - АнтиЧит основанный на Проверках от Нейросети
 #
@@ -41,16 +41,8 @@ permissions:
     default: op
 
 libraries:
-  - com.squareup.moshi:moshi:1.15.0
-  - com.squareup.moshi:moshi-adapters:1.15.0
-
   - org.spongepowered:configurate-yaml:4.2.0
-
-  - org.ejml:ejml-core:0.41
-  - org.ejml:ejml-ddense:0.41
-  - org.ejml:ejml-simple:0.41
 
   - org.xerial:sqlite-jdbc:3.42.0.0
 
   - org.incendo:cloud-paper:2.0.0
-
