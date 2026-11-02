@@ -7,14 +7,6 @@ repositories {
     maven {
         url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     }
-
-    maven {
-        url = uri("https://repo.opencollab.dev/main/")
-    }
-
-    maven {
-        url = uri("https://repo.opencollab.dev/snapshots/")
-    }
 }
 
 tasks.named<ProcessResources>("processResources") {
