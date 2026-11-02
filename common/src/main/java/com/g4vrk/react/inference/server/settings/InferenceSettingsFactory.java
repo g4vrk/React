@@ -3,13 +3,10 @@ package com.g4vrk.react.inference.server.settings;
 import com.g4vrk.react.inference.auth.AuthSettings;
 import com.g4vrk.react.inference.auth.type.AuthType;
 import com.g4vrk.react.parse.time.TimeParser;
-import com.g4vrk.react.parse.time.TimeValue;
-import okhttp3.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 public class InferenceSettingsFactory {
 
@@ -29,15 +26,10 @@ public class InferenceSettingsFactory {
         final AuthSettings auth = parseAuth(root.node("auth"));
 
         final ConfigurationNode clientNode = root.node("client");
-        final ConnectionPool connectionPool = parseConnectionPool(clientNode.node("connection-pool"));
 
         return new InferenceSettings(
                 parseTimeout(clientNode, "connect-timeout"),
-                parseTimeout(clientNode, "read-timeout"),
-                parseTimeout(clientNode, "write-timeout"),
                 parseTimeout(clientNode, "call-timeout"),
-                clientNode.node("retry-on-failure").getBoolean(true),
-                connectionPool,
                 enabled,
                 endpoint,
                 request,
@@ -85,21 +77,6 @@ public class InferenceSettingsFactory {
                 authNode.node("header", "name").getString("X-Subscription-Token"),
                 authNode.node("query", "parameter").getString("token"),
                 authNode.node("body", "field").getString("token")
-        );
-    }
-
-    private @NotNull ConnectionPool parseConnectionPool(
-            final @NotNull ConfigurationNode connectionPoolNode
-    ) {
-        final TimeValue keepAlive = TimeParser.parseOrDefault(
-                connectionPoolNode.node("keep-alive-duration").getString("5m"),
-                new TimeValue(5, TimeUnit.MINUTES)
-        );
-
-        return new ConnectionPool(
-                connectionPoolNode.node("max-idle-connections").getInt(5),
-                keepAlive.value(),
-                keepAlive.unit()
         );
     }
 
