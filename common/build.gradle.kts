@@ -31,8 +31,6 @@ dependencies {
     compileOnly(libs.moshi)
     compileOnly(libs.moshi.adapters)
 
-    implementation(libs.okhttp)
-
     implementation(libs.hikari) {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
