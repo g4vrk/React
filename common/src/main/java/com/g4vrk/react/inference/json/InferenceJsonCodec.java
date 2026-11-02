@@ -5,14 +5,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class InferenceJsonCodec {
 
     private static final int MAX_NESTING_DEPTH = 64;
+    private static final char[] HEX = "0123456789abcdef".toCharArray();
 
     private InferenceJsonCodec() {
     }
@@ -23,30 +21,11 @@ public final class InferenceJsonCodec {
         return output.toString();
     }
 
-    public static @NotNull Map<String, Object> readObject(final @NotNull String json) {
-        final Parser parser = new Parser(json);
-        final Object value = parser.readValue(0);
-        parser.skipWhitespace();
-
-        if (parser.hasRemaining()) {
-            throw parser.error("Unexpected trailing content");
-        }
-
-        if (!(value instanceof Map<?, ?> map)) {
-            throw parser.error("Expected a JSON object");
-        }
-
-        final Map<String, Object> result = new LinkedHashMap<>(map.size());
-
-        for (final Map.Entry<?, ?> entry : map.entrySet()) {
-            if (!(entry.getKey() instanceof String key)) {
-                throw parser.error("JSON object contains a non-string key");
-            }
-
-            result.put(key, entry.getValue());
-        }
-
-        return result;
+    public static Double readNumberField(
+            final @NotNull String json,
+            final @NotNull String field
+    ) {
+        return new Parser(json).readNumberField(field);
     }
 
     private static void appendObject(
@@ -55,7 +34,6 @@ public final class InferenceJsonCodec {
             final int depth
     ) {
         checkDepth(depth);
-
         output.append('{');
 
         boolean first = true;
@@ -83,47 +61,21 @@ public final class InferenceJsonCodec {
 
         if (value == null) {
             output.append("null");
-            return;
-        }
-
-        if (value instanceof String string) {
+        } else if (value instanceof String string) {
             appendString(output, string);
-            return;
-        }
-
-        if (value instanceof Boolean) {
+        } else if (value instanceof Boolean) {
             output.append(value);
-            return;
-        }
-
-        if (value instanceof Number number) {
+        } else if (value instanceof Number number) {
             appendNumber(output, number);
-            return;
-        }
-
-        if (value instanceof Rotation rotation) {
+        } else if (value instanceof Rotation rotation) {
             appendRotation(output, rotation, depth + 1);
-            return;
-        }
-
-        if (value instanceof Map<?, ?> map) {
-            appendMap(output, map, depth + 1);
-            return;
-        }
-
-        if (value instanceof Iterable<?> iterable) {
-            appendIterable(output, iterable, depth + 1);
-            return;
-        }
-
-        if (value.getClass().isArray()) {
+        } else if (value.getClass().isArray()) {
             appendArray(output, value, depth + 1);
-            return;
+        } else {
+            throw new IllegalArgumentException(
+                    "Unsupported inference JSON value type: " + value.getClass().getName()
+            );
         }
-
-        throw new IllegalArgumentException(
-                "Unsupported inference JSON value type: " + value.getClass().getName()
-        );
     }
 
     private static void appendRotation(
@@ -157,63 +109,12 @@ public final class InferenceJsonCodec {
         output.append(',');
     }
 
-    private static void appendMap(
-            final @NotNull StringBuilder output,
-            final @NotNull Map<?, ?> values,
-            final int depth
-    ) {
-        checkDepth(depth);
-
-        output.append('{');
-        boolean first = true;
-
-        for (final Map.Entry<?, ?> entry : values.entrySet()) {
-            if (!(entry.getKey() instanceof String key)) {
-                throw new IllegalArgumentException("JSON object keys must be strings");
-            }
-
-            if (!first) {
-                output.append(',');
-            }
-
-            first = false;
-            appendString(output, key);
-            output.append(':');
-            appendValue(output, entry.getValue(), depth + 1);
-        }
-
-        output.append('}');
-    }
-
-    private static void appendIterable(
-            final @NotNull StringBuilder output,
-            final @NotNull Iterable<?> values,
-            final int depth
-    ) {
-        checkDepth(depth);
-
-        output.append('[');
-        boolean first = true;
-
-        for (final Object value : values) {
-            if (!first) {
-                output.append(',');
-            }
-
-            first = false;
-            appendValue(output, value, depth + 1);
-        }
-
-        output.append(']');
-    }
-
     private static void appendArray(
             final @NotNull StringBuilder output,
             final @NotNull Object values,
             final int depth
     ) {
         checkDepth(depth);
-
         output.append('[');
 
         for (int i = 0, length = Array.getLength(values); i < length; i++) {
@@ -250,19 +151,12 @@ public final class InferenceJsonCodec {
 
             switch (character) {
                 case '"' -> output.append("\\\"");
-
                 case '\\' -> output.append("\\\\");
-
                 case '\b' -> output.append("\\b");
-
                 case '\f' -> output.append("\\f");
-
                 case '\n' -> output.append("\\n");
-
                 case '\r' -> output.append("\\r");
-
                 case '\t' -> output.append("\\t");
-
                 default -> {
                     if (character < 0x20) {
                         output.append("\\u");
@@ -280,8 +174,6 @@ public final class InferenceJsonCodec {
         output.append('"');
     }
 
-    private static final char[] HEX = "0123456789abcdef".toCharArray();
-
     private static void checkDepth(final int depth) {
         if (depth > MAX_NESTING_DEPTH) {
             throw new IllegalArgumentException("JSON nesting depth exceeds " + MAX_NESTING_DEPTH);
@@ -297,7 +189,55 @@ public final class InferenceJsonCodec {
             this.input = input;
         }
 
-        private Object readValue(final int depth) {
+        private Double readNumberField(final @NotNull String field) {
+            skipWhitespace();
+            expect('{');
+            skipWhitespace();
+
+            Double result = null;
+
+            if (!consume('}')) {
+                while (true) {
+                    skipWhitespace();
+
+                    if (!hasRemaining() || input.charAt(index) != '"') {
+                        throw error("Expected a string key");
+                    }
+
+                    final String key = readString();
+                    skipWhitespace();
+                    expect(':');
+                    skipWhitespace();
+
+                    if (field.equals(key) && isNumberStart()) {
+                        result = readNumber().doubleValue();
+                    } else {
+                        skipValue(1);
+                        if (field.equals(key)) {
+                            result = null;
+                        }
+                    }
+
+                    skipWhitespace();
+
+                    if (consume('}')) {
+                        break;
+                    }
+
+                    expect(',');
+                }
+            }
+
+            skipWhitespace();
+
+            if (hasRemaining()) {
+                throw error("Unexpected trailing content");
+            }
+
+            return result;
+        }
+
+        private void skipValue(final int depth) {
             checkDepth(depth);
             skipWhitespace();
 
@@ -305,26 +245,24 @@ public final class InferenceJsonCodec {
                 throw error("Expected a JSON value");
             }
 
-            return switch (input.charAt(index)) {
-                case '{' -> readObject(depth + 1);
-                case '[' -> readArray(depth + 1);
+            switch (input.charAt(index)) {
                 case '"' -> readString();
-                case 't' -> readLiteral("true", Boolean.TRUE);
-                case 'f' -> readLiteral("false", Boolean.FALSE);
-                case 'n' -> readLiteral("null", null);
+                case '{' -> skipObject(depth + 1);
+                case '[' -> skipArray(depth + 1);
+                case 't' -> readLiteral("true");
+                case 'f' -> readLiteral("false");
+                case 'n' -> readLiteral("null");
                 default -> readNumber();
-            };
+            }
         }
 
-        private Map<String, Object> readObject(final int depth) {
+        private void skipObject(final int depth) {
             checkDepth(depth);
             expect('{');
             skipWhitespace();
 
-            final Map<String, Object> values = new LinkedHashMap<>();
-
             if (consume('}')) {
-                return values;
+                return;
             }
 
             while (true) {
@@ -334,40 +272,35 @@ public final class InferenceJsonCodec {
                     throw error("Expected a string key");
                 }
 
-                final String key = readString();
+                readString();
                 skipWhitespace();
                 expect(':');
-
-                final Object value = readValue(depth + 1);
-                values.put(key, value);
-
+                skipValue(depth + 1);
                 skipWhitespace();
 
                 if (consume('}')) {
-                    return values;
+                    return;
                 }
 
                 expect(',');
             }
         }
 
-        private List<Object> readArray(final int depth) {
+        private void skipArray(final int depth) {
             checkDepth(depth);
             expect('[');
             skipWhitespace();
 
-            final List<Object> values = new ArrayList<>();
-
             if (consume(']')) {
-                return values;
+                return;
             }
 
             while (true) {
-                values.add(readValue(depth + 1));
+                skipValue(depth + 1);
                 skipWhitespace();
 
                 if (consume(']')) {
-                    return values;
+                    return;
                 }
 
                 expect(',');
@@ -376,7 +309,6 @@ public final class InferenceJsonCodec {
 
         private String readString() {
             expect('"');
-
             final StringBuilder value = new StringBuilder();
 
             while (hasRemaining()) {
@@ -438,21 +370,16 @@ public final class InferenceJsonCodec {
             return (char) value;
         }
 
-        private Object readLiteral(
-                final @NotNull String literal,
-                final Object value
-        ) {
+        private void readLiteral(final @NotNull String literal) {
             if (!input.startsWith(literal, index)) {
                 throw error("Invalid JSON literal");
             }
 
             index += literal.length();
-            return value;
         }
 
         private BigDecimal readNumber() {
             final int start = index;
-
             consume('-');
 
             if (consume('0')) {
@@ -492,6 +419,15 @@ public final class InferenceJsonCodec {
             if (required && start == index) {
                 throw error("Expected a digit");
             }
+        }
+
+        private boolean isNumberStart() {
+            if (!hasRemaining()) {
+                return false;
+            }
+
+            final char character = input.charAt(index);
+            return character == '-' || (character >= '0' && character <= '9');
         }
 
         private boolean hasDigit() {
