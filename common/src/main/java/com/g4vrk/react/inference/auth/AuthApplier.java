@@ -1,10 +1,12 @@
 package com.g4vrk.react.inference.auth;
 
 import com.g4vrk.react.inference.auth.type.AuthType;
-import okhttp3.HttpUrl;
-import okhttp3.Request;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public final class AuthApplier {
@@ -37,13 +39,13 @@ public final class AuthApplier {
         payload.put(field, settings.getValue());
     }
 
-    public void applyToHeaders(final @NotNull Request.Builder builder) {
+    public void applyToHeaders(final @NotNull HttpRequest.Builder builder) {
         if (!isActive()) {
             return;
         }
 
         switch (settings.getType()) {
-            case BEARER -> builder.addHeader(
+            case BEARER -> builder.header(
                     "Authorization",
                     "Bearer " + settings.getValue()
             );
@@ -52,7 +54,7 @@ public final class AuthApplier {
                 final String name = settings.getHeaderName();
 
                 if (!name.isBlank()) {
-                    builder.addHeader(name, settings.getValue());
+                    builder.header(name, settings.getValue());
                 }
             }
 
@@ -61,7 +63,7 @@ public final class AuthApplier {
         }
     }
 
-    public @NotNull HttpUrl applyToUrl(final @NotNull HttpUrl url) {
+    public @NotNull URI applyToUrl(final @NotNull URI url) {
         if (!isActive() || settings.getType() != AuthType.QUERY) {
             return url;
         }
@@ -72,8 +74,30 @@ public final class AuthApplier {
             return url;
         }
 
-        return url.newBuilder()
-                .addQueryParameter(parameter, settings.getValue())
-                .build();
+        final String encodedParameter = URLEncoder.encode(parameter, StandardCharsets.UTF_8);
+        final String encodedValue = URLEncoder.encode(settings.getValue(), StandardCharsets.UTF_8);
+        final String rawUrl = url.toASCIIString();
+        final int fragmentIndex = rawUrl.indexOf('#');
+
+        final String requestUrl = fragmentIndex == -1
+                ? rawUrl
+                : rawUrl.substring(0, fragmentIndex);
+        final String fragment = fragmentIndex == -1
+                ? ""
+                : rawUrl.substring(fragmentIndex);
+
+        final String separator;
+
+        if (!requestUrl.contains("?")) {
+            separator = "?";
+        } else if (requestUrl.endsWith("?") || requestUrl.endsWith("&")) {
+            separator = "";
+        } else {
+            separator = "&";
+        }
+
+        return URI.create(
+                requestUrl + separator + encodedParameter + "=" + encodedValue + fragment
+        );
     }
 }
