@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import okhttp3.ConnectionPool;
-import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
 
 @AllArgsConstructor @Getter
@@ -15,20 +14,16 @@ import java.time.Duration;
 public class HttpClientSettings {
 
     private final @NotNull Duration connectTimeout;
-    private final @NotNull Duration readTimeout;
-    private final @NotNull Duration writeTimeout;
     private final @NotNull Duration callTimeout;
-    private final boolean retryOnFailure;
-    private final @NotNull ConnectionPool connectionPool;
 
-    public @NotNull OkHttpClient buildClient() {
-        return new OkHttpClient.Builder()
-                .connectTimeout(connectTimeout)
-                .readTimeout(readTimeout)
-                .writeTimeout(writeTimeout)
-                .callTimeout(callTimeout)
-                .retryOnConnectionFailure(retryOnFailure)
-                .connectionPool(connectionPool)
-                .build();
+    public @NotNull HttpClient buildClient() {
+        final HttpClient.Builder builder = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL);
+
+        if (!connectTimeout.isZero() && !connectTimeout.isNegative()) {
+            builder.connectTimeout(connectTimeout);
+        }
+
+        return builder.build();
     }
 }
