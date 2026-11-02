@@ -3,7 +3,6 @@ package com.g4vrk.react.inference.json;
 import com.g4vrk.react.player.model.rotation.Rotation;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
