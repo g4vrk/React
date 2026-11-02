@@ -43,7 +43,7 @@ inference:
     base-url: 'https://api.react-ac.space'
 
     path: '/api/v2/inference/'
-    # The server selects the model from the subscription token.
+    # Сервер определяет модель по токену подписки.
 
   # Нужно только для своих кастомных моделей
   request:
@@ -55,21 +55,11 @@ inference:
 
     probability-field: cheat_probability
 
-# Настройки клиента подключений
+# Настройки HTTP-клиента JDK
 client:
 
+  # Максимальное время на установление соединения.
   connect-timeout: 10s
 
-  read-timeout: 10s
-
-  write-timeout: 10s
-
+  # Максимальное время полного запроса, включая получение тела ответа.
   call-timeout: 10s
-
-  retry-on-failure: true
-
-  connection-pool:
-
-    max-idle-connections: 5
-
-    keep-alive-duration: 5m
