@@ -9,22 +9,32 @@ import com.g4vrk.react.inference.server.settings.InferenceRequestSettings;
 import com.g4vrk.react.inference.server.settings.InferenceResponseSettings;
 import com.g4vrk.react.inference.server.settings.InferenceSettings;
 import lombok.Getter;
-import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 public final class InferenceServer {
 
-    private final OkHttpClient client;
+    private static final Method HTTP_CLIENT_SHUTDOWN_NOW = findShutdownMethod();
+
+    private final HttpClient client;
     private final AuthApplier authApplier;
 
     private final String baseUrl;
     private final InferenceEndpointSettings endpoint;
     private final InferenceRequestSettings requestSettings;
     private final InferenceResponseSettings responseSettings;
+    private final Duration callTimeout;
 
     private final boolean enabled;
 
@@ -38,6 +48,7 @@ public final class InferenceServer {
         this.endpoint = settings.getEndpoint();
         this.requestSettings = settings.getRequest();
         this.responseSettings = settings.getResponse();
+        this.callTimeout = settings.getCallTimeout();
 
         this.baseUrl = normalizeUrl(endpoint.getBaseUrl());
         this.authApplier = new AuthApplier(settings.getAuth());
@@ -47,35 +58,31 @@ public final class InferenceServer {
         }
     }
 
-    public @NotNull Call newCall(
-            final @NotNull HttpRequest httpRequest
+    public <T> @NotNull CompletableFuture<HttpResponse<T>> callAsync(
+            final @NotNull HttpRequest httpRequest,
+            final @NotNull HttpResponse.BodyHandler<T> bodyHandler
     ) {
         final String rawUrl = baseUrl + endpoint.getPath();
-        final HttpUrl parsedUrl = HttpUrl.parse(rawUrl);
+        final URI url = parseUrl(rawUrl);
 
-        if (parsedUrl == null) {
-            throw new IllegalStateException(
-                    "Invalid ML inference endpoint URL: '" + rawUrl + "'. " +
-                            "Check inference.endpoint.base-url and inference.endpoint.path"
-            );
+        final java.net.http.HttpRequest.Builder requestBuilder =
+                java.net.http.HttpRequest.newBuilder(authApplier.applyToUrl(url))
+                        .header("Content-Type", "application/json; charset=utf-8")
+                        .method(
+                                httpRequest.getMethod(),
+                                java.net.http.HttpRequest.BodyPublishers.ofString(
+                                        httpRequest.getBody(),
+                                        StandardCharsets.UTF_8
+                                )
+                        );
+
+        if (!callTimeout.isZero() && !callTimeout.isNegative()) {
+            requestBuilder.timeout(callTimeout);
         }
-
-        final HttpUrl url = authApplier.applyToUrl(parsedUrl);
-
-        final Request.Builder requestBuilder = new Request.Builder()
-                .url(url)
-                .method(httpRequest.getMethod(), httpRequest.getBody());
 
         authApplier.applyToHeaders(requestBuilder);
 
-        return this.client.newCall(requestBuilder.build());
-    }
-
-    public void callAsync(
-            final @NotNull HttpRequest request,
-            final @NotNull Callback callback
-    ) {
-        this.newCall(request).enqueue(callback);
+        return client.sendAsync(requestBuilder.build(), bodyHandler);
     }
 
     public void augmentPayload(final @NotNull Map<String, Object> payload) {
@@ -83,23 +90,22 @@ public final class InferenceServer {
     }
 
     public void shutdown() {
-        try {
-            this.client.dispatcher().executorService().shutdown();
-        } catch (final Throwable ignored) {
+        if (HTTP_CLIENT_SHUTDOWN_NOW == null) {
+            return;
         }
 
         try {
-            this.client.connectionPool().evictAll();
-        } catch (final Throwable ignored) {
+            HTTP_CLIENT_SHUTDOWN_NOW.invoke(client);
+        } catch (final IllegalAccessException | InvocationTargetException ex) {
+            throw new IllegalStateException("Could not shut down the inference HTTP client", ex);
         }
+    }
 
+    private static Method findShutdownMethod() {
         try {
-            final Cache cache = this.client.cache();
-
-            if (cache != null) {
-                cache.close();
-            }
-        } catch (final Throwable ignored) {
+            return HttpClient.class.getMethod("shutdownNow");
+        } catch (final NoSuchMethodException ignored) {
+            return null;
         }
     }
 
@@ -107,9 +113,9 @@ public final class InferenceServer {
             final @NotNull Logger logger,
             final @NotNull AuthSettings auth
     ) {
-        if (HttpUrl.parse(baseUrl + endpoint.getPath()) == null) {
+        if (!isValidUrl(baseUrl + endpoint.getPath())) {
             logger.warn(
-                    "ML inference endpoint '{}{}' is not a valid URL, requests will fail",
+                    "ML inference endpoint '{}{}' is not a valid HTTP URL, requests will fail",
                     baseUrl, endpoint.getPath()
             );
         }
@@ -135,6 +141,39 @@ public final class InferenceServer {
         if (value == null || value.isBlank()) {
             logger.warn("ML inference config '{}' is blank, requests may be rejected", key);
         }
+    }
+
+    private static @NotNull URI parseUrl(final @NotNull String rawUrl) {
+        try {
+            final URI uri = URI.create(rawUrl);
+
+            if (!isHttpUrl(uri)) {
+                throw new IllegalArgumentException("URL must use HTTP or HTTPS and include a host");
+            }
+
+            return uri;
+        } catch (final IllegalArgumentException ex) {
+            throw new IllegalStateException(
+                    "Invalid ML inference endpoint URL: '" + rawUrl + "'. " +
+                            "Check inference.endpoint.base-url and inference.endpoint.path",
+                    ex
+            );
+        }
+    }
+
+    private static boolean isValidUrl(final @NotNull String rawUrl) {
+        try {
+            return isHttpUrl(URI.create(rawUrl));
+        } catch (final IllegalArgumentException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isHttpUrl(final @NotNull URI uri) {
+        final String scheme = uri.getScheme();
+
+        return uri.getHost() != null
+                && ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme));
     }
 
     private static @NotNull String normalizeUrl(

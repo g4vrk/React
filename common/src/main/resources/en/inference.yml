@@ -53,21 +53,11 @@ auth:
   body:
     field: token
 
-# HTTP client settings
+# JDK HTTP client settings
 client:
 
+  # Time allowed to establish the connection.
   connect-timeout: 10s
 
-  read-timeout: 10s
-
-  write-timeout: 10s
-
+  # Maximum duration of the complete request, including the response body.
   call-timeout: 10s
-
-  retry-on-failure: true
-
-  connection-pool:
-
-    max-idle-connections: 5
-
-    keep-alive-duration: 5m
